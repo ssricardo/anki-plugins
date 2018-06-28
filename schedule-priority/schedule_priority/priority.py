@@ -12,13 +12,13 @@ class Prioritizer:
     def setMultiplier(clz, key, value): 
         import math
 
-        if math.nan(value):
+        if math.isnan(value):
             raise InvalidConfiguration('Value should be a number. Got: {}'.format(value))
 
-        if key > 0 and value >= 100:
+        if key == const.Priority.HIGH and value >= 100:
             raise InvalidConfiguration('''The multiplier index should be higher than 1 for priorities above normal. 
                 Got {}. Check the addon configuration. '''.format(value))
-        elif key < 0 and value <= 100:
+        elif key == const.Priority.LOW and value <= 100:
             raise InvalidConfiguration('''The multiplier index should be lower than 1 for priorities below normal. 
             Got {}. Check the addon configuration. '''.format(value))
         
@@ -81,7 +81,6 @@ class Prioritizer:
             Used to schedule the next date.
         """
 
-        print('priorityUpdateRevision --')
         f = kargs['_old']
         card = args[0]
         f(scheduleInst, card, args[1])     # _updateRevIvl(self, card, ease)
@@ -93,6 +92,8 @@ class Prioritizer:
 def init():
     Scheduler.nextIvl = wrap(Scheduler.nextIvl, Prioritizer.getNextInterval, 'around')
     Scheduler._updateRevIvl = wrap(Scheduler._updateRevIvl, Prioritizer.priorityUpdateRevision, 'around')
+
+    print(Prioritizer.multiplier)
 
 # ------------------------ External runnable ----------------------
 if __name__ == '__main__':
