@@ -23,8 +23,6 @@ As you have so many options (especially with those buttons), sometimes you are n
 
 This addon creates customized interval based on the card (note) record. So when you are studying it, the time is assigned automatically. No need to think about this detail during the review. 
 
-> TODO: continue
-
 ## How to use it
 
 In the edit view, while either creating or editing the card, use the context menu (with right click) and select of the given option.
@@ -65,7 +63,7 @@ Converselly, Low priority should not be repeat as much as other (meaning longer 
 >   low_priority_multiplier = 140
 >   high_priority_multiplier = 70
 
-*Enforcing:* 
+*Reinforcing:* 
 
 * *low_priority_multiplier* is required to be more then 100
 * *high_priority_multiplier* is required to be less then 100
@@ -74,11 +72,12 @@ Converselly, Low priority should not be repeat as much as other (meaning longer 
 
 There are a few ideas planned for next versions:
 
-* Adding a shortcut for priority definition (add tags)
+* Add a shortcut for priority definition (add tags)
 * Create a visual window for configuration (instead of needing to do it in the script file)
-* Maybe, add the option to modify priority during review (instead of only in the Editor)
+* Maybe, add the option to modify priority during review (as opposed to only in the Editor)
 
 ...
 
-> This is still in a very first version. If you find any bug or have other ideas, please send me it. I'll be happy to work on it.
+> 1. This is still in a very first version. If you find any bug or have other ideas, please send me it. I'll be happy to work on it.
 
+> 2. As English is not my native language and right now I don't have time to check details, please help me to fix possible mistakes in the text
