@@ -1,5 +1,6 @@
+#pylint: disable=E0602,another-one
+
 import anki
-#from anki.cards import Card
 from aqt import mw
 from aqt.utils import showInfo
 from aqt.qt import *
@@ -7,6 +8,7 @@ from aqt.qt import *
 import const
 from priority import Prioritizer
 
+# Responsible for schedule-priority integration with Anki UI
 class PriorityCardUiHandler:     
 
     _note = None
@@ -27,24 +29,34 @@ class PriorityCardUiHandler:
         mw.reset()
 
     @staticmethod
-    def onContextMenu(webView, menu):
+    def onEditorCtxMenu(webView, menu):
+        'Handles context menu event on Editor'
 
         _note = webView.editor.note
         _instance = PriorityCardUiHandler(_note)    # hold the card ref
+        _instance.showCustomMenu(menu)
 
+    @staticmethod
+    def onReviewCtxMenu(webView, menu):
+        'Handles context menu event on Reviwer'
+
+        _card = mw.reviewer.card
+        _instance = PriorityCardUiHandler(_card._note)
+        _instance.showCustomMenu(menu)    
+
+    def showCustomMenu(self, menu):
         submenu = QMenu(const.Label.CARD_MENU, menu)
 
         # shortcut="Ctrl+Shift+L",
         a1 = QAction(const.Label.MENU_LOW, submenu, 
-                triggered=_instance.onClickLow)
+                triggered=lambda: self.onClickLow())
+        a2 = QAction(const.Label.MENU_NORMAL, submenu, 
+                triggered=lambda: self.onClickNormal())
+        a3 = QAction(const.Label.MENU_HIGH, submenu,
+                triggered=lambda: self.onClickHigh())
         submenu.addAction(a1)
-
-        # submenu.addAction(const.Label.MENU_LOW, 
-        #     _instance.onClickLow)
-        submenu.addAction(const.Label.MENU_NORMAL, 
-            lambda: _instance.onClickNormal())
-        submenu.addAction(const.Label.MENU_HIGH, 
-            lambda: _instance.onClickHigh())
+        submenu.addAction(a2)
+        submenu.addAction(a3)
 
         menu.addMenu(submenu)
 
@@ -52,4 +64,5 @@ class PriorityCardUiHandler:
 # ----------------------------------------- init ----------------------------------------
 
 def init():
-    anki.hooks.addHook('EditorWebView.contextMenuEvent', PriorityCardUiHandler.onContextMenu)
+    anki.hooks.addHook('EditorWebView.contextMenuEvent', PriorityCardUiHandler.onEditorCtxMenu)
+    anki.hooks.addHook('AnkiWebView.contextMenuEvent', PriorityCardUiHandler.onReviewCtxMenu)

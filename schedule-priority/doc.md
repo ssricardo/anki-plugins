@@ -74,7 +74,6 @@ There are a few ideas planned for next versions:
 
 * Add a shortcut for priority definition (add tags)
 * Create a visual window for configuration (instead of needing to do it in the script file)
-* Maybe, add the option to modify priority during review (as opposed to only in the Editor)
 
 ...
 

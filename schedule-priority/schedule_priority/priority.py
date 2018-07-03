@@ -1,6 +1,8 @@
 from exception import InvalidConfiguration
 import const
 
+# Responseble for the main logic for this addon
+# Integrates with anki Scheduler
 class Prioritizer:
 
     multiplier = {
@@ -26,6 +28,10 @@ class Prioritizer:
 
     @classmethod
     def setPriority(clz, note, level):
+        """
+            Sets the level based on controlling note's tags
+        """
+
         if not note or note == None:
             print('Card Null')
             showWarning('Could not get the instance of note. Cancelling process...')
@@ -92,8 +98,6 @@ class Prioritizer:
 def init():
     Scheduler.nextIvl = wrap(Scheduler.nextIvl, Prioritizer.getNextInterval, 'around')
     Scheduler._updateRevIvl = wrap(Scheduler._updateRevIvl, Prioritizer.priorityUpdateRevision, 'around')
-
-    print(Prioritizer.multiplier)
 
 # ------------------------ External runnable ----------------------
 if __name__ == '__main__':
