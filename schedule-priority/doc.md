@@ -25,11 +25,15 @@ This addon creates customized interval based on the card (note) record. So when 
 
 ## How to use it
 
-In the edit view, while either creating or editing the card, use the context menu (with right click) and select of the given option.
+In the **edit** view, while either creating or editing the card, use the context menu (with right click) and select of the given option.
 
 > Edit card -> Right click -> Card Priorization -> Click the choosen option
 
-[gif]
+![Modifying from editor](doc/modify-priority-editor.gif)
+
+To make it easier and faster, it's also possible to use it during the **review**: 
+
+![Modifying from editor](doc/modify-priority-review.gif)
 
 ## How it works
 
@@ -67,6 +71,8 @@ Converselly, Low priority should not be repeat as much as other (meaning longer 
 
 * *low_priority_multiplier* is required to be more then 100
 * *high_priority_multiplier* is required to be less then 100
+
+![Modifying from editor](doc/schedule-priority-config.png)
 
 ## Future steps
 

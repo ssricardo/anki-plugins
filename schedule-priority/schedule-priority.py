@@ -1,8 +1,8 @@
 # Anki Schedule prioritization
 # Author Ricardo Saturnino
-# Version: 0.1
+# Version: 0.2
 
-# ========================================  Configuration  ================================================
+# ==================================  Configuration  ==================================
 
 ENABLED = True  # True | False
 
@@ -17,7 +17,7 @@ ENABLED = True  # True | False
 low_priority_multiplier = 140
 high_priority_multiplier = 70
 
-# =========================================================================================================
+# ===================================================================================
 
 if ENABLED:
     import schedule_priority.priority as pr
