@@ -1,6 +1,6 @@
 # Anki Schedule prioritization
 # Author Ricardo Saturnino
-# Version: 0.2
+# Version: 1.0
 
 # ==================================  Configuration  ==================================
 
