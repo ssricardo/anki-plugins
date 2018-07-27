@@ -1,0 +1,18 @@
+@startuml "Web Browser - Components"
+
+control "main"
+
+[Constants] as cons
+interface "Note-interface" as nti
+
+package "uimodel" {
+    [Browser view] as bsr
+    [Note menu] as ctxMenu
+}
+
+main .. cons
+main .. uidata
+nti --> ctxMenu
+ctxMenu .> bsr
+
+@enduml
