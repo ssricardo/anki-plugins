@@ -1,4 +1,4 @@
-# anki-web-browser - UI Components
+# anki-web-browser - Context menu for notes
 
 from PyQt4.QtGui import QMenu
 
@@ -16,7 +16,3 @@ class NoteMenuBuilder:
         if newValue:
             self._providers = newValue
         self.updateMenu()
-
-class AwBrowser():
-    pass
-

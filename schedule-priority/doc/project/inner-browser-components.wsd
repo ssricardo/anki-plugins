@@ -1,18 +1,34 @@
 @startuml "Web Browser - Components"
 
-control "main"
+' Interface com browser ou editor p pegar selecionado
+'   - Listener: quando current é trocado
+' Atualizador de note
+' Browser: 
+'   - exibir a partir de palavra selecionada
+'   - repassar palavra ou imagem para note
 
+control "controller"
 [Constants] as cons
-interface "Note-interface" as nti
 
-package "uimodel" {
-    [Browser view] as bsr
-    [Note menu] as ctxMenu
+package "anki" {
+    [AnkiBrowser] as abr
+    [AnkiEditor] as aed
+    [AnkiContextMenu] as acm
 }
 
-main .. cons
-main .. uidata
-nti --> ctxMenu
-ctxMenu .> bsr
+package "addon" as ad {
+    [Browser view] as bsr
+    [Note menu] as nMenu
+}
+
+ad .. cons
+main .up. cons
+main --> acm : Decorate
+main .. nMenu
+main --> abr : get/set listeners
+main --> aed : get/set listeners
+main -up-> bsr : set data / listeners
+nMenu .> bsr : Calls
+
 
 @enduml
