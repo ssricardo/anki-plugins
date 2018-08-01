@@ -3,10 +3,12 @@
 import const
 from browser import AwBrowser
 
-# from aqt import mw
+from aqt import mw
+from aqt.utils import showInfo, tooltip
+
 from PyQt4.QtGui import QMenu, QAction, QApplication
 
-class NoteMenuBuilder:
+class NoteMenuHandler:
     _providers = {}
     # _menu = QMenu()
     _note = None
@@ -14,37 +16,49 @@ class NoteMenuBuilder:
 
     def __init__(self, note, query):
         self._note = note
-        self._searchString = query
+        if query:
+            self._searchString = query.encode('utf8')
 
     @classmethod
-    def options(clazz, newValue: dict):
+    def options(clz, newValue):
         if newValue:
-            clazz._providers = newValue
+            clz._providers = newValue
 
     @staticmethod
     def onReviewerMenu(webView, menu):
         'Handles context menu event on Reviwer'
 
-        _card = webView.reviewer.card
+        _card = mw.reviewer.card
+        _query = webView.selectedText()
+
+        if not _query:
+            return
+
         # _card = mw.reviewer.card
-        _instance = NoteMenuBuilder(_card._note, None)  # Fixme, get search str
+        _instance = NoteMenuHandler(_card._note, _query)  # Fixme, get search str
         _instance.showCustomMenu(menu)
 
     @staticmethod
     def onEditorMenu(webView, menu):
         'Handles context menu event on Editor'
 
+        _query = webView.selectedText()
+
+        if not _query:
+            return
+
         _note = webView.editor.note
-        _instance = NoteMenuBuilder(_note, None)    # hold the card ref  # Fixme, get search str
+        _instance = NoteMenuHandler(_note, _query)    # hold the card ref  # Fixme, get search str
         _instance.showCustomMenu(menu)
 
     def showCustomMenu(self, parentMenu):
+        'Builds the addon entry in the context menu, adding options according to the providers'
+
         submenu = QMenu(const.Label.CARD_MENU, parentMenu)
 
-        for key, value in NoteMenuBuilder._providers.items():
-            target = value + self._searchString if value.endsWith('/') else ('/' + self._searchString)
+        for key, value in NoteMenuHandler._providers.items():
             act = QAction(key, submenu, 
-                triggered=lambda: self.showInBrowser(target))
+                triggered=lambda: self.showInBrowser(value))
             submenu.addAction(act)
 
         # shortcut="Ctrl+Shift+L",
@@ -54,9 +68,14 @@ class NoteMenuBuilder:
 
         parentMenu.addMenu(submenu)
 
-    def showInBrowser(self, website: str):
-        AwBrowser() # TODO: single instance
+    def showInBrowser(self, website):
+        global brw
 
+        brw = AwBrowser() # TODO: single instance
+        tooltip(_("Loading..."), period=1000)
+        brw.open(website, self._searchString)
+
+brw = None
 
 # -------------- Self contained tests --------------
 
@@ -92,16 +111,16 @@ if __name__ == '__main__':
                 'google': 'www.google.com',
                 'wiki': 'www.wikipedia.com'
             }
-            NoteMenuBuilder.options(providers)
-            m = NoteMenuBuilder(None, None)
+            NoteMenuHandler.options(providers)
+            m = NoteMenuHandler(None, None)
             self.assertTrue('google' in m._providers)
             self.assertFalse('yahoo' in m._providers)
 
         def test_menu_in_reviewer(self):
-            NoteMenuBuilder.onReviewerMenu(WebView(), TMenu())
+            NoteMenuHandler.onReviewerMenu(WebView(), TMenu())
 
         def test_menu_in_editor(self):
-            NoteMenuBuilder.onEditorMenu(WebView(), TMenu())
+            NoteMenuHandler.onEditorMenu(WebView(), TMenu())
 
     #app = QApplication()
     unittest.main()
