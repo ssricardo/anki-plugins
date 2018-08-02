@@ -1,3 +1,5 @@
+# Web View, which creates an embedded web browser component
+# Main GUI component for this addon
 # TODO
 
 import urllib.parse
@@ -41,7 +43,8 @@ class AwBrowser(QWebView):
         return self
 
     def unload(self):
-        self.html = BLANK_PAGE
+        print('unload')
+        self.setHtml(BLANK_PAGE)
 
     def onClose(self):
         self._parent = None
@@ -50,7 +53,7 @@ class AwBrowser(QWebView):
     def setNote(self, note):
         self._note = note
 
-    def onContextMenu(self, evt):
+    def contextMenuEvent(self, evt):
         print(self.selectedText())
 
         hit = self.page().currentFrame().hitTestContent(evt.pos())
@@ -69,3 +72,10 @@ class AwBrowser(QWebView):
             m.addAction(act)
 
         action = m.exec_(self.mapToGlobal(evt.pos()))
+
+# Singleton instance for AwBrowser
+instance = None
+
+def setup(parent):
+    global instance
+    instance = AwBrowser(parent)

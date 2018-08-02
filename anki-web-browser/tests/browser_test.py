@@ -5,8 +5,6 @@ import sys
 from anki_mocks_test import *
 import os
 
-print(os.path.dirname(os.path.realpath(__file__)) + '../anki_web_browser')
-
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../anki_web_browser')
 
 import browser

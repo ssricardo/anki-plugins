@@ -4,7 +4,7 @@ import unittest
 import sys
 from anki_mocks_test import *
 
-sys.path.append('/mnt/Dados/projetos/git/anki-addons/anki-plugins/anki-web-browser/anki_web_browser')
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../anki_web_browser')
 
 import notemenu
 from notemenu import NoteMenuHandler
