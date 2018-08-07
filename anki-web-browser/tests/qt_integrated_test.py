@@ -39,13 +39,22 @@ def menu(self, evt):
 
     action = mn.exec_(self.mapToGlobal(evt.pos()))
 
-browser.AwBrowser.contextMenuEvent = menu
+#browser.AwBrowser.contextMenuEvent = menu
+
+def onSelected(field, value, isLink):
+        print('Field {} (link? {}): {}'.format(field, isLink, value))
 
 if __name__ == '__main__':
     print('Running Qt App')
     app = QApplication(sys.argv)
     browser.setup(None)
     web = browser.instance
+    web.setSelectionListener(onSelected)
+    web.setFields([
+        {'name': 'Front'},
+        {'name': 'Back'},
+        {'name': 'Example'}
+    ])
     web.load(QUrl('https://images.google.com/'))
     web.show()
     sys.exit(app.exec_())

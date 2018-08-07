@@ -1,8 +1,6 @@
 # Contains a few classes that mocks anki one
 # Only for testing
 
-
-
 # def mw(self):
 #     reviewer = TReviewer()
 

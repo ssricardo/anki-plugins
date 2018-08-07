@@ -1,7 +1,7 @@
 # Web View, which creates an embedded web browser component
 # Main GUI component for this addon
-# TODO
 
+import const
 import urllib.parse
 from PyQt4.QtGui import QApplication, QMenu, QAction
 from PyQt4.QtCore import QUrl
@@ -11,6 +11,7 @@ BLANK_PAGE = """
     <html>
         <style type="text/css">
             body {
+                margin-top: 30px;
                 background-color: #F5F5F5;
                 color: CCC;
             }
@@ -27,7 +28,8 @@ class AwBrowser(QWebView):
     """
 
     _parent = None
-    _note = None
+    _fields = []
+    _selectedListener = None
     
     def __init__(self, myParent):
         QWebView.__init__(self, parent=myParent)
@@ -50,32 +52,53 @@ class AwBrowser(QWebView):
         self._parent = None
         self.close()
 
-    def setNote(self, note):
-        self._note = note
+    def _makeMenuAction(self, field, value, isLink):
+        return lambda: self._selectedListener.handleSelection(field, value, isLink)
 
     def contextMenuEvent(self, evt):
-        print(self.selectedText())
-
-        hit = self.page().currentFrame().hitTestContent(evt.pos())
+        if not (self._fields and self._selectedListener):
+            return
         
-        print('Text: ', hit.linkText())
-        print(hit.isContentSelected())
-        print(hit.linkUrl())
+        isLink = False
+        value = None
+        if self.selectedText():
+            isLink = False
+            value = self.selectedText()
+        else:
+            hit = self.page().currentFrame().hitTestContent(evt.pos())
+            if hit.linkText():
+                isLink = True
+                value = hit.linkUrl()
 
-        if not self._note:
+        if not value:
             return
 
         m = QMenu(self)
-        for f in self._note.fields:
-            act = QAction('Add selection to ', m, 
-                triggered=lambda: print(f))
-            m.addAction(act)
+        sub = QMenu(const.Label.BROWSER_ASSIGN_TO, m)
+        m.setTitle(const.Label.BROWSER_ASSIGN_TO)
+        for index, f in enumerate(self._fields):
+            print(f)
+            act = QAction(f['name'], m, 
+                triggered=self._makeMenuAction(f, value, isLink))  #FIXME
+            sub.addAction(act)
 
+        m.addMenu(sub)
         action = m.exec_(self.mapToGlobal(evt.pos()))
 
-# Singleton instance for AwBrowser
-instance = None
+#   ----------------- getter / setter  -------------------
 
-def setup(parent):
-    global instance
-    instance = AwBrowser(parent)
+    def setFields(self, fList):
+        print(fList)        # TODO tirar
+        self._fields = fList
+
+    def setSelectionListener(self, value):
+        self._selectedListener = value
+
+
+
+# # Singleton instance for AwBrowser
+# instance = None
+
+# def setup(parent):
+#     global instance
+#     instance = AwBrowser(parent)

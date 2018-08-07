@@ -41,18 +41,28 @@ class Tester(unittest.TestCase):
         b = AwBrowser(None)
         b.unload()
 
-    def test_textSelection(self):
-        pass
+    def customSelected(self):
+        return 'Selecionado!'
 
-    def test_setNote(self):
+    def test_textSelection(self):
+        return
         b = AwBrowser(None)
-        b.setNote(TestNote())
-        self.assertTrue(b._note)
-        self.assertTrue(b._note.fields)
+        b.setFields([
+            {'name': 'Test'},
+            {'name': 'Item2'}
+        ])
+        b.setSelectionListener(lambda a, b, c: print(a, b, c))
+        b.selectedText = self.customSelected
+        b.contextMenuEvent(FakeEvent())
+
+    def test_setFields(self):
+        b = AwBrowser(None)
+        b.setFields(TestNote().fields)
+        self.assertTrue(b._fields)
 
     def test_onContextMenu(self):
         b = AwBrowser(None)
-        b.onContextMenu(FakeEvent())
+        b.contextMenuEvent(FakeEvent())
 
     def test_close(self):
         b = AwBrowser(None)
