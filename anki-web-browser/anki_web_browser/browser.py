@@ -88,7 +88,6 @@ class AwBrowser(QWebView):
 #   ----------------- getter / setter  -------------------
 
     def setFields(self, fList):
-        print(fList)        # TODO tirar
         self._fields = fList
 
     def setSelectionListener(self, value):
