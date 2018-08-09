@@ -47,8 +47,7 @@ def onSelected(field, value, isLink):
 if __name__ == '__main__':
     print('Running Qt App')
     app = QApplication(sys.argv)
-    browser.setup(None)
-    web = browser.instance
+    web = browser.AwBrowser(None)
     web.setSelectionListener(onSelected)
     web.setFields([
         {'name': 'Front'},

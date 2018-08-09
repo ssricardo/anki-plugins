@@ -14,7 +14,7 @@ mode = None
 target = None
 
 acceptedArgs = ('-source', '-dist', '-dev', '-clear')
-existingAddons = ('schedule_priority', 'anki_web_browser')
+existingAddons = ('schedule-priority', 'anki-web-browser')
 
 print ('====================== Building RSS Addon =====================')
 
@@ -34,7 +34,7 @@ for index, value in enumerate(sys.argv):
             print('Already set to dist mode. Ignoring -dev')
         else:
             mode = Const.ANKI
-            target = './dist' #os.environ['anki_addon']
+            target = 'C:\\Users\\Ricardo\\AppData\\Roaming\\Anki2\\addons' # os.environ['anki_addon']
     elif value == acceptedArgs[3]:  # clear
         mode = Const.CLEAR
         target = './dist' #os.environ['anki_addon']
@@ -77,11 +77,13 @@ if mode == Const.ZIP:
 elif mode == Const.ANKI:
     if os.path.exists(target + '/' + addon + '.py'):
         print('Removing old files: {}'.format(target + '/' + addon))
-        shutil.rmtree(target + '/' + addon)
+        shutil.rmtree(target + '/' + addon.replace('-', '_'))
         os.remove(target + '/' + addon + '.py')
 
     print('Copying files to anki directory')
-    shutil.copytree(currentDir + '/' + addon.replace('_', '-') + '/',  target + '/' + addon, 
+    addonRoot = currentDir + '/' + addon
+    shutil.copyfile(addonRoot + '/' + addon + '.py', target + '/' + addon + '.py')
+    shutil.copytree(addonRoot + '/' + addon.replace('-', '_'),  target + '/' + addon.replace('-', '_'), 
     ignore=shutil.ignore_patterns('tests', 'doc', '*_test*', '__pycache__'))
 
 # Deletes from anki addons

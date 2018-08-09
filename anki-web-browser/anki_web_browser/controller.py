@@ -3,18 +3,26 @@
 # Holds references so GC does kill them
 controllerInstance = None
 
+import const
+from notemenu import NoteMenuHandler
+import browser
+import anki
 
 def run(providers = {}):
     global controllerInstance
-    import const
-    from notemenu import NoteMenuHandler
-    import browser
-    import anki
+    
     from aqt import mw
+    from notemenu import ankiSetup
 
-    NoteMenuHandler.options(providers)
+    print('Setting anki-web-browser controller')
+    
+    ankiSetup()
+    NoteMenuHandler.setOptions(providers)
     controllerInstance = Controller(mw)
     controllerInstance.setupBindings()
+
+    from aqt.utils import showInfo, tooltip
+    tooltip('Anki-Web-Browser loaded. Version {}'.format('1.0.3'))
 
     
 
@@ -35,6 +43,7 @@ class Controller:
 
     def setupBindings(self):
         # anki.hooks.addHook('afterStateChange', self.setState)
+        # anki.hooks.addHook('EditorWebView.contextMenuEvent', NoteMenuHandler.onEditorMenu)
         anki.hooks.addHook('EditorWebView.contextMenuEvent', self.onEditorHandle)
         anki.hooks.addHook('AnkiWebView.contextMenuEvent', self.onReviewerHandle)
 
@@ -59,7 +68,8 @@ class Controller:
         """
 
         self._editorReference = None
-        NoteMenuHandler.onReviewerMenu(webView, menu)
+        note = self._ankiMw.reviewer.card.note()
+        NoteMenuHandler.onReviewerMenu(webView, menu, note)
 
     def openInBrowser(self, website, query, note, isEditMode = False):
         """

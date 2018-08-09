@@ -6,7 +6,6 @@ import const
 from PyQt4.QtGui import QMenu, QAction, QApplication
 
 def ankiSetup():
-    from aqt import mw
     from aqt.utils import showInfo, tooltip
 
 class NoteMenuHandler:
@@ -33,20 +32,19 @@ class NoteMenuHandler:
         clz._controller = reference
 
     @staticmethod
-    def onReviewerMenu(webView, menu):
+    def onReviewerMenu(webView, menu, note):
         'Handles context menu event on Reviwer'
 
         if not webView.hasSelection():
             return
 
-        _card = mw.reviewer.card
+        # _card = mw.reviewer.card
         _query = webView.selectedText()
 
         if not _query:
             return
 
-        # _card = mw.reviewer.card
-        _instance = NoteMenuHandler(_card._note, _query)  # Fixme, get search str
+        _instance = NoteMenuHandler(note, _query)  # Fixme, get search str
         _instance._isEditing = False
         _instance.showCustomMenu(menu)
 

@@ -2,10 +2,12 @@
 # Main GUI component for this addon
 
 import const
-import urllib.parse
-from PyQt4.QtGui import QApplication, QMenu, QAction
+import urllib
+from PyQt4.QtGui import QApplication, QMenu, QAction, QDialog, QVBoxLayout
 from PyQt4.QtCore import QUrl
 from PyQt4.QtWebKit import QWebView
+# from PyQt4.Qt import Qt
+from aqt import *       # FIXME improve this
 
 BLANK_PAGE = """
     <html>
@@ -22,7 +24,7 @@ BLANK_PAGE = """
     </html>
 """
 
-class AwBrowser(QWebView):
+class AwBrowser(QDialog):
     """
         Customization and configuration of a web browser to run within Anki
     """
@@ -30,26 +32,47 @@ class AwBrowser(QWebView):
     _parent = None
     _fields = []
     _selectedListener = None
+    _web = None
     
     def __init__(self, myParent):
-        QWebView.__init__(self, parent=myParent)
+        QDialog.__init__(self, myParent)  # , Qt.Window
+        # QWebView.__init__(self, parent=myParent)
         self._parent = myParent
+        # sppliter = QSplitter(self)
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0,0,0,0)
+        layout.setSpacing(0)
+        # self.widget.setLayout(l)
+
+        self._web = QWebView(parent=self)
+        self._web.contextMenuEvent = self.contextMenuEvent
+        layout.addWidget(self._web)
+        self.setWindowTitle('Anki :: Web Browser Addon') 
+
+        self.setGeometry(450, 200, 800, 400)        # TODO re check
+        self.setMinimumWidth (640)
+        self.setMinimumHeight(400)
+        # myParent.setCentralWidget(self)
 
     def open(self, website, query):
         """
             Loads a given page with its replacing part with its query, and shows itself
         """
-        target = website.format(urllib.parse.quote(query))        
-        self.load(QUrl.fromEncoded(target))
+        target = website.format(query)         # urllib.parse.quote(
+        self._web.load(QUrl.fromEncoded(target))
+        
+        
         self.show()
         return self
 
     def unload(self):
         print('unload')
-        self.setHtml(BLANK_PAGE)
+        self._web.setHtml(BLANK_PAGE)
 
     def onClose(self):
         self._parent = None
+        self._web.close()
         self.close()
 
     def _makeMenuAction(self, field, value, isLink):
@@ -65,7 +88,7 @@ class AwBrowser(QWebView):
             isLink = False
             value = self.selectedText()
         else:
-            hit = self.page().currentFrame().hitTestContent(evt.pos())
+            hit = self._web.page().currentFrame().hitTestContent(evt.pos())
             if hit.linkText():
                 isLink = True
                 value = hit.linkUrl()
@@ -84,6 +107,9 @@ class AwBrowser(QWebView):
 
         m.addMenu(sub)
         action = m.exec_(self.mapToGlobal(evt.pos()))
+
+    def load(self, qUrl):
+        self._web.load(qUrl)
 
 #   ----------------- getter / setter  -------------------
 
