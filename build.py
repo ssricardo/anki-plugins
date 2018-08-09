@@ -34,7 +34,7 @@ for index, value in enumerate(sys.argv):
             print('Already set to dist mode. Ignoring -dev')
         else:
             mode = Const.ANKI
-            target = 'C:\\Users\\Ricardo\\AppData\\Roaming\\Anki2\\addons' # os.environ['anki_addon']
+            target = '/home/ricardo/.local/share/Anki2/addons' # os.environ['anki_addon']
     elif value == acceptedArgs[3]:  # clear
         mode = Const.CLEAR
         target = './dist' #os.environ['anki_addon']

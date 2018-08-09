@@ -7,6 +7,10 @@ import const
 from notemenu import NoteMenuHandler
 import browser
 import anki
+import json
+
+# import urllib.request
+from urllib2 import urlopen
 
 def run(providers = {}):
     global controllerInstance
@@ -21,10 +25,11 @@ def run(providers = {}):
     controllerInstance = Controller(mw)
     controllerInstance.setupBindings()
 
-    from aqt.utils import showInfo, tooltip
-    tooltip('Anki-Web-Browser loaded. Version {}'.format('1.0.3'))
+    if True:    # FIXME
+        from aqt.utils import showInfo, tooltip, showWarning
+        tooltip('Anki-Web-Browser loaded. Version {}'.format('1.0.5'))
+        controllerInstance.openInBrowser('https://google.com/search?q={}', 'api-test', None)
 
-    
 
 class Controller:
     """
@@ -39,6 +44,7 @@ class Controller:
     def __init__(self, ankiMw):
         NoteMenuHandler.setController(self)
         self._browser = browser.AwBrowser(ankiMw)
+        self._browser.setSelectionListener(self)
         self._ankiMw = ankiMw
 
     def setupBindings(self):
@@ -47,10 +53,12 @@ class Controller:
         anki.hooks.addHook('EditorWebView.contextMenuEvent', self.onEditorHandle)
         anki.hooks.addHook('AnkiWebView.contextMenuEvent', self.onReviewerHandle)
 
+        # editor.Editor.setNote = wrap(editor.Editor.setNote, mySetup, 'after')
+
     def isEditing(self):
         'Checks anki current state. Whether is editing or not'
 
-        return self._ankiMw and self._ankiMw.state == 'resetRequired' and self._editorReference
+        return True if (self._ankiMw and self._ankiMw.state == 'resetRequired' and self._editorReference) else False
 
     def onEditorHandle(self, webView, menu):
         """
@@ -77,10 +85,11 @@ class Controller:
         """
 
         self._currentNote = note
+        print('OpenInBrowser: {} ({})'.format(note, self.isEditing()))
         
         if self.isEditing():
             fieldList = note.model()['flds']
-            fieldsNames = [{ind, val} for ind, val in enumerate(map(lambda i: i['name'], fieldList))] 
+            fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
             self._browser.setFields(fieldsNames)
         else:
             self._browser.setFields(None)   # clear fields
@@ -94,8 +103,43 @@ class Controller:
         """
 
         print('Received something from Web Browser: [{}] {}'.format(isUrl, value))
-        newValue = self._currentNote.items()[fieldIndex] + '\n' + value
-        self._currentNote.items()[fieldIndex] = newValue
-        print(self._currentNote.items()[fieldIndex]) 
 
-        #self.web.eval("setFields(%s); " % ('{1: "Teste2"}'))
+        self._editorReference.currentField = fieldIndex
+
+        if isUrl:
+            self.handleUrlSelection(fieldIndex, value)
+        else:
+            self.handleTextSelection(fieldIndex, value)        
+
+    def handleUrlSelection(self, fieldIndex, value):
+        # imgReference = self._editorReference.urlToLink(value)
+
+        response = urllib2.urlopen(url, timeout=45)
+        if response.getcode() != 200:
+            showWarning(_("Unexpected response code: %s") % response.status_code)
+            return
+        filecontents = response.read()
+        ct = dict(response.info())
+        path = url #urllib.parse.unquote(url)
+
+        print(ct)
+
+        # imgReference = self._ankiMw.col.media.writeData(path, filecontents, typeHint=ct)
+
+        if not imgReference:
+            from aqt.utils import tooltip
+            tooltip('It was not possible to save the selected reference. Check whether the link is of an accepted type in Anki (audio, image)')
+            return
+
+
+        imgReference = ('<img src="%s" />' % imgReference)
+        print(value, imgReference)
+
+        self._editorReference.web.eval("setFormat('inserthtml', %s);" % json.dumps(imgReference))
+        # self._editorReference.setNote(self._currentNote, focusTo=fieldIndex)
+
+
+    def handleTextSelection(self, fieldIndex, value):
+        newValue = self._currentNote.fields[fieldIndex] + '\n ' + value
+        self._currentNote.fields[fieldIndex] = newValue
+        self._editorReference.setNote(self._currentNote)

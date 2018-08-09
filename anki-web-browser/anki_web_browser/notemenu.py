@@ -13,7 +13,6 @@ class NoteMenuHandler:
     _controller = None
     _note = None
     _searchString = '{}'
-    _isEditing = None
 
     def __init__(self, note, query):
         self._note = note
@@ -45,7 +44,6 @@ class NoteMenuHandler:
             return
 
         _instance = NoteMenuHandler(note, _query)  # Fixme, get search str
-        _instance._isEditing = False
         _instance.showCustomMenu(menu)
 
     @staticmethod
@@ -59,7 +57,6 @@ class NoteMenuHandler:
 
         _note = webView.editor.note
         _instance = NoteMenuHandler(_note, _query)    # hold the card ref  # Fixme, get search str
-        _instance._isEditing = True
         _instance.showCustomMenu(menu)
 
     def showCustomMenu(self, parentMenu):
@@ -69,17 +66,23 @@ class NoteMenuHandler:
 
         for key, value in NoteMenuHandler._providers.items():
             act = QAction(key, submenu, 
-                triggered=lambda: self.showInBrowser(value))
+                triggered=self._makeMenuAction(value))
             submenu.addAction(act)
 
         parentMenu.addMenu(submenu)
+
+    def _makeMenuAction(self, value):
+        """
+            Creates correct action for the context menu selection.
+            Otherwise, it would repeat only the last element
+        """
+
+        return lambda: self.showInBrowser(value)
 
     def showInBrowser(self, website):
         if not self._controller:
             tooltip(_("Error! No Web Browser were found"), period=5000)
 
         self._controller.openInBrowser(website, self._searchString, self._note)
-        # TODO: mover
-        # brw = AwBrowser() # TODO: single instance
-        # tooltip(_("Loading..."), period=1000)
-        # brw.open(website, self._searchString)
+
+# -----------------------------------------------------------------------------
