@@ -64,7 +64,7 @@ class AwBrowser(QDialog):
         self._statusBar.setMaximumHeight(40)
         self._urlInfo = QLabel(self)
         self._statusBar.addPermanentWidget(self._urlInfo)
-        layout.addWidget(self._statusBar)        
+        layout.addWidget(self._statusBar)
 
     def open(self, website, query):
         """

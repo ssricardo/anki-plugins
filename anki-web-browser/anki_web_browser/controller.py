@@ -9,8 +9,7 @@ import browser
 import anki
 import json
 
-# import urllib.request
-from urllib2 import urlopen
+import urllib2
 
 def run(providers = {}):
     global controllerInstance
@@ -27,7 +26,6 @@ def run(providers = {}):
 
     if True:    # FIXME
         from aqt.utils import showInfo, tooltip, showWarning
-        tooltip('Anki-Web-Browser loaded. Version {}'.format('1.0.5'))
         controllerInstance.openInBrowser('https://google.com/search?q={}', 'api-test', None)
 
 
@@ -112,32 +110,11 @@ class Controller:
             self.handleTextSelection(fieldIndex, value)        
 
     def handleUrlSelection(self, fieldIndex, value):
-        # imgReference = self._editorReference.urlToLink(value)
+        url = value.data()
+        imgReference = self._editorReference.urlToLink(url)
 
-        response = urllib2.urlopen(url, timeout=45)
-        if response.getcode() != 200:
-            showWarning(_("Unexpected response code: %s") % response.status_code)
-            return
-        filecontents = response.read()
-        ct = dict(response.info())
-        path = url #urllib.parse.unquote(url)
-
-        print(ct)
-
-        # imgReference = self._ankiMw.col.media.writeData(path, filecontents, typeHint=ct)
-
-        if not imgReference:
-            from aqt.utils import tooltip
-            tooltip('It was not possible to save the selected reference. Check whether the link is of an accepted type in Anki (audio, image)')
-            return
-
-
-        imgReference = ('<img src="%s" />' % imgReference)
-        print(value, imgReference)
-
+        self._editorReference.web.eval("focusField(%d);" % fieldIndex)
         self._editorReference.web.eval("setFormat('inserthtml', %s);" % json.dumps(imgReference))
-        # self._editorReference.setNote(self._currentNote, focusTo=fieldIndex)
-
 
     def handleTextSelection(self, fieldIndex, value):
         newValue = self._currentNote.fields[fieldIndex] + '\n ' + value
