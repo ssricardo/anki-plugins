@@ -4,12 +4,11 @@
 # Main GUI component for this addon
 
 import urllib
-import const
+import config
 from PyQt4.QtGui import QApplication, QMenu, QAction, QDialog, QVBoxLayout, QStatusBar, QLabel
 from PyQt4.QtCore import QUrl
 from PyQt4.QtWebKit import QWebView
-# from PyQt4.Qt import Qt
-from aqt import *       # FIXME improve this
+# from aqt import *       # FIXME remove direct reference to anki
 
 BLANK_PAGE = """
     <html>
@@ -38,7 +37,7 @@ class AwBrowser(QDialog):
     _urlInfo = None
     
     def __init__(self, myParent):
-        QDialog.__init__(self, myParent)  # , Qt.Window
+        QDialog.__init__(self, myParent)
         self._parent = myParent
         self.setupUI()
         
@@ -132,9 +131,11 @@ class AwBrowser(QDialog):
         self.createCtxMenu(value, isLink, evt)
 
     def createCtxMenu(self, value, isLink, evt):
+        'Creates and configures the menu itself'
+        
         m = QMenu(self)
-        sub = QMenu(const.Label.BROWSER_ASSIGN_TO, m)
-        m.setTitle(const.Label.BROWSER_ASSIGN_TO)
+        sub = QMenu(config.Label.BROWSER_ASSIGN_TO, m)
+        m.setTitle(config.Label.BROWSER_ASSIGN_TO)
         for index, label in self._fields.items():
             act = QAction(label, m, 
                 triggered=self._makeMenuAction(index, value, isLink))

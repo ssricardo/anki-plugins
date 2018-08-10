@@ -1,9 +1,7 @@
 # anki-web-browser - Context menu for notes
 
-import const
-# from browser import AwBrowser
-
-from PyQt4.QtGui import QMenu, QAction, QApplication
+import config
+from PyQt4.QtGui import QMenu, QAction
 
 def ankiSetup():
     from aqt.utils import showInfo, tooltip
@@ -37,7 +35,6 @@ class NoteMenuHandler:
         if not webView.hasSelection():
             return
 
-        # _card = mw.reviewer.card
         _query = webView.selectedText()
 
         if not _query:
@@ -62,7 +59,7 @@ class NoteMenuHandler:
     def showCustomMenu(self, parentMenu):
         """ Builds the addon entry in the context menu, adding options according to the providers """
 
-        submenu = QMenu(const.Label.CARD_MENU, parentMenu)
+        submenu = QMenu(config.Label.CARD_MENU, parentMenu)
 
         for key, value in NoteMenuHandler._providers.items():
             act = QAction(key, submenu, 

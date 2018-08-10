@@ -3,24 +3,25 @@
 # Holds references so GC does kill them
 controllerInstance = None
 
-import const
+from config import Config
 from notemenu import NoteMenuHandler
 import browser
 import anki
 import json
 
-import urllib2
+from aqt.editor import Editor
+from aqt.reviewer import Reviewer
 
-def run(providers = {}):
+def run():
     global controllerInstance
     
-    from aqt import mw
+    from aqt import mw    
     from notemenu import ankiSetup
 
     print('Setting anki-web-browser controller')
     
     ankiSetup()
-    NoteMenuHandler.setOptions(providers)
+    NoteMenuHandler.setOptions(Config.providers)
     controllerInstance = Controller(mw)
     controllerInstance.setupBindings()
 
@@ -41,22 +42,46 @@ class Controller:
 
     def __init__(self, ankiMw):
         NoteMenuHandler.setController(self)
-        self._browser = browser.AwBrowser(ankiMw)
+        self._browser = browser.AwBrowser(None)
         self._browser.setSelectionListener(self)
         self._ankiMw = ankiMw
 
     def setupBindings(self):
-        # anki.hooks.addHook('afterStateChange', self.setState)
-        # anki.hooks.addHook('EditorWebView.contextMenuEvent', NoteMenuHandler.onEditorMenu)
         anki.hooks.addHook('EditorWebView.contextMenuEvent', self.onEditorHandle)
         anki.hooks.addHook('AnkiWebView.contextMenuEvent', self.onReviewerHandle)
 
-        # editor.Editor.setNote = wrap(editor.Editor.setNote, mySetup, 'after')
+        Reviewer.nextCard = self.wrapOnCardShift(Reviewer.nextCard)
+        Editor.loadNote = self.wrapOnCardShift(Editor.loadNote)
 
     def isEditing(self):
         'Checks anki current state. Whether is editing or not'
 
-        return True if (self._ankiMw and self._ankiMw.state == 'resetRequired' and self._editorReference) else False
+        return True if (self._ankiMw and self._editorReference) else False
+
+
+    def wrapOnCardShift(self, originalFunction, *args):
+        """
+        Listens when the current showed card is changed. Either in Reviewer or Editor.
+        Send msg to browser to cleanup its state"""
+
+        def wrapped(args):
+            originalFunction(args)
+
+            if not self._browser:
+                return
+
+            if self.isEditing():
+                if self._currentNote == self._editorReference.note:
+                    return
+
+            self._browser.unload()
+            if not Config.keepBrowserOpened:
+                self._browser.close()
+                
+
+        return wrapped
+
+# ---------------------------------- Events listeners ---------------------------------
 
     def onEditorHandle(self, webView, menu):
         """
@@ -77,6 +102,13 @@ class Controller:
         note = self._ankiMw.reviewer.card.note()
         NoteMenuHandler.onReviewerMenu(webView, menu, note)
 
+    def onEditorLoadNote(self, focusTo = False):
+        print('Loading note...')
+
+    def onReviewerNext(self):
+        print('Reviewing next card...')
+
+# ---------------------------------- --------------- ---------------------------------
     def openInBrowser(self, website, query, note, isEditMode = False):
         """
             Setup enviroment for web browser and invoke it
@@ -100,7 +132,9 @@ class Controller:
             Invoked when there is a selection coming from the browser. It need to be delivered to a given field
         """
 
-        print('Received something from Web Browser: [{}] {}'.format(isUrl, value))
+        if self._currentNote != self._editorReference.note:
+            showWarning('Inconsistent state found. The current note is not the same as the Web Browser reference. No update will be done!')
+            return
 
         self._editorReference.currentField = fieldIndex
 
@@ -110,6 +144,10 @@ class Controller:
             self.handleTextSelection(fieldIndex, value)        
 
     def handleUrlSelection(self, fieldIndex, value):
+        """
+        Imports an image from the link 'value' to the collection. 
+        Adds this new image tag to the given field in the current note"""
+
         url = value.data()
         imgReference = self._editorReference.urlToLink(url)
 
@@ -117,6 +155,8 @@ class Controller:
         self._editorReference.web.eval("setFormat('inserthtml', %s);" % json.dumps(imgReference))
 
     def handleTextSelection(self, fieldIndex, value):
+        'Adds the selected value to the given field of the current note'
+
         newValue = self._currentNote.fields[fieldIndex] + '\n ' + value
         self._currentNote.fields[fieldIndex] = newValue
         self._editorReference.setNote(self._currentNote)
