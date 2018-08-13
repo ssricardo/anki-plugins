@@ -9,6 +9,8 @@ class Config:
         Keeps global addon configuration
     """
 
-    keepBrowserOpened = False  
+    keepBrowserOpened = False
+
+    browserAlwaysOnTop = False
 
     providers = {}

@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 # Main interface between Anki and this addon components
+# -------------------------------------------------------
 
 # Holds references so GC does kill them
 controllerInstance = None

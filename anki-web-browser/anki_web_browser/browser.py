@@ -2,13 +2,13 @@
 
 # Web View, which creates an embedded web browser component
 # Main GUI component for this addon
+# ---------------------------------------
 
 import urllib
 import config
 from PyQt4.QtGui import QApplication, QMenu, QAction, QDialog, QVBoxLayout, QStatusBar, QLabel
-from PyQt4.QtCore import QUrl
+from PyQt4.QtCore import QUrl, Qt
 from PyQt4.QtWebKit import QWebView
-# from aqt import *       # FIXME remove direct reference to anki
 
 BLANK_PAGE = """
     <html>
@@ -20,7 +20,7 @@ BLANK_PAGE = """
             }
         </style>
         <body>   
-            <p>Nothing loaded...</p>
+            <h1>Nothing loaded...</h1>
         </body>   
     </html>
 """
@@ -48,14 +48,15 @@ class AwBrowser(QDialog):
         layout.setSpacing(0)
         self.setLayout(layout)
 
-        self.setGeometry(450, 200, 800, 400)
-        self.setMinimumWidth (640)
-        self.setMinimumHeight(400)
+        self.setGeometry(450, 200, 800, 450)
+        self.setMinimumWidth (480)
+        self.setMinimumHeight(250)
 
         self._web = QWebView(parent=self)
         self._web.contextMenuEvent = self.contextMenuEvent
         self._web.page().mainFrame().loadStarted.connect(self.onStartLoading)
-        self._web.page().mainFrame().loadFinished.connect(self.onLoadFinish)        
+        self._web.page().mainFrame().loadFinished.connect(self.onLoadFinish)
+        self._web.page().mainFrame().urlChanged.connect(self.onPageChange)   
 
         layout.addWidget(self._web)
 
@@ -64,6 +65,9 @@ class AwBrowser(QDialog):
         self._urlInfo = QLabel(self)
         self._statusBar.addPermanentWidget(self._urlInfo)
         layout.addWidget(self._statusBar)
+
+        if config.Config.browserAlwaysOnTop:
+            self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
     def open(self, website, query):
         """
@@ -93,6 +97,9 @@ class AwBrowser(QDialog):
             self._statusBar.showMessage('Error on loading page', 5000)
             print('Error on loading page! ', result)
 
+    
+    def onPageChange(self, url):
+        self._urlInfo.setText(url.toString())
 
 # ------------------------------------ Menu ---------------------------------------
 

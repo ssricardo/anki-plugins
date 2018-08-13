@@ -1,4 +1,8 @@
-# anki-web-browser - Context menu for notes
+# -*- coding: utf-8 -*-
+# Plugin: anki-web-browser - Context menu for notes
+# Responsible for adding options in the context menu on Anki notes
+# Shows registered providers (websites) to search for the selected sentence
+# --------------------------------------------
 
 import config
 from PyQt4.QtGui import QMenu, QAction
@@ -6,7 +10,7 @@ from PyQt4.QtGui import QMenu, QAction
 def ankiSetup():
     from aqt.utils import showInfo, tooltip
 
-class NoteMenuHandler:
+class NoteMenuHandler:    
     _providers = {}
     _controller = None
     _note = None
