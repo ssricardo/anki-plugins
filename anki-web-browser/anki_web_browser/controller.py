@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 # Main interface between Anki and this addon components
-# -------------------------------------------------------
+
+# This files is part of anki-web-browser addon
+# @author ricardo saturnino
+# ------------------------------------------------
 
 # Holds references so GC does kill them
 controllerInstance = None
 
-from config import Config
+from config import service as cfg
 from notemenu import NoteMenuHandler
 import browser
 import anki
@@ -13,6 +16,7 @@ import json
 
 from aqt.editor import Editor
 from aqt.reviewer import Reviewer
+from aqt.qt import QAction
 
 def run():
     global controllerInstance
@@ -23,13 +27,11 @@ def run():
     print('Setting anki-web-browser controller')
     
     ankiSetup()
-    NoteMenuHandler.setOptions(Config.providers)
+    NoteMenuHandler.setOptions(cfg.getConfig().providers)
     controllerInstance = Controller(mw)
     controllerInstance.setupBindings()
 
     if True:    # FIXME
-        from aqt.utils import showInfo, tooltip, showWarning
-        # controllerInstance.openInBrowser('https://google.com/search?q={}', 'criação api-test ', None)
         controllerInstance._browser.welcome()
 
 
@@ -56,6 +58,16 @@ class Controller:
         Reviewer.nextCard = self.wrapOnCardShift(Reviewer.nextCard)
         Editor.loadNote = self.wrapOnCardShift(Editor.loadNote)
 
+        # Add config to menu
+        action = QAction("Anki-Web-Browser Config", self._ankiMw)
+        action.triggered.connect(self.openConfig)
+        self._ankiMw.form.menuTools.addAction(action)
+
+    def openConfig(self):
+        from config import ConfigController
+        cc = ConfigController(self._ankiMw)
+        cc.open()
+
     def isEditing(self):
         'Checks anki current state. Whether is editing or not'
 
@@ -78,7 +90,7 @@ class Controller:
                     return
 
             self._browser.unload()
-            if not Config.keepBrowserOpened:
+            if not cfg.getConfig().keepBrowserOpened:
                 self._browser.close()
                 
 

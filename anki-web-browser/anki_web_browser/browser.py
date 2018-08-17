@@ -5,7 +5,8 @@
 # ---------------------------------------
 
 import urllib
-import config
+from config import service as cfg
+from core import Label
 from PyQt4.QtGui import QApplication, QMenu, QAction, QDialog, QVBoxLayout, QStatusBar, QLabel
 from PyQt4.QtCore import QUrl, Qt
 from PyQt4.QtWebKit import QWebView
@@ -97,7 +98,7 @@ class AwBrowser(QDialog):
         self._statusBar.addPermanentWidget(self._urlInfo)
         layout.addWidget(self._statusBar)
 
-        if config.Config.browserAlwaysOnTop:
+        if cfg.getConfig().browserAlwaysOnTop:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
     def open(self, website, query):
@@ -176,8 +177,8 @@ class AwBrowser(QDialog):
         'Creates and configures the menu itself'
         
         m = QMenu(self)
-        sub = QMenu(config.Label.BROWSER_ASSIGN_TO, m)
-        m.setTitle(config.Label.BROWSER_ASSIGN_TO)
+        sub = QMenu(Label.BROWSER_ASSIGN_TO, m)
+        m.setTitle(Label.BROWSER_ASSIGN_TO)
         for index, label in self._fields.items():
             act = QAction(label, m, 
                 triggered=self._makeMenuAction(index, value, isLink))

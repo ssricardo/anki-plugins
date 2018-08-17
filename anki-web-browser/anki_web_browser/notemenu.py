@@ -4,7 +4,7 @@
 # Shows registered providers (websites) to search for the selected sentence
 # --------------------------------------------
 
-import config
+from core import Label
 from PyQt4.QtGui import QMenu, QAction
 
 def ankiSetup():
@@ -63,7 +63,7 @@ class NoteMenuHandler:
     def showCustomMenu(self, parentMenu):
         """ Builds the addon entry in the context menu, adding options according to the providers """
 
-        submenu = QMenu(config.Label.CARD_MENU, parentMenu)
+        submenu = QMenu(Label.CARD_MENU, parentMenu)
 
         for key, value in NoteMenuHandler._providers.items():
             act = QAction(key, submenu, 

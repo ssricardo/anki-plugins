@@ -1,6 +1,6 @@
 # Anki Web Browser
 # Author Ricardo Saturnino
-# Version: 0.1
+# Version: 0.9
 
 # ==================================  Configuration  ==================================
 
@@ -33,11 +33,11 @@ keep_browser_always_on_top = True
 if ENABLED:
 
     from anki_web_browser.controller import run
-    from anki_web_browser.config import Config
+    # from anki_web_browser.config import Config
 
 
-    Config.providers = providers
-    Config.keepBrowserOpened = keep_browser_opened
-    Config.browserAlwaysOnTop = keep_browser_always_on_top
+    # Config.providers = providers
+    # Config.keepBrowserOpened = keep_browser_opened
+    # Config.browserAlwaysOnTop = keep_browser_always_on_top
 
     run()
