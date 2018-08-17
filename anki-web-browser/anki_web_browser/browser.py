@@ -25,6 +25,37 @@ BLANK_PAGE = """
     </html>
 """
 
+WELCOME_PAGE = """
+    <html>
+        <style type="text/css">
+            body {
+                margin-top: 30px;
+                background-color: #F5F5F5;
+                color: 003366;
+            }
+
+            p {
+                margin-bottom: 20px;
+            }
+        </style>
+        <body>   
+            <h1>Welcome</h1>
+            <hr />
+
+            <div>
+                Anki-Web-Browser is installed!
+            </div>
+            <p>
+                Its use is pretty simple.<br />
+                It is based on <i>text selecting</i> and <i>context menu</i>.
+            </p>
+            <div>
+                Check more details on the <a href="#">documentation</a>
+            </div>
+        </body>   
+    </html>
+"""
+
 class AwBrowser(QDialog):
     """
         Customization and configuration of a web browser to run within Anki
@@ -73,8 +104,8 @@ class AwBrowser(QDialog):
         """
             Loads a given page with its replacing part with its query, and shows itself
         """
-        target = website.format( query )    # .encode('utf8', 'ignore')
-        self._web.load(QUrl.fromEncoded( target ))      # urllib.quote(target)
+        target = website.format (urllib.quote_plus(query))  # (target, toEncoded)  #encode('utf8', 'ignore')
+        self._web.load(QUrl.fromEncoded( target ))  
         self._urlInfo.setText(target)
         
         self.show()
@@ -100,6 +131,10 @@ class AwBrowser(QDialog):
     
     def onPageChange(self, url):
         self._urlInfo.setText(url.toString())
+
+    def welcome(self):
+        self._web.setHtml(WELCOME_PAGE)
+        self.show()
 
 # ------------------------------------ Menu ---------------------------------------
 

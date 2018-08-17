@@ -14,7 +14,9 @@ ENABLED = True
 
 providers = {
     'Google Web': 'https://google.com/search?q={}',
-    'Google Images': 'https://www.google.com/search?tbm=isch&q={}'
+    'Google Images': 'https://www.google.com/search?tbm=isch&q={}',
+    'Your Sentence': 'http://sentence.yourdictionary.com/{}?direct_search_result=yes',
+    'Pixabay': 'https://pixabay.com/en/photos/?q={}&image_type=all'
 }
 
 # "keep browser opened" Option:

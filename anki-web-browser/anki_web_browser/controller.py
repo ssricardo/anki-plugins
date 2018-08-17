@@ -29,7 +29,8 @@ def run():
 
     if True:    # FIXME
         from aqt.utils import showInfo, tooltip, showWarning
-        controllerInstance.openInBrowser('https://google.com/search?q={}', 'api-test', None)
+        # controllerInstance.openInBrowser('https://google.com/search?q={}', 'criação api-test ', None)
+        controllerInstance._browser.welcome()
 
 
 class Controller:
