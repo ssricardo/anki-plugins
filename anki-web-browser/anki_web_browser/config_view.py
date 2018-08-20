@@ -26,8 +26,8 @@ except AttributeError:
 class Ui_ConfigView(object):
     def setupUi(self, ConfigView):
         ConfigView.setObjectName(_fromUtf8("ConfigView"))
-        ConfigView.resize(450, 380)
-        ConfigView.setFixedSize(450, 380)       # modif
+        ConfigView.resize(460, 400)
+        ConfigView.setFixedSize(460, 400)       # modif
         
         self.verticalLayoutWidget = QtGui.QWidget(ConfigView)
         # self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 400, 292))
@@ -66,17 +66,21 @@ class Ui_ConfigView(object):
         # self.btActions = QtGui.QDialogButtonBox(ConfigView)
         # self.btActions.setGeometry(QtCore.QRect(30, 300, 340, 32))
         # self.btActions.setOrientation(QtCore.Qt.Horizontal)
+        bottomInfo = QtGui.QLabel('It may be necessary to restart Anki to apply the changes', 
+        self.verticalLayoutWidget)
+        bottomInfo.setStyleSheet('QLabel  {color: #960c19}')
+        self.verticalLayout.addWidget(bottomInfo)
+
         self.btSave = QtGui.QPushButton(self.getIcon(QtGui.QStyle.SP_DialogApplyButton),'Save', self.verticalLayoutWidget)
         self.btCancel = QtGui.QPushButton(self.getIcon(QtGui.QStyle.SP_DialogCancelButton), 'Cancel', self.verticalLayoutWidget)
         self.btActionsBox.addWidget(self.btSave)
         self.btActionsBox.addWidget(self.btCancel)
-        self.verticalLayout.addWidget(QtGui.QSplitter())
+        # self.verticalLayout.addWidget(QtGui.QSplitter())
         self.verticalLayout.addLayout(self.btActionsBox)
 
         self.tbProviders.verticalHeader().setVisible(False)
         self.tbProviders.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tbProviders.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        # self.tbProviders.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)        # FIXME
         self.tbProviders.setColumnCount(2)
         self.tbProviders.setHorizontalHeaderLabels(('Name', 'URL'))
 

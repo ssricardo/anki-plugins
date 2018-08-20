@@ -46,9 +46,9 @@ class ConfigService:
     """
         Responsible for reading and storing configurations
     """
-
     _config = None
     _validURL = re.compile('^((http|ftp){1}s{0,1}://)([\w._/?&=%#@]|-)+{}([\w._/?&=%#]|-)*$')
+    _firstTime = None
 
     def getConfig(self):
         if not self._config:
@@ -57,7 +57,7 @@ class ConfigService:
 
 
     def load(self, createIfNotExists = True):
-        print('[INFO] Trying to read config file in {}'.format(currentLocation + '/' + CONFIG_FILE))
+        Feedback.log('[INFO] Trying to read config file in {}'.format(currentLocation + '/' + CONFIG_FILE))
         try:
             with open(currentLocation + '/' + CONFIG_FILE) as f:
                 obj = json.load(f)
@@ -83,7 +83,7 @@ class ConfigService:
         except Exception as e:
             if bkpName:
                 shutil.copyfile(bkpName, currentLocation + '/' + CONFIG_FILE) # restore
-            raise e # TODO handle
+            Feedback.showError(e)
         finally:
             if bkpName:
                 os.remove(bkpName)
@@ -95,7 +95,7 @@ class ConfigService:
             A simple JSON from a dictionary. Should be called only if the file doesn't exist yet
         """
 
-        print('[INFO] Creating a new config file in {}'.format(currentLocation + '/' + CONFIG_FILE))
+        Feedback.log('[INFO] Creating a new config file in {}'.format(currentLocation + '/' + CONFIG_FILE))
 
         conf = ConfigHolder()    
         conf.keepBrowserOpened = True
@@ -109,6 +109,7 @@ class ConfigService:
             ConfigHolder.Provider('Pixabay', 'https://pixabay.com/en/photos/?q={}&image_type=all')]
 
         self.__writeToFile(conf)
+        self._firstTime = True
         return conf
 
 
@@ -119,10 +120,18 @@ class ConfigService:
         
         if not config:
             return
-        self.validate(config)
-        print('[INFO] Saving config file in {}'.format(currentLocation + '/' + CONFIG_FILE))
+
+        try:
+            self.validate(config)
+        except ValueError as ve:
+            Feedback.showInfo(ve)
+            return False
+        
+        Feedback.log('[INFO] Saving config file in {}'.format(currentLocation + '/' + CONFIG_FILE))
         self.__writeToFile(config)
         self._config = config
+        Feedback.showInfo('Anki-Web-Browser configuration saved')
+        return True
 
 
     def validate(self, config):
@@ -137,11 +146,10 @@ class ConfigService:
                 raise ValueError('{} should be {}'.format(current, expected))
         
         for name, url in map(lambda item: (item.name, item.url), config.providers):
-            print(name, url)
             if not name or not url:
                 raise ValueError('There is an illegal value for one provider (%s %s)' % (name, url))
             if not self._validURL.match(url):
-                raise ValueError('The provider URL needs {} that will be replaced by the selected text. Check the URL %s' % url)
+                raise ValueError('Some URL is invalid. Check the URL and if it contains {} that will be replaced by the text: %s' % url)
 
         
 
@@ -220,7 +228,7 @@ class ConfigController:
         tab = self._ui.tbProviders
 
         if not tab.selectedIndexes():
-            print('Nothing selected. Ignore remove click...')
+            Feedback.showInfo('Please select the item to be removed')
             return
 
         rowIndex = tab.selectedIndexes()[0].row()
@@ -233,7 +241,6 @@ class ConfigController:
 
 
     def onSaveClick(self):
-        print('onSaveClick')
         _tempCfg = ConfigHolder()
         _tempCfg.browserAlwaysOnTop = self._ui.rbOnTop.isChecked()
         _tempCfg.keepBrowserOpened = self._ui.rbKeepOpened.isChecked()
@@ -244,8 +251,9 @@ class ConfigController:
         for index in range(tab.rowCount()):
             _tempCfg.providers[index] = ConfigHolder.Provider(tab.item(index, 0).text(), tab.item(index, 1).text())
 
-        service.save(_tempCfg)
-        self.onCancelClick()
+        res = service.save(_tempCfg)
+        if res:
+            self.onCancelClick()
 
     def onSelectItem(self):
         self._hasSelection = True

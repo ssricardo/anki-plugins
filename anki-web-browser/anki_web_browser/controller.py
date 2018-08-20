@@ -5,11 +5,10 @@
 # @author ricardo saturnino
 # ------------------------------------------------
 
-# Holds references so GC does kill them
-controllerInstance = None
-
 from config import service as cfg
+from core import Feedback
 from notemenu import NoteMenuHandler
+
 import browser
 import anki
 import json
@@ -17,21 +16,33 @@ import json
 from aqt.editor import Editor
 from aqt.reviewer import Reviewer
 from aqt.qt import QAction
+from aqt.utils import showInfo, tooltip, showWarning
+
+# Holds references so GC does kill them
+controllerInstance = None
+
+@staticmethod
+def _ankiShowInfo(*args):
+    tooltip(args)
+
+@staticmethod
+def _ankiShowError(*args):
+    showWarning(str(args))
 
 def run():
     global controllerInstance
     
-    from aqt import mw    
-    from notemenu import ankiSetup
+    from aqt import mw  
 
-    print('Setting anki-web-browser controller')
-    
-    ankiSetup()
+    Feedback.log('Setting anki-web-browser controller')
+    Feedback.showInfo = _ankiShowInfo
+    Feedback.showError = _ankiShowError
+        
     NoteMenuHandler.setOptions(cfg.getConfig().providers)
     controllerInstance = Controller(mw)
     controllerInstance.setupBindings()
 
-    if True:    # FIXME
+    if cfg._firstTime:
         controllerInstance._browser.welcome()
 
 
@@ -117,12 +128,6 @@ class Controller:
         note = self._ankiMw.reviewer.card.note()
         NoteMenuHandler.onReviewerMenu(webView, menu, note)
 
-    def onEditorLoadNote(self, focusTo = False):
-        print('Loading note...')
-
-    def onReviewerNext(self):
-        print('Reviewing next card...')
-
 # ---------------------------------- --------------- ---------------------------------
     def openInBrowser(self, website, query, note, isEditMode = False):
         """
@@ -130,7 +135,7 @@ class Controller:
         """
 
         self._currentNote = note
-        print('OpenInBrowser: {} ({})'.format(note, self.isEditing()))
+        Feedback.log('OpenInBrowser: {} ({})'.format(note, self.isEditing()))
         
         if self.isEditing():
             fieldList = note.model()['flds']

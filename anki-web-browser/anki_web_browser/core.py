@@ -11,27 +11,20 @@ class Label:
     CARD_MENU = 'Search in Web'
     BROWSER_ASSIGN_TO = 'Assign to field'
 
-class Config:
-    """
-        Keeps global addon configuration
-    """
-
-    keepBrowserOpened = False
-
-    browserAlwaysOnTop = False
-
-    providers = {}
 
 # --------------------------- Useful function ----------------------------
 
 class Feedback:
+    'Responsible for messages and logs'
 
     @staticmethod
     def log(*args, **kargs):
         print(args, kargs)
 
+    @staticmethod
     def showInfo(*args):
         pass
 
+    @staticmethod
     def showError(*args):
         pass

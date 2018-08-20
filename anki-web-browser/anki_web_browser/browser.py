@@ -6,7 +6,7 @@
 
 import urllib
 from config import service as cfg
-from core import Label
+from core import Label, Feedback
 from PyQt4.QtGui import QApplication, QMenu, QAction, QDialog, QVBoxLayout, QStatusBar, QLabel
 from PyQt4.QtCore import QUrl, Qt
 from PyQt4.QtWebKit import QWebView
@@ -127,7 +127,7 @@ class AwBrowser(QDialog):
         self._statusBar.clearMessage()
         if not result:
             self._statusBar.showMessage('Error on loading page', 5000)
-            print('Error on loading page! ', result)
+            Feedback.log('Error on loading page! ', result)
 
     
     def onPageChange(self, url):

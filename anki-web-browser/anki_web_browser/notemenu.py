@@ -4,14 +4,11 @@
 # Shows registered providers (websites) to search for the selected sentence
 # --------------------------------------------
 
-from core import Label
+from core import Label, Feedback
 from PyQt4.QtGui import QMenu, QAction
 
-def ankiSetup():
-    from aqt.utils import showInfo, tooltip
-
 class NoteMenuHandler:    
-    _providers = {}
+    _providers = []
     _controller = None
     _note = None
     _searchString = '{}'
@@ -44,7 +41,7 @@ class NoteMenuHandler:
         if not _query:
             return
 
-        _instance = NoteMenuHandler(note, _query)  # Fixme, get search str
+        _instance = NoteMenuHandler(note, _query)
         _instance.showCustomMenu(menu)
 
     @staticmethod
@@ -57,7 +54,7 @@ class NoteMenuHandler:
         _query = webView.selectedText()
 
         _note = webView.editor.note
-        _instance = NoteMenuHandler(_note, _query)    # hold the card ref  # Fixme, get search str
+        _instance = NoteMenuHandler(_note, _query)
         _instance.showCustomMenu(menu)
 
     def showCustomMenu(self, parentMenu):
@@ -65,9 +62,9 @@ class NoteMenuHandler:
 
         submenu = QMenu(Label.CARD_MENU, parentMenu)
 
-        for key, value in NoteMenuHandler._providers.items():
-            act = QAction(key, submenu, 
-                triggered=self._makeMenuAction(value))
+        for prov in NoteMenuHandler._providers:
+            act = QAction(prov.name, submenu, 
+                triggered=self._makeMenuAction(prov.url))
             submenu.addAction(act)
 
         parentMenu.addMenu(submenu)
