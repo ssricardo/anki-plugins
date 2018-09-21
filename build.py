@@ -34,7 +34,7 @@ for index, value in enumerate(sys.argv):
             print('Already set to dist mode. Ignoring -dev')
         else:
             mode = Const.ANKI
-            target = '/home/ricardo/.local/share/Anki2/addons' # os.environ['anki_addon']
+            target = '/home/ricardo/.local/share/Anki2/addons21' # os.environ['anki_addon']
     elif value == acceptedArgs[3]:  # clear
         mode = Const.CLEAR
         target = './dist' #os.environ['anki_addon']
@@ -44,7 +44,7 @@ for index, value in enumerate(sys.argv):
 print ('Choose an addon to be processed ===============================')
 
 for index, name in enumerate(existingAddons):
-    print('{} - {}'.format(index, name))
+    print('{} - {}'.format(index + 1, name))
 
 print ('-'*60)
 
@@ -53,7 +53,7 @@ addonIndex = int(input('> '))
 if not addonIndex or addonIndex > len(existingAddons):
     raise IOError('It was not possible to determine a valid addon as input')
 
-addon = existingAddons[addonIndex]
+addon = existingAddons[addonIndex - 1]
 
 if not target:
     raise IOError('No mode was informed. Choose either -dev or -dist')
@@ -75,14 +75,14 @@ if mode == Const.ZIP:
 
 # copies to anki's addon folder - test integrated
 elif mode == Const.ANKI:
-    if os.path.exists(target + '/' + addon + '.py'):
+    if os.path.exists(target + '/' + addon.replace('-', '_')):
         print('Removing old files: {}'.format(target + '/' + addon))
         shutil.rmtree(target + '/' + addon.replace('-', '_'))
-        os.remove(target + '/' + addon + '.py')
+        # os.remove(target + '/' + addon + '.py')
 
     print('Copying files to anki directory')
     addonRoot = currentDir + '/' + addon
-    shutil.copyfile(addonRoot + '/' + addon + '.py', target + '/' + addon + '.py')
+    # shutil.copyfile(addonRoot + '/' + addon + '.py', target + '/' + addon + '.py')
     shutil.copytree(addonRoot + '/' + addon.replace('-', '_'),  target + '/' + addon.replace('-', '_'), 
     ignore=shutil.ignore_patterns('tests', 'doc', '*_test*', '__pycache__'))
 
