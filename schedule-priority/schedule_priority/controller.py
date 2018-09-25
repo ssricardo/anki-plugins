@@ -5,12 +5,10 @@
 # @author ricardo saturnino
 # ------------------------------------------------
 
-from .core import Feedback
-from .priority import Prioritizer
-from .uicontrib import PriorityCardUiHandler
-from .core import AppHolder, Priority
-
-from anki.hooks import wrap  # check
+from schedule_priority.core import Feedback, AppHolder, Priority
+from schedule_priority.prioritizer import Prioritizer
+from schedule_priority.uicontrib import PriorityCardUiHandler
+from schedule_priority.exception import InvalidConfiguration
 
 class Controller:
     """
@@ -20,17 +18,17 @@ class Controller:
     def __init__(self, mw):
         self._ankiMw = mw
 
-    def setupHooks(self, theScheduler, hooks):
-        theScheduler.nextIvl = wrap(theScheduler.nextIvl, Prioritizer.getNextInterval, 'around')
-        theScheduler._updateRevIvl = wrap(theScheduler._updateRevIvl, Prioritizer.priorityUpdateRevision, 'around')
+    def setupHooks(self, schedulerRef, hooks):
+        schedulerRef.nextIvl = hooks.wrap(schedulerRef.nextIvl, Prioritizer.getNextInterval, 'around')
+        schedulerRef._updateRevIvl = hooks.wrap(schedulerRef._updateRevIvl, Prioritizer.priorityUpdateRevision, 'around')
         hooks.addHook('EditorWebView.contextMenuEvent', PriorityCardUiHandler.onEditorCtxMenu)
         hooks.addHook('AnkiWebView.contextMenuEvent', PriorityCardUiHandler.onReviewCtxMenu)
+        hooks.addHook('Reviewer.contextMenuEvent', PriorityCardUiHandler.onReviewCtxMenu)
 
 
     def loadConfiguration(self):
         print('Anki Priority - Load configuration')
         Priority.load()
-        Prioritizer.initMultiplier()
 
         try:
             config = self._ankiMw.addonManager.getConfig(__name__)
@@ -43,7 +41,10 @@ class Controller:
                 if not confValue:
                     continue
 
-                Prioritizer.setMultiplier(item.configName, confValue)
+                Priority.setValue(item.configName, confValue)
+        except InvalidConfiguration as ie:
+            Feedback.showInfo(ie)
+            print(ie)
         except Exception as e:
             print(e)
             Feedback.showInfo('It was not possible to read customized configuration. Using defaults...')
@@ -60,7 +61,6 @@ def setup():
     from anki.sched import Scheduler
     from aqt.qt import QAction
     from aqt.utils import showInfo, tooltip, showWarning
-    
     
     global controller
     controller = Controller(mw)

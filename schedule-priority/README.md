@@ -1,9 +1,9 @@
 # Schedule Priority
 
-The goal of this addon is to let you define different intervals for a group of cards in a deck.
+The goal of this addon is to let you define different intervals for a set of cards in a deck.
 
 Suppose you have a deck and you want to increase the interval when you mark a revision as good (for example).  
-Currently you can do so, using Anki through *Deck Options*. Now, let's say you want to customize the interval of only some cards. 
+Currently you can do so, using Anki through *Deck Options*. Now, let's say you want to customize the interval for only a part of the cards. 
 Through that *Deck Options* this is not possible tough, because it applies the options to the entire deck. 
 
 ## Customizing the intervals given by Anki
@@ -35,13 +35,21 @@ To make it easier and faster, it's also possible to use it during the **review**
 
 ![Modifying from editor](doc/modify-priority-review.gif)
 
+### Using the keyboard
+
+You can use the keys:
+
+"Context menu" key -> C -> The option's number
+
 ## How it works
 
-Basically, when you select to assign "High" or "Low" priority, this addon uses the card's tags to save this information.
+Basically, when you select to assign "High", "Highest", "Low" or "Lowest" priority, this addon uses the card's tags to save this information.
 The following tags are related to this addon:
 
+* priority:lowest
 * priority:low
 * priority:high
+* priority:highest
 
 When a "normal" priority is selected, both of those tags are removed from the card. Therefore, the standard priority is "normal" (of course, right?!).
 
@@ -51,11 +59,11 @@ Throughout the review, when a given card is loaded, this addon checks whether th
 
 To customize this add-on, open up:
 
-> Tools -> Add-ons -> schedule-priority -> Edit...
+> Tools -> Add-ons -> schedule-priority -> Config...
 
 In the current version, it is possible to modify:
 
-* **Multiplier** value for High and Low priority
+* **Multiplier** value for each priority
 
 Multiplier value is expressed as percentage.  
 Consider that a *normal priority* card uses the same intervals as assigned by Anki. This means, 100% of the value calculated by Anki.   
@@ -63,26 +71,22 @@ Consider that a *normal priority* card uses the same intervals as assigned by An
 High priority means that it must be repeated in shorter time. Therefore, it should be less than 100% (compared to the time got from Anki).  
 Conversely, Low priority should not be repeat as much as other (meaning longer intervals). Thus, its intervals must be above 100%.
 
-> Default values: 
->   low_priority_multiplier = 140
->   high_priority_multiplier = 70
+> Default values:   
+>    "Lowest": 200,  
+>    "Low": 150,  
+>    "High": 75,  
+>    "Highest": 60
 
 *Reinforcing:* 
 
-* *low_priority_multiplier* is required to be more then 100
-* *high_priority_multiplier* is required to be less then 100
+The values for priorities should grow in sequence. And the higher the priority, the lower the value.
 
-![Modifying from editor](doc/schedule-priority-config.png)
 
-## Future steps
 
-There are a few ideas planned for next versions:
-
-* Add a shortcut for priority definition (add tags)
-* Create a visual window for configuration (instead of needing to do it in the script file)
+> After you change the settings, you must restart to take effect
 
 ...
 
-> 1. This is still in a very first version. If you find any bug or have other ideas, please let me know. I'll be happy to work on it.  
+> 1. If you find any bug or have other ideas, please let me know. I'll be happy to work on it.  
 
 > 2. As English is not my native language and right now I don't have time to check details, please help me to fix possible mistakes in the text

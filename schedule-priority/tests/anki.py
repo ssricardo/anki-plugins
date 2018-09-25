@@ -1,4 +1,6 @@
-# Contains a few classes that mocks anki one
+# Mock module for testing
+
+# Contains a few classes that mocks anki ones
 # Only for testing
 
 # def mw(self):

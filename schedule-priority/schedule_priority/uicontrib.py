@@ -1,15 +1,15 @@
-#pylint: disable=E0602,another-one
+# -*- coding: utf-8 -*-
+#
+# This files is part of schedule-priority addon
+# @author ricardo saturnino
 
-# import anki
-# from aqt import mw
-# from aqt.utils import showInfo
-# from aqt.qt import *
+#pylint: disable=E0602,another-one
 
 from . import core
 from .core import Priority
 from .core import Feedback
 from .core import AppHolder
-from .priority import Prioritizer
+from .prioritizer import Prioritizer
 
 from PyQt5.QtWidgets import QMenu, QAction
 
@@ -52,16 +52,8 @@ class PriorityCardUiHandler:
     def showCustomMenu(self, menu):
         submenu = QMenu(core.Label.CARD_MENU, menu)
 
-        # shortcut="Ctrl+Shift+L",
-        a1 = QAction(core.Label.MENU_LOW, submenu, 
-                triggered=lambda: self.onClickLow())
-        a2 = QAction(core.Label.MENU_NORMAL, submenu, 
-                triggered=lambda: self.onClickNormal())
-        a3 = QAction(core.Label.MENU_HIGH, submenu,
-                triggered=lambda: self.onClickHigh())
-
         for index, item in enumerate(Priority.priorityList):
-            act = QAction(item.description, submenu,
+            act = QAction('(&' + str(index + 1) + ') ' + item.description, submenu,
                 triggered=self._makeMenuAction(index))
 
             submenu.addAction(act)

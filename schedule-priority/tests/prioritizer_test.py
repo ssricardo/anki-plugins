@@ -4,21 +4,20 @@
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../schedule_priority')
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 
 import unittest
-from prioritizer_mocks_test import *
+from anki import *
 
-from .priority import Prioritizer
-import .core
-from .core import Priority
+from schedule_priority.prioritizer import Prioritizer
+import schedule_priority.core
+from schedule_priority.core import Priority
 
 class PrioritizerTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(clz):
         Priority.load()
-        Prioritizer.initMultiplier()
 
     def test_prioritizedTime(self):
         pass
