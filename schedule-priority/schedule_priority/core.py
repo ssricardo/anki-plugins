@@ -4,7 +4,7 @@
 # @author ricardo saturnino
 
 import math
-from schedule_priority.exception import InvalidConfiguration
+from .exception import InvalidConfiguration
 
 # Constants for schedule-priority
 

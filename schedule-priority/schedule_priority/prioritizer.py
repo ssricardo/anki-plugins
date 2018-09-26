@@ -5,11 +5,11 @@
 
 import math
 
-from schedule_priority.exception import InvalidConfiguration
-import schedule_priority.core
+from .exception import InvalidConfiguration
+from . import core
 
-from schedule_priority.core import Feedback
-from schedule_priority.core import Priority
+from .core import Feedback
+from .core import Priority
 
 # Responsible for the main logic for this addon
 # Integrates with anki Scheduler

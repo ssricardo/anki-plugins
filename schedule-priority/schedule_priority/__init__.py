@@ -11,5 +11,3 @@
 from . import controller as ctr
 
 ctr.setup()
-
-print('Addon Schedule-Priority Loaded')

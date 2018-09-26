@@ -65,24 +65,23 @@ if mode == Const.ZIP:
     if os.path.exists('dist'):
         print('Cleaning dist directory')
         shutil.rmtree('dist/')
+
     print('Copying files')    
     shutil.copytree(currentDir + '/' + addon.replace('_', '-'),  './dist', 
     ignore=shutil.ignore_patterns('tests', 'doc', '*_test*', '__pycache__'))
     
     print('Creating binary')
-    shutil.make_archive(addon, format = 'zip', 
-    root_dir='dist')
+    shutil.make_archive('dist/' + addon, format = 'zip', 
+    root_dir='dist/' + addon.replace('-', '_'))
 
 # copies to anki's addon folder - test integrated
 elif mode == Const.ANKI:
     if os.path.exists(target + '/' + addon.replace('-', '_')):
         print('Removing old files: {}'.format(target + '/' + addon))
         shutil.rmtree(target + '/' + addon.replace('-', '_'))
-        # os.remove(target + '/' + addon + '.py')
 
     print('Copying files to anki directory')
     addonRoot = currentDir + '/' + addon
-    # shutil.copyfile(addonRoot + '/' + addon + '.py', target + '/' + addon + '.py')
     shutil.copytree(addonRoot + '/' + addon.replace('-', '_'),  target + '/' + addon.replace('-', '_'), 
     ignore=shutil.ignore_patterns('tests', 'doc', '*_test*', '__pycache__'))
 

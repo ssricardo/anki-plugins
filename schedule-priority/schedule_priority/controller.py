@@ -5,10 +5,10 @@
 # @author ricardo saturnino
 # ------------------------------------------------
 
-from schedule_priority.core import Feedback, AppHolder, Priority
-from schedule_priority.prioritizer import Prioritizer
-from schedule_priority.uicontrib import PriorityCardUiHandler
-from schedule_priority.exception import InvalidConfiguration
+from .core import Feedback, AppHolder, Priority
+from .prioritizer import Prioritizer
+from .uicontrib import PriorityCardUiHandler
+from .exception import InvalidConfiguration
 
 class Controller:
     """
@@ -51,8 +51,6 @@ class Controller:
 
 
 def setup():
-
-    print('Setting up schedule-priority')
 
     import anki
     from aqt import mw
