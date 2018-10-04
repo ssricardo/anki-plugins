@@ -4,8 +4,8 @@
 # Shows registered providers (websites) to search for the selected sentence
 # --------------------------------------------
 
-from core import Label, Feedback
-from PyQt4.QtGui import QMenu, QAction
+from .core import Label, Feedback
+from PyQt5.QtWidgets import QMenu, QAction
 
 class NoteMenuHandler:    
     _providers = []
@@ -16,7 +16,7 @@ class NoteMenuHandler:
     def __init__(self, note, query):
         self._note = note
         if query:
-            self._searchString = query.encode('utf8')
+            self._searchString = query
 
     @classmethod
     def setOptions(clz, newValue):
@@ -62,8 +62,8 @@ class NoteMenuHandler:
 
         submenu = QMenu(Label.CARD_MENU, parentMenu)
 
-        for prov in NoteMenuHandler._providers:
-            act = QAction(prov.name, submenu, 
+        for index, prov in enumerate(NoteMenuHandler._providers):
+            act = QAction('(&' + str(index + 1) + ') ' + prov.name, submenu, 
                 triggered=self._makeMenuAction(prov.url))
             submenu.addAction(act)
 

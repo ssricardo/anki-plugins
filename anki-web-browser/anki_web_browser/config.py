@@ -6,13 +6,14 @@
 # @author ricardo saturnino
 # -------------------------------------------------------
 
-import config_view
-from core import Feedback
+from . import config_view
+from .core import Feedback
+
 import os
 import json
 import re
 import shutil
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
 CONFIG_FILE = 'config.json'
@@ -168,7 +169,7 @@ class ConfigController:
 
     def __init__(self, myParent):
         self._tempCfg = service.getConfig()
-        self._dialog = QtGui.QDialog(parent=myParent)
+        self._dialog = QtWidgets.QDialog(parent=myParent)
         self._ui = config_view.Ui_ConfigView()
         self._ui.setupUi(self._dialog)
         self.setupBinds()
@@ -182,7 +183,7 @@ class ConfigController:
 
         self._ui.btAdd.clicked.connect(lambda: self.onAddClick())
         self._ui.btRemove.clicked.connect(lambda: self.onRemoveClick())
-        self._ui.tbProviders.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self._ui.tbProviders.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self._ui.tbProviders.horizontalHeader().setStretchLastSection(True)
 
 
@@ -205,8 +206,8 @@ class ConfigController:
         tb.setRowCount(len(data))
 
         for index, item in enumerate(data):
-            tb.setItem(index, 0, QtGui.QTableWidgetItem(item.name))
-            tb.setItem(index, 1, QtGui.QTableWidgetItem(item.url))
+            tb.setItem(index, 0, QtWidgets.QTableWidgetItem(item.name))
+            tb.setItem(index, 1, QtWidgets.QTableWidgetItem(item.url))
         
 
     # ----------------------------------- View handles -------------------------------
@@ -216,8 +217,8 @@ class ConfigController:
 
         tb = self._ui.tbProviders
         tb.insertRow(tb.rowCount())
-        newUrl = QtGui.QTableWidgetItem('http://something/{}')
-        tb.setItem(tb.rowCount() - 1, 0, QtGui.QTableWidgetItem('My New Provider'))
+        newUrl = QtWidgets.QTableWidgetItem('http://something/{}')
+        tb.setItem(tb.rowCount() - 1, 0, QtWidgets.QTableWidgetItem('My New Provider'))
         tb.setItem(tb.rowCount() - 1, 1, newUrl)
         tb.clearSelection()
         tb.setItemSelected(newUrl, True)

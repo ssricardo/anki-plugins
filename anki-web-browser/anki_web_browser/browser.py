@@ -4,12 +4,15 @@
 # Main GUI component for this addon
 # ---------------------------------------
 
-import urllib
-from config import service as cfg
-from core import Label, Feedback
-from PyQt4.QtGui import QApplication, QMenu, QAction, QDialog, QVBoxLayout, QStatusBar, QLabel
-from PyQt4.QtCore import QUrl, Qt
-from PyQt4.QtWebKit import QWebView
+import urllib.parse
+from .config import service as cfg
+from .core import Label, Feedback
+
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QApplication, QMenu, QAction, QDialog, QVBoxLayout, QStatusBar, QLabel
+from PyQt5.QtCore import QUrl, Qt
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData
+from requests.utils import requote_uri
 
 BLANK_PAGE = """
     <html>
@@ -74,40 +77,68 @@ class AwBrowser(QDialog):
         self.setupUI()
         
     def setupUI(self):
-        self.setWindowTitle('Anki :: Web Browser Addon') 
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0,0,0,0)
-        layout.setSpacing(0)
-        self.setLayout(layout)
-
+        self.setWindowTitle('Anki :: Web Browser Addon')
         self.setGeometry(450, 200, 800, 450)
-        self.setMinimumWidth (480)
-        self.setMinimumHeight(250)
+        self.setMinimumWidth (640)
+        self.setMinimumHeight(450)
 
-        self._web = QWebView(parent=self)
+        mainLayout = QVBoxLayout()
+        mainLayout.setContentsMargins(0,0,0,0)
+        mainLayout.setSpacing(0)
+        self.setLayout(mainLayout)
+
+        topWidget = QtWidgets.QWidget(self)
+        topWidget.setFixedHeight(50)
+
+        topLayout = QtWidgets.QHBoxLayout(topWidget)
+        topLayout.setObjectName("topLayout")
+        
+        lbSite = QtWidgets.QLabel(topWidget)
+        lbSite.setObjectName("label")
+        lbSite.setText("Website: ")
+
+        topLayout.addWidget(lbSite)
+        self._itAddress = QtWidgets.QLineEdit(topWidget)
+        self._itAddress.setObjectName("itSite")
+        topLayout.addWidget(self._itAddress)
+        cbGo = QtWidgets.QCommandLinkButton(topWidget)
+        cbGo.setObjectName("cbGo")
+        cbGo.setFixedSize(30, 30)
+        topLayout.addWidget(cbGo)
+        # cbImport = QtWidgets.QCommandLinkButton(topWidget)
+        # cbImport.setObjectName("cbImport")
+        # cbImport.setFixedSize(30, 30)
+        # topLayout.addWidget(cbImport)
+        self._loadingBar = QtWidgets.QProgressBar(topWidget)
+        self._loadingBar.setFixedWidth(100)
+        self._loadingBar.setProperty("value", 100)
+        self._loadingBar.setObjectName("loadingBar")
+        topLayout.addWidget(self._loadingBar)
+
+        mainLayout.addWidget(topWidget)
+
+        self._web = QWebEngineView(self)
         self._web.contextMenuEvent = self.contextMenuEvent
-        self._web.page().mainFrame().loadStarted.connect(self.onStartLoading)
-        self._web.page().mainFrame().loadFinished.connect(self.onLoadFinish)
-        self._web.page().mainFrame().urlChanged.connect(self.onPageChange)   
+        self._web.page().loadStarted.connect(self.onStartLoading)
+        self._web.page().loadFinished.connect(self.onLoadFinish)
+        self._web.page().loadProgress.connect(self.onProgress)
+        self._web.page().urlChanged.connect(self.onPageChange)
 
-        layout.addWidget(self._web)
+        cbGo.clicked.connect(self._goToAddress)
 
-        self._statusBar = QStatusBar(self)
-        self._statusBar.setMaximumHeight(40)
-        self._urlInfo = QLabel(self)
-        self._statusBar.addPermanentWidget(self._urlInfo)
-        layout.addWidget(self._statusBar)
+        mainLayout.addWidget(self._web)
 
         if cfg.getConfig().browserAlwaysOnTop:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
-    def open(self, website, query):
+    def open(self, website, query: str):
         """
             Loads a given page with its replacing part with its query, and shows itself
         """
-        target = website.format (urllib.quote_plus(query))  # (target, toEncoded)  #encode('utf8', 'ignore')
-        self._web.load(QUrl.fromEncoded( target ))  
-        self._urlInfo.setText(target)
+
+        target = website.format(urllib.parse.quote(query, encoding='utf8'))  #encode('utf8', 'ignore')
+        self._web.load(QUrl( target ))
+        self._itAddress.setText(target)
         
         self.show()
         return self._web
@@ -121,17 +152,23 @@ class AwBrowser(QDialog):
         self.close()
 
     def onStartLoading(self):
-        self._statusBar.showMessage('Loading...')
+        self._loadingBar.setProperty("value", 1)
+
+    def onProgress(self, prog):
+        self._loadingBar.setProperty("value", prog)
 
     def onLoadFinish(self, result):
-        self._statusBar.clearMessage()
+        self._loadingBar.setProperty("value", 100)
         if not result:
-            self._statusBar.showMessage('Error on loading page', 5000)
+            Feedback.showInfo('Error loading page')
             Feedback.log('Error on loading page! ', result)
 
+    def _goToAddress(self):
+        self._web.load(QUrl( self._itAddress.text() ))
+        self._web.show()
     
     def onPageChange(self, url):
-        self._urlInfo.setText(url.toString())
+        self._itAddress.setText(url.toString())
 
     def welcome(self):
         self._web.setHtml(WELCOME_PAGE)
@@ -155,18 +192,17 @@ class AwBrowser(QDialog):
 
         if not (self._fields and self._selectedListener):
             return
-        
+
         isLink = False
         value = None
         if self._web.selectedText():
             isLink = False
             value = self._web.selectedText()
         else:
-            hit = self._web.page().currentFrame().hitTestContent(evt.pos())
-
-            if hit.imageUrl():
+            if (self._web.page().contextMenuData().mediaType() == QWebEngineContextMenuData.MediaTypeImage
+                    and self._web.page().contextMenuData().mediaUrl()):
                 isLink = True
-                value = hit.imageUrl().toEncoded()
+                value = self._web.page().contextMenuData().mediaUrl()
 
         if not value:
             return
@@ -197,4 +233,3 @@ class AwBrowser(QDialog):
 
     def setSelectionListener(self, value):
         self._selectedListener = value
-

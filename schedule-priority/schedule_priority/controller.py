@@ -27,7 +27,6 @@ class Controller:
 
 
     def loadConfiguration(self):
-        print('Anki Priority - Load configuration')
         Priority.load()
 
         try:
@@ -57,7 +56,7 @@ def setup():
     from aqt.editor import Editor
     from aqt.reviewer import Reviewer
     from anki.sched import Scheduler
-    from aqt.qt import QAction
+    # from aqt.qt import QAction
     from aqt.utils import showInfo, tooltip, showWarning
     
     global controller

@@ -8,13 +8,13 @@
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../anki_web_browser')
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 
 import unittest
-import config as cc
+import anki_web_browser.config as cc
 
-from PyQt4 import QtGui
-app = QtGui.QApplication(sys.argv)
+from PyQt5 import QtWidgets
+app = QtWidgets.QApplication(sys.argv)
 
 class ConfigServiceTester(unittest.TestCase):
 
@@ -95,7 +95,7 @@ class ConfigControllerTester(unittest.TestCase):
 
 if __name__ == '__main__':
     if '-view' in sys.argv:        
-        main = QtGui.QMainWindow()
+        main = QtWidgets.QMainWindow()
         view = cc.ConfigController(main)
         view.open()
         sys.exit(app.exec_())

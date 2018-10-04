@@ -5,12 +5,12 @@ import sys
 from anki_mocks_test import *
 import os
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../anki_web_browser')
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 
-import browser
-from browser import AwBrowser
-from PyQt4.QtGui import QMenu, QApplication
-from PyQt4.QtCore import QPoint
+import anki_web_browser.browser
+from anki_web_browser.browser import AwBrowser
+from PyQt5.QtWidgets import QMenu, QApplication
+from PyQt5.QtCore import QPoint
 
 class FakeBrowser:
 
@@ -72,6 +72,7 @@ class Tester(unittest.TestCase):
         pass
 
 if __name__ == '__main__':
+
     app = QApplication(sys.argv)
     
     unittest.main()

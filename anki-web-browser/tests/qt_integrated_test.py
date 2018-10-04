@@ -4,12 +4,13 @@
 
 import sys
 import os
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../anki_web_browser')
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 
-import browser
+import anki_web_browser.browser as brw
 
 def wiki(self):
     print('Load')
@@ -47,13 +48,13 @@ def onSelected(field, value, isLink):
 if __name__ == '__main__':
     print('Running Qt App')
     app = QApplication(sys.argv)
-    web = browser.AwBrowser(None)
+    web = brw.AwBrowser(None)
     web.setSelectionListener(onSelected)
     web.setFields([
         {'name': 'Front'},
         {'name': 'Back'},
         {'name': 'Example'}
     ])
-    web.load(QUrl('https://images.google.com/'))
+    web.open('https://images.google.com/?q={}', 'my app test')
     web.show()
     sys.exit(app.exec_())

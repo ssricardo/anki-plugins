@@ -5,11 +5,11 @@
 # @author ricardo saturnino
 # ------------------------------------------------
 
-from config import service as cfg
-from core import Feedback
-from notemenu import NoteMenuHandler
+from .config import service as cfg
+from .core import Feedback
+from .notemenu import NoteMenuHandler
 
-import browser
+from . import browser
 import anki
 import json
 
@@ -75,7 +75,7 @@ class Controller:
         self._ankiMw.form.menuTools.addAction(action)
 
     def openConfig(self):
-        from config import ConfigController
+        from .config import ConfigController
         cc = ConfigController(self._ankiMw)
         cc.open()
 
@@ -90,8 +90,12 @@ class Controller:
         Listens when the current showed card is changed. Either in Reviewer or Editor.
         Send msg to browser to cleanup its state"""
 
-        def wrapped(args):
-            originalFunction(args)
+        def wrapped(args, focusTo=None):
+
+            if focusTo:
+                originalFunction(args, focusTo)
+            else:
+                originalFunction(args)
 
             if not self._browser:
                 return
@@ -168,7 +172,7 @@ class Controller:
         Imports an image from the link 'value' to the collection. 
         Adds this new image tag to the given field in the current note"""
 
-        url = value.data()
+        url = value.toString()
         imgReference = self._editorReference.urlToLink(url)
 
         self._editorReference.web.eval("focusField(%d);" % fieldIndex)
