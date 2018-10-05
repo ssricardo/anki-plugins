@@ -221,7 +221,7 @@ class ConfigController:
         tb.setItem(tb.rowCount() - 1, 0, QtWidgets.QTableWidgetItem('My New Provider'))
         tb.setItem(tb.rowCount() - 1, 1, newUrl)
         tb.clearSelection()
-        tb.setItemSelected(newUrl, True)
+        newUrl.setSelected(True)
 
     def onRemoveClick(self):
         'Handles Remove button on view'
