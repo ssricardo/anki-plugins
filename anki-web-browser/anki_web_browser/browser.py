@@ -144,7 +144,10 @@ class AwBrowser(QDialog):
         return self._web
 
     def unload(self):
-        self._web.setHtml(BLANK_PAGE)
+        try:
+            self._web.setHtml(BLANK_PAGE)
+        except Exception:
+            pass
 
     def onClose(self):
         self._parent = None

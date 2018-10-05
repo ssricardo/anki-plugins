@@ -85,7 +85,7 @@ class Controller:
         return True if (self._ankiMw and self._editorReference) else False
 
 
-    def wrapOnCardShift(self, originalFunction, *args):
+    def wrapOnCardShift(self, originalFunction):
         """
         Listens when the current showed card is changed. Either in Reviewer or Editor.
         Send msg to browser to cleanup its state"""
