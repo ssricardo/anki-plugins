@@ -129,8 +129,10 @@ class Controller:
         """
 
         self._editorReference = None
-        note = self._ankiMw.reviewer.card.note()
-        NoteMenuHandler.onReviewerMenu(webView, menu, note)
+
+        if self._ankiMw.reviewer and self._ankiMw.reviewer.card:
+            note = self._ankiMw.reviewer.card.note()
+            NoteMenuHandler.onReviewerMenu(webView, menu, note)
 
 # ---------------------------------- --------------- ---------------------------------
     def openInBrowser(self, website, query, note, isEditMode = False):

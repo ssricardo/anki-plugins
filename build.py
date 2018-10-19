@@ -14,7 +14,7 @@ mode = None
 target = None
 
 acceptedArgs = ('-source', '-dist', '-dev', '-clear')
-existingAddons = ('schedule-priority', 'anki-web-browser')
+existingAddons = ('schedule-priority', 'anki-web-browser', 'anki-markdown')
 
 print ('====================== Building RSS Addon =====================')
 

@@ -60,10 +60,6 @@ Even the image! (It's downloaded and imported into the collection automatically)
 
 This feature makes it really simple and fast to get some information from the Internet and build or improve your Anki's collection.  
 
-## Anki 2.1 / Next steps
-
-A version for Anki 2.1 will be released soon. From that version and on, all future versions will likely target Anki 2.1+.
-
 ## Bugs / Suggestions / more...
 
 Please, feel free to make suggestions and open issues for possible bugs found. 
