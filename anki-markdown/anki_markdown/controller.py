@@ -5,8 +5,8 @@
 # @author ricardo saturnino
 # ------------------------------------------------
 
-from .config import service as cfg
-from .core import Feedback, AppHolder
+from .config import ConfigKey, ConfigService
+from .core import Feedback, AppHolder, Style
 from .converter import Converter
 
 import anki
@@ -22,6 +22,10 @@ from anki.hooks import addHook
 # Holds references so GC does kill them
 controllerInstance = None
 
+CWD = os.path.dirname(os.path.realpath(__file__))
+ICON_FILE = 'icons/markdown-3.png'
+
+# ---------------------------- Injected functions -------------------
 @staticmethod
 def _ankiShowInfo(*args):
     tooltip(args)
@@ -29,6 +33,11 @@ def _ankiShowInfo(*args):
 @staticmethod
 def _ankiShowError(*args):
     showWarning(str(args))
+
+def _ankiConfigRead(key):
+    return AppHolder.app.addonManager.getConfig(__name__)[key]
+
+# ------------------------ Init ---------------------------------
 
 def run():
     global controllerInstance
@@ -38,9 +47,10 @@ def run():
     Feedback.log('Setting anki-markdown controller')
     Feedback.showInfo = _ankiShowInfo
     Feedback.showError = _ankiShowError
-        
-    # NoteMenuHandler.setOptions(cfg.getConfig().providers)
+    
     AppHolder.app = mw
+    ConfigService._f = config = _ankiConfigRead
+
     controllerInstance = Controller()
     controllerInstance.setupBindings()
 
@@ -51,14 +61,12 @@ class Controller:
     """
 
     _converter = Converter()
-    ADD_SHORTCUT = 'Ctrl+Shift+M'
-    CLEAR_SHORTCUT = 'Ctrl+Shift+W'
+    _showButton = None
+    _shortcut = None
 
     def __init__(self):
-        _curPath = os.path.dirname(__file__)
-        self._iconsPath = os.path.join(_curPath, "icons")
-        if not os.path.exists(self._iconsPath):
-            self._iconsPath = ""
+        self._showButton = ConfigService.read(ConfigKey.SHOW_MARKDOWN_BUTTON, bool)
+        self._shortcut = ConfigService.read(ConfigKey.SHORTCUT, str)
 
     def setupBindings(self):
         addHook("prepareQA", self.processField)
@@ -67,6 +75,7 @@ class Controller:
 
 
     def processField(self, inpt, card, phase, *args):
+        inpt = Style.MARKDOWN + inpt
         res = self._converter.findConvertArea(inpt)
         return res
 
@@ -74,32 +83,30 @@ class Controller:
     def setupButtons(self, buttons, editor):        
         """Add buttons to editor"""
 
-        if not os.path.exists(self._iconsPath.join('markdown-2.svg')):
-            print('[WARNING] Icon not found')
-
-# self._iconsPath.join('markdown-2.svg')
+        if not self._showButton:
+            return buttons
 
         self._editorReference = editor
         editor._links['apply-markdown'] = self._wrapAsMarkdown
         return buttons + [editor._addButton(
-            'M',
-            "M", 
-            "Apply Markdown ({})<br>".format(Controller.ADD_SHORTCUT))]
+            CWD + '/' + ICON_FILE,
+            "apply-markdown", 
+            "Apply Markdown ({})".format(self._shortcut))]
 
 
     def setupShortcuts(self, scuts:list, editor):
         self._editorReference = editor
-        scuts.append((Controller.ADD_SHORTCUT, self._wrapAsMarkdown))        
+        scuts.append((self._shortcut, self._wrapAsMarkdown))        
 
    
     def _wrapAsMarkdown(self, editor = None):
         if not editor:
-            if self._editorReference:
-                self._editorReference.web.eval("wrap('<amd>', '</amd>');")
-                Feedback.showInfo('Anki Markdown :: Added successfully')
-        else:
-            editor.web.eval("wrap('<amd>', '</amd>');")
-            Feedback.showInfo('Anki Markdown :: Added successfully')
+            if not self._editorReference:
+                return
+            editor = self._editorReference
+
+        editor.web.eval("wrap('<amd>', '</amd>');")
+        Feedback.showInfo('Anki Markdown :: Added successfully')
 
     def _unwrapMarkdown(self):
         pass

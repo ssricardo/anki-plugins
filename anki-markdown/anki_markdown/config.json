@@ -1,3 +1,4 @@
 {
-    "someConfig": true
+    "shortcut": "Ctrl+Shift+M",
+    "showMdButton": true
 }

@@ -2,7 +2,7 @@
 # Handles Configuration reading, saving and the integration with the config UI
 # Contains model, service and view controller for Config
 #
-# This files is part of anki-web-browser addon
+# This files is part of anki-markdown addon
 # @author ricardo saturnino
 # -------------------------------------------------------
 
@@ -14,28 +14,45 @@ import re
 import shutil
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
-# CONFIG_FILE = 'config.json'
+
 
 # ---------------------------------- Model ------------------------------
 
-class ConfigHolder:
+class ConfigKey:
 
-    def __init__(self, keepBrowserOpened = False, browserAlwaysOnTop = False, providers = [], **kargs):
-        pass
+    SHORTCUT = 'shortcut'
+
+    SHOW_MARKDOWN_BUTTON = 'showMdButton'
+
 
 # ------------------------------ Service class --------------------------
+DEFAULT_CONFIG = {
+    ConfigKey.SHORTCUT: 'Ctrl+Shift+M',
+    ConfigKey.SHOW_MARKDOWN_BUTTON: True
+}
+
 class ConfigService:
     """
         Responsible for reading and storing configurations
     """
-    pass        
+    
+    @staticmethod
+    def _f(key):
+        raise NotImplementedError()
 
-# ------------------------------ View Controller --------------------------
+    @classmethod
+    def read(clz, key: str, expectedType):
+        try:
+            value = clz._f(key)
+            if not (type(value) == expectedType):
+                raise TypeError()
+        except Exception as e:
+            # print(e)
+            value = None
 
-class ConfigController:
-    pass
+        return value if (value is not None) else DEFAULT_CONFIG[key]
+
+
 
 # -----------------------------------------------------------------------------
 # global instances
-
-service = ConfigService()

@@ -12,6 +12,9 @@ import re
 import os
 
 class Converter:
+    """
+        Responsible for converting texts between differents formats
+    """
 
     _amdArea = re.compile('\<amd>(.)*\</amd>', flags=(re.MULTILINE + re.DOTALL))
 
@@ -25,21 +28,23 @@ class Converter:
             Tries to preserv lines within code blocks
         """
 
-        inCode = False
+        isInCode = False
         result = ''
         for line in content.split(os.linesep):
+            wasInCode = isInCode
             trimed = line.strip()
-            if inCode:
-                if trimed != os.linesep:
-                    result += line
-            else:
-                result += trimed
+            if isInCode:
+                if trimed == os.linesep:
+                    continue
+                trimed = line
 
             if "```" in trimed:
-                if (line.count("```") % 2) != 0:
-                    inCode = not inCode
 
-            result += os.linesep
+                # not balanced, it's either opening or closing from other line
+                if (trimed.count("```") % 2) != 0:
+                    isInCode = not isInCode                    
+                
+            result += trimed + os.linesep
 
         return result
         
@@ -58,35 +63,28 @@ class Converter:
         content = inpt[start:stop]
 
         content = self.getTextFromHtml(content)
-        # print('='*80, 'Text: ', content, '='*80, sep='\n')
 
         # strip
         content = self._clearLine(content)
-        print('='*80, 'Striped: ', content, '='*80, sep='\n')
         
         content = self.convertMarkdown(content)
-        # print('='*80, 'HTML: ', content, '='*80, sep='\n')
+
+        # adjusment for code blocks
+        content = content.replace('<code>', '<code><pre>').replace('</code>', '</pre></code>')
+
         return inpt[:start] + content + inpt[stop:]
 
     
     def getTextFromHtml(self, html):
+        """
+            Extracts clear text from an HTML input
+        """
+
         html = (html.replace('<br>', os.linesep)
             .replace('<br/>', os.linesep)
             .replace('<br />', os.linesep)
             .replace('</div>', os.linesep + '</div>'))
+            # .replace('&nbsp;', ' ')
 
         soup = BeautifulSoup(html, "html.parser")
         return soup.getText('  ')
-
-        # data = soup.findAll(text=True)
-        # result = filter(self._visibleFilter, data)
-        
-        # return '  '.join(data)
-
-
-    def _visibleFilter(self, element):
-        if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
-            return False
-        elif re.match('<!--.*-->', str(element.encode('utf-8'))):
-            return False
-        return True

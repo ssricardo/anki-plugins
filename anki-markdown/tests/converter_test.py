@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Related to transformer
+# Related to converter
 
 # This files is part of anki-markdown addon
 # @author ricardo saturnino
@@ -62,11 +62,7 @@ HTML_CODE2 = """
 
 HTML_CODE3 = """
 <amd>
-<div>```</div>
-<div>&nbsp; &nbsp; &nbsp; &nbsp; System.out.println();</div>
-<div>&nbsp; &nbsp; &nbsp; &nbsp; def test():</div>
-<div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ra()</div>
-<div>```</div>
+<div>```</div><div>&nbsp; &nbsp; &nbsp; &nbsp; System.out.println();</div><div>&nbsp; &nbsp; &nbsp; &nbsp; def test():</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ra()</div><div>```</div>
 	</amd>
 """
 
