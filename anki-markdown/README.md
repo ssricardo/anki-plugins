@@ -1,31 +1,80 @@
-# Anki Markdown
+# Anki Markdown Formatter
+
+[If you already know Markdown, skip the next paragraph...]  
+
+Markdown is an easy way of formatting texts, based on a predefined syntax. 
+It makes it simple and fast to write texts because the user doesn't need to worry about annoying details, like when you user tool like Word. 
+It's like on WhatsApp, you write \_text_ and after sending it, its shown as _text_.  
+
+Check more information and the syntax out on the following websites:  
+
+* [markdownguide](https://www.markdownguide.org/)
+    * [Syntax](https://www.markdownguide.org/basic-syntax/)
+* [commonmark.org](https://commonmark.org/help/)
+
+And many other website...
+
+**This addon** makes it possible to interpret cards (or parts of them) as Markdown.  
+While editing or adding cards, write it in plain text. No formatting is done in this view.  
+Then, when reviewing the card, it is interpreted as markdown and converted to formatted text (HTML actually).
 
 
-## Configuration
+## Usage
 
-* Shortcut
-* Show markdown button
+Markdown-formatter won't process everything. Therefore, you need to identify the area(s) that it should work on.  
+This is done using a markup tag: `<amd>`.  
 
-## Using
+On the HTML code, put the tags `<amd>` and `</amd>` around the area to be processed.  
 
-* Tag: `<amd>`
-* Note level or within card's content
+**Example:**  
+
+        <amd>{{Example}}</amd>
+
+This might be either in the Card Type (Note) level or in parts of a given card. 
 
 ### Format the entire card type
 
+![Modifying from editor](doc/md-tags-cards.png)
 
 ### Format part of a card
 
+In the editor, you can either use the Markdown button in the toolbar or use the shortcut.  
+The default **shorcut** is *Ctrl+Shift+M* (may be changed in Configurations).  
+
+Just **select the block** to be processed, then use one of the options.
+
+![Modifying from editor](doc/md-button-editor.png)
+
+## Configuration
+
+There are two configuration available. Both of them targeted to the editor:  
+
+* Shortcut
+    * As it says... shortcut for adding tags around selected text
+* Show markdown button
+    * Indicates whether the Markdown button shoud be shown or not
+
+
 ### Limitations:
 
-* Code block by space/tab
-* Careful with &nbsp;
+#### Code block by space/tab
+
+Code block started only by space or tab does not work. You need to wrap codes with \```.  
+
+#### Careful with \&nbsp;
+
+Anki uses HTML in you text. Therefore, some spaces are replaced by \&nbsp. 
+If you are getting misformatted markdown, this might be the cause. Be aware!
+
 * ...
 
 ## Bugs / Suggestions / more...
 
-Please, feel free to make suggestions and open issues for possible bugs found. 
+Please, feel free to make suggestions and open issues about possible bugs found.  
 
-Some pages aren't opening in this browser and for other ones sometimes the user needs to reload it. This is a known bug and it will be handled in the next version.
+That and the source code are available on: [Github](https://github.com/ssricardo/anki-plugins/tree/master/anki-markdown)
 
-## By
+## About
+
+Addon developed by *ssricardo*.  
+Check out more of my addons on [https://github.com/ssricardo/anki-plugins]()
