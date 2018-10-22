@@ -34,7 +34,9 @@ This might be either in the Card Type (Note) level or in parts of a given card.
 
 ### Format the entire card type
 
-![Modifying from editor](doc/md-tags-cards.png)
+This is done through Card Type Configuration. Thus, it's applied to all cards of that type.  
+
+![Card type config](doc/md-tags-cards.png)
 
 ### Format part of a card
 
