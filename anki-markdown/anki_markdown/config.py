@@ -2,7 +2,7 @@
 # Handles Configuration reading, saving and the integration with the config UI
 # Contains model, service and view controller for Config
 #
-# This files is part of anki-markdown addon
+# This files is part of anki-markdown-formatter addon
 # @author ricardo saturnino
 # -------------------------------------------------------
 
@@ -21,14 +21,17 @@ currentLocation = os.path.dirname(os.path.realpath(__file__))
 class ConfigKey:
 
     SHORTCUT = 'shortcut'
-
-    SHOW_MARKDOWN_BUTTON = 'showMdButton'
+    SHOW_MARKDOWN_BUTTON = 'show-md-button'
+    TRIM_LINES = 'trim'
+    REPLACE_SPACES = 'replace-spaces'
 
 
 # ------------------------------ Service class --------------------------
 DEFAULT_CONFIG = {
     ConfigKey.SHORTCUT: 'Ctrl+Shift+M',
-    ConfigKey.SHOW_MARKDOWN_BUTTON: True
+    ConfigKey.SHOW_MARKDOWN_BUTTON: True,
+    ConfigKey.TRIM_LINES: True,
+    ConfigKey.REPLACE_SPACES: False
 }
 
 class ConfigService:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Main interface between Anki and this addon components
 
-# This files is part of anki-markdown addon
+# This files is part of anki-markdown-formatter addon
 # @author ricardo saturnino
 # ------------------------------------------------
 
@@ -49,7 +49,7 @@ def run():
     Feedback.showError = _ankiShowError
     
     AppHolder.app = mw
-    ConfigService._f = config = _ankiConfigRead
+    ConfigService._f = _ankiConfigRead
 
     controllerInstance = Controller()
     controllerInstance.setupBindings()
@@ -63,10 +63,14 @@ class Controller:
     _converter = Converter()
     _showButton = None
     _shortcut = None
+    _trimConfig = None
+    _replaceSpaceConfig = None
 
     def __init__(self):
         self._showButton = ConfigService.read(ConfigKey.SHOW_MARKDOWN_BUTTON, bool)
         self._shortcut = ConfigService.read(ConfigKey.SHORTCUT, str)
+        self._trimConfig = ConfigService.read(ConfigKey.TRIM_LINES, bool)
+        self._replaceSpaceConfig = ConfigService.read(ConfigKey.REPLACE_SPACES, bool)
 
     def setupBindings(self):
         addHook("prepareQA", self.processField)
@@ -76,7 +80,7 @@ class Controller:
 
     def processField(self, inpt, card, phase, *args):
         inpt = Style.MARKDOWN + inpt
-        res = self._converter.findConvertArea(inpt)
+        res = self._converter.findConvertArea(inpt, self._trimConfig, self._replaceSpaceConfig)
         return res
 
 

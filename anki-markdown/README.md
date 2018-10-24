@@ -1,5 +1,7 @@
 # Anki Markdown Formatter
 
+TLDR; Surround your content with `<amd>` to have it processed as Markdown. There are some customizations/configurations below...
+
 [If you already know Markdown, skip the next paragraph...]  
 
 Markdown is an easy way of formatting texts, based on a predefined syntax. 
@@ -30,7 +32,7 @@ On the HTML code, put the tags `<amd>` and `</amd>` around the area to be proces
 
         <amd>{{Example}}</amd>
 
-This might be either in the Card Type (Note) level or in parts of a given card. 
+This might be done either in the Card Type (Note) level or in parts of a given card. 
 
 ### Format the entire card type
 
@@ -47,6 +49,20 @@ Just **select the block** to be processed, then use one of the options.
 
 ![Modifying from editor](doc/md-button-editor.png)
 
+### Pre-processing
+
+Some handling needs to be done in the content before processing it as Markdown.  This happens duo to the way Anki stores the content (as HTML).
+
+#### Trim lines
+
+* Needed duo to ListItem, headers, blockquotes, etc
+* Problem for codes
+
+### Replace escaped spaces
+
+* \&nbsp; vs simple space...
+
+
 ## Configuration
 
 There are two configuration available. Both of them targeted to the editor:  
@@ -55,6 +71,10 @@ There are two configuration available. Both of them targeted to the editor:
     * As it says... shortcut for adding tags around selected text
 * Show markdown button
     * Indicates whether the Markdown button shoud be shown or not
+* Trim
+    * Indicates whether each line should be trimmed
+* Replace-spaces
+    * Indicates whether it should replace escaped HTML spaces (\&nbsp;)
 
 
 ### Limitations:
@@ -75,6 +95,13 @@ If you are getting misformatted markdown, this might be the cause. Be aware!
 Please, feel free to make suggestions and open issues about possible bugs found.  
 
 That and the source code are available on: [Github](https://github.com/ssricardo/anki-plugins/tree/master/anki-markdown)
+
+## Updates
+
+24/10/2018: **version 2.1**:
+
+* Support for *trim* and *replace-spaces* configuration, both globally and locally
+* Config renamed: showMdButton -> show-md-button
 
 ## About
 

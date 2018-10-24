@@ -62,19 +62,8 @@ HTML_CODE2 = """
 
 HTML_CODE3 = """
 <amd>
-<div>```</div><div>&nbsp; &nbsp; &nbsp; &nbsp; System.out.println();</div><div>&nbsp; &nbsp; &nbsp; &nbsp; def test():</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ra()</div><div>```</div>
+<div>&nbsp; &nbsp; &nbsp; &nbsp; System.out.println();</div><div>&nbsp; &nbsp; &nbsp; &nbsp; def test():</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ra()</div>
 	</amd>
-"""
-
-MULTIPLE_BLOCKS = """
-<amd>
-    <amd>       ## Header 2</amd>
-Some text <br>
-<div>Something</div>
-</amd>
-
-Other text
-<amd>       ### Header 3</amd>
 """
 
 MD_WITH_CODE = """
@@ -88,7 +77,17 @@ MD_WITH_CODE = """
               code()
 ```  
   
+"""
 
+MULTIPLE_BLOCKS = """
+<amd>
+    <amd>       ## Header 2</amd>
+Some text <br>
+<div>Something</div>
+</amd>
+
+Other text
+<amd>       ### Header 3</amd>
 """
 
 class TransformerTest(unittest.TestCase):
@@ -96,46 +95,75 @@ class TransformerTest(unittest.TestCase):
     tested = Converter()
 
     def setUp(self):
-        print('---------------------------------------')
+        # print('---')
+        pass
         
 
-    @unittest.skip
-    def testExecution(self):
-        res = self.tested.convertMarkdown(MD_1)
+    def testConversionMD(self):
+        res:str = self.tested.convertMarkdown(MD_1)
         self.assertIsNotNone(res)
-        print(res)
+        self.assertTrue('<h1>Header' in res)
+        self.assertTrue('<li>Item' in res)
+        self.assertFalse('* Item' in res)
 
-    # @unittest.skip
     def testCodeFormat(self):
         res = self.tested.convertMarkdown(MD_WITH_CODE)
         self.assertIsNotNone(res)
-        print(res)
+        self.assertTrue('<code>System.out.println();' in res)
+        self.assertTrue("""<blockquote>\n<p>Um""" in res)
 
-    @unittest.skip
     def testTransformArea(self):
-        value = self.tested.findConvertArea(MD_DELIMITED)
+        value = self.tested.findConvertArea(MD_DELIMITED, True, False)
         self.assertIsNotNone(value)
-        print(value)
+        self.assertTrue("""<i>Outer MD</i>
+<h1>Converted</h1>
+<ul>""" in value)
+        self.assertFalse('<amd>' in value)
 
-    @unittest.skip
     def testClearHTML(self):
-        value = self.tested.getTextFromHtml(HTML_CODE)
+        value = self.tested.getTextFromHtml(HTML_CODE, False)        
         self.assertIsNotNone(value)
-        print(value)
+        self.assertTrue("> Some text here" in value)
+        self.assertFalse("&gt;" in value)
 
-    # @unittest.skip
     def testCodeHTML2(self):
-        value = self.tested.findConvertArea(HTML_CODE2)
-        print(value)
+        value = self.tested.findConvertArea(HTML_CODE2, True, False)
+        self.assertTrue("<h2>Exemplos vão aqui!</h2>" in value)
+        self.assertTrue("<code>" in value)
 
-    # @unittest.skip
+        value = self.tested.findConvertArea(HTML_CODE2, False, False)   # no strip
+        self.assertFalse("<h2>Exemplos vão aqui!</h2>" in value)    # line beggining may fail
+
     def testCodeHTML3(self):
-        value = self.tested.findConvertArea(HTML_CODE3)
-        print(value)
+        value = self.tested.findConvertArea(HTML_CODE3, True, False)
+        self.assertFalse("<code>" in value)
+
+        value = self.tested.findConvertArea(HTML_CODE3, False, True) # no strip, replace &nbsp;
+        self.assertTrue("<code>" in value)
+        # print(value)
+
+    def testInlineTrimParam(self):
+        res = self.tested.findConvertArea("""<amd trim="true">  <i>  # Header</i>  </amd>""", False, False)
+        self.assertTrue('<h1>Header' in res)
+        self.assertFalse('  # Header' in res)
+
+    def testInlineReplaceSpace(self):
+        res = self.tested.findConvertArea("""<amd replace-spaces="true">  *&nbsp;ListItem&nbsp;  </amd>""", True, False)
+        self.assertTrue('<li>ListItem' in res)
+        self.assertFalse('  *List' in res)
+
+    # HTML with inline options
+    def testComplete(self):
+        res = self.tested.findConvertArea("""
+<amd trim="false" replace-spaces="true">
+    <div>&nbsp; &nbsp; &nbsp; &nbsp; System.out.println();</div><div>&nbsp; &nbsp; &nbsp; &nbsp; def test():</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ra()</div>
+</amd>""", True, False)
+        self.assertTrue('<code>' in res)
+
 
     @unittest.skip
     def testMultipleBlocks(self):
-        value = self.tested.findConvertArea(MULTIPLE_BLOCKS)
+        value = self.tested.findConvertArea(MULTIPLE_BLOCKS, True, False)
         print(value)
 
 unittest.main()

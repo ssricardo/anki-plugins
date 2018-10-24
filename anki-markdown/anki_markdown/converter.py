@@ -2,9 +2,12 @@
 # Handles the transformation from markdown markup to HTML output
 # Contains service class
 #
-# This files is part of anki-markdown addon
+# This files is part of anki-markdown-formatter addon
 # @author ricardo saturnino
 # -------------------------------------------------------
+
+from .config import ConfigKey
+from .core import Feedback
 
 from markdown import markdown
 from bs4 import BeautifulSoup
@@ -16,7 +19,8 @@ class Converter:
         Responsible for converting texts between differents formats
     """
 
-    _amdArea = re.compile('\<amd>(.)*\</amd>', flags=(re.MULTILINE + re.DOTALL))
+    # _amdArea = re.compile('\<amd>(.)*\</amd>', flags=(re.MULTILINE | re.DOTALL))
+    _amdArea = re.compile(r'<amd(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?>(.*)</amd>', flags=(re.MULTILINE | re.DOTALL))
 
     def convertMarkdown(self, inpt:str): 
         return markdown(inpt)
@@ -30,6 +34,7 @@ class Converter:
 
         isInCode = False
         result = ''
+
         for line in content.split(os.linesep):
             wasInCode = isInCode
             trimed = line.strip()
@@ -49,33 +54,47 @@ class Converter:
         return result
         
 
-    def findConvertArea(self, inpt:str):
+    def findConvertArea(self, inpt:str, globalMustTrim: bool, globalReplaceSpace: bool):
         """
             Finds an area delimited by <amd> tags. 
-            Converts its contents as Markdown
+            Converts its contents to Markdown
         """
 
         match = self._amdArea.search(inpt)
-        if not match:
+        if (not match) or len(match.groups()) < 5:
             return inpt
 
         (start, stop) = match.span()
-        content = inpt[start:stop]
+        content = match.group(5)
+        localOpts = {match.group(1): evalBool(match.group(2)), match.group(3): evalBool(match.group(4))}
 
-        content = self.getTextFromHtml(content)
-
-        # strip
-        content = self._clearLine(content)
-        
-        content = self.convertMarkdown(content)
-
-        # adjusment for code blocks
-        content = content.replace('<code>', '<code><pre>').replace('</code>', '</pre></code>')
+        content = self._preProcessContent(content,
+            localOpts[ConfigKey.TRIM_LINES] if ConfigKey.TRIM_LINES in localOpts else globalMustTrim,
+            localOpts[ConfigKey.REPLACE_SPACES] if ConfigKey.REPLACE_SPACES in localOpts else globalReplaceSpace
+        )
 
         return inpt[:start] + content + inpt[stop:]
 
+
+    def _preProcessContent(self, content: str, mustTrim: bool, mustReplaceSpace: bool):
+        hadCloze = "<span class=cloze>[...]</span>" in content
+
+        content = self.getTextFromHtml(content, mustReplaceSpace)
+
+        # strip / trim
+        if mustTrim:
+            content = self._clearLine(content)
+        
+        content = self.convertMarkdown(content)
+
+        # tries to keed cloze parts - TODO improve in the future
+        if hadCloze:
+            content = content.replace("[...]", "<span class=cloze>[...]</span>")
+
+        return content
     
-    def getTextFromHtml(self, html):
+
+    def getTextFromHtml(self, html, replaceSpace):
         """
             Extracts clear text from an HTML input
         """
@@ -84,7 +103,12 @@ class Converter:
             .replace('<br/>', os.linesep)
             .replace('<br />', os.linesep)
             .replace('</div>', os.linesep + '</div>'))
-            # .replace('&nbsp;', ' ')
+
+        if replaceSpace:
+            html = html.replace('&nbsp;', ' ')
 
         soup = BeautifulSoup(html, "html.parser")
         return soup.getText('  ')
+
+def evalBool(value):
+    return None if value == None else ('true' == value.lower())

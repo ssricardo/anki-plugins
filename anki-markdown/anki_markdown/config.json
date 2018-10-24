@@ -1,4 +1,6 @@
 {
     "shortcut": "Ctrl+Shift+M",
-    "showMdButton": true
+    "show-md-button": true,
+    "trim": true,
+    "replace-spaces": false
 }
