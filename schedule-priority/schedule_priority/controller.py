@@ -24,6 +24,7 @@ class Controller:
         hooks.addHook('EditorWebView.contextMenuEvent', PriorityCardUiHandler.onEditorCtxMenu)
         hooks.addHook('AnkiWebView.contextMenuEvent', PriorityCardUiHandler.onReviewCtxMenu)
         hooks.addHook('Reviewer.contextMenuEvent', PriorityCardUiHandler.onReviewCtxMenu)
+        hooks.addHook('showAnswer', PriorityCardUiHandler.onShowAnswer)
 
 
     def loadConfiguration(self):
@@ -67,7 +68,7 @@ def setup():
 
     Feedback.log('Setting schedule-priority controller')
     Feedback.showInfo = tooltip
-    Feedback.showError = showWarning
+    Feedback.showError = showInfo
 
     controller.setupHooks(Scheduler, anki.hooks)
     controller.loadConfiguration()

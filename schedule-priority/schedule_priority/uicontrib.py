@@ -38,6 +38,10 @@ class PriorityCardUiHandler:
         'Handles context menu event on Reviewer'
 
         _card = AppHolder.app.reviewer.card
+
+        if not _card:
+            return
+
         _instance = PriorityCardUiHandler(_card._note)
         _instance.showCustomMenu(menu)
 
@@ -59,3 +63,42 @@ class PriorityCardUiHandler:
             submenu.addAction(act)
 
         menu.addMenu(submenu)
+
+    @staticmethod
+    def onShowAnswer(**args):
+        reviewer = AppHolder.app.reviewer
+        if not reviewer.card:
+            return
+        note = reviewer.card._note
+
+        customPriority = None
+        for p in Priority.priorityList:
+            if not p.tagName:
+                continue
+
+            if note.hasTag(p.tagName):
+                customPriority = p.description
+
+        if customPriority: 
+            jsAddStyle = """
+let prStyle = `<style type="text/css">
+.priorInfo {    
+    position: fixed;
+    bottom: 20px;
+    right: 50px;
+    background: rgba(176, 196, 222, 0.3);
+    padding: 7px;
+    font-size: 12px;
+}
+</style>`;
+
+$(prStyle).appendTo('body');
+
+let pdiv = `<div class="priorInfo">
+Priority: <i>%s</i>
+<div>`;
+$(pdiv).appendTo('#answer');
+""" % customPriority
+
+            reviewer.web.eval(jsAddStyle)
+        
