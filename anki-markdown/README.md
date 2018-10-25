@@ -1,10 +1,10 @@
 # Anki Markdown Formatter
 
-TLDR; Surround your content with `<amd>` to have it processed as Markdown. There are some customizations/configurations below...
+> TLDR; Surround your content with `<amd>` to have it processed as Markdown. There are some customization/configurations below...
 
 [If you already know Markdown, skip the next paragraph...]  
 
-Markdown is an easy way of formatting texts, based on a predefined syntax. 
+Markdown is an easy way of formatting texts, based on a predefined syntax.  
 It makes it simple and fast to write texts because the user doesn't need to worry about annoying details, like when you user tool like Word. 
 It's like on WhatsApp, you write \_text_ and after sending it, its shown as _text_.  
 
@@ -14,7 +14,7 @@ Check more information and the syntax out on the following websites:
     * [Syntax](https://www.markdownguide.org/basic-syntax/)
 * [commonmark.org](https://commonmark.org/help/)
 
-And many other website...
+And many other websites...
 
 **This addon** makes it possible to interpret cards (or parts of them) as Markdown.  
 While editing or adding cards, write it in plain text. No formatting is done in this view.  
@@ -53,19 +53,29 @@ Just **select the block** to be processed, then use one of the options.
 
 Some handling needs to be done in the content before processing it as Markdown.  This happens duo to the way Anki stores the content (as HTML).
 
-#### Trim lines
+1. Trim lines
+    * Trimming means removing spaces before the first word and after the last one on each line.
+1. Replace escaped spaces
+    * Anki uses HTML format, which escapes spaces using `&nbsp;`. So, even though the user sees an empty space, there are some extra characters there. 
 
-* Needed duo to ListItem, headers, blockquotes, etc
-* Problem for codes
+#### Effects and customization
 
-### Replace escaped spaces
+These procedures are needed because Markdown has a specific syntax. Some markup needs to be at the beginning of the line. Likewise, some of them requires one or more empty spaces. 
+For instance: headers, list-itens, blockquotes...
 
-* \&nbsp; vs simple space...
+Conversely, trimmig the lines (and perhaps replacing spaces) leads to problems with other formats, like *code blocks*.  
 
+Therefore, these procedures may be set (customized) in two levels.  Both globally, through the addon's configurations, and locally, into the `amd` tag. Check the example below!  
+
+**Local customization** for a code block:  
+
+        <amd trim="false" replace-spaces="true">
+        {{CodeField}}
+        </amd>
 
 ## Configuration
 
-There are two configuration available. Both of them targeted to the editor:  
+The following customization are available:  
 
 * Shortcut
     * As it says... shortcut for adding tags around selected text
@@ -77,18 +87,6 @@ There are two configuration available. Both of them targeted to the editor:
     * Indicates whether it should replace escaped HTML spaces (\&nbsp;)
 
 
-### Limitations:
-
-#### Code block by space/tab
-
-Code block started only by space or tab does not work. You need to wrap codes with \```.  
-
-#### Careful with \&nbsp;
-
-Anki uses HTML in you text. Therefore, some spaces are replaced by \&nbsp. 
-If you are getting misformatted markdown, this might be the cause. Be aware!
-
-* ...
 
 ## Bugs / Suggestions / more...
 
@@ -98,10 +96,11 @@ That and the source code are available on: [Github](https://github.com/ssricardo
 
 ## Updates
 
-24/10/2018: **version 2.1**:
+24/10/2018: **version 1.1**:
 
 * Support for *trim* and *replace-spaces* configuration, both globally and locally
-* Config renamed: showMdButton -> show-md-button
+* Config renamed: showMdButton -> show-md-button  
+* There is no longer the limitation for code block, as trimmimg may is customizable  
 
 ## About
 

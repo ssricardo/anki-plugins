@@ -13,6 +13,26 @@ from .prioritizer import Prioritizer
 
 from PyQt5.QtWidgets import QMenu, QAction
 
+js_Info_Priority = """
+var prStyle = `<style type="text/css">
+.priorInfo {    
+    position: fixed;
+    bottom: 30px;
+    right: 70px;
+    background: rgba(176, 196, 222, 0.3);
+    padding: 7px;
+    font-size: 12px;
+}
+</style>`;
+
+$(prStyle).appendTo('#answer');
+
+var pdiv = `<div class="priorInfo">
+Priority: <i>%s</i>
+<div>`;
+$(pdiv).appendTo('#answer');
+"""
+
 # Responsible for schedule-priority integration with Anki UI
 class PriorityCardUiHandler:     
 
@@ -80,25 +100,7 @@ class PriorityCardUiHandler:
                 customPriority = p.description
 
         if customPriority: 
-            jsAddStyle = """
-let prStyle = `<style type="text/css">
-.priorInfo {    
-    position: fixed;
-    bottom: 20px;
-    right: 50px;
-    background: rgba(176, 196, 222, 0.3);
-    padding: 7px;
-    font-size: 12px;
-}
-</style>`;
+            jsInfo = js_Info_Priority % customPriority
 
-$(prStyle).appendTo('body');
-
-let pdiv = `<div class="priorInfo">
-Priority: <i>%s</i>
-<div>`;
-$(pdiv).appendTo('#answer');
-""" % customPriority
-
-            reviewer.web.eval(jsAddStyle)
+            reviewer.web.eval(jsInfo)
         

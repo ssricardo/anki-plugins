@@ -85,8 +85,15 @@ The values for priorities should grow in sequence. And the higher the priority, 
 
 > After you change the settings, you must restart to take effect
 
-...
+## Bugs / Suggestions / more...
 
-> 1. If you find any bug or have other ideas, please let me know. I'll be happy to work on it.  
+Please, feel free to make suggestions and open issues about possible bugs found.  
 
-> 2. As English is not my native language and right now I don't have time to check details, please help me to fix possible mistakes in the text
+That and the source code are available on: [Github](https://github.com/ssricardo/anki-plugins/tree/master/anki-markdown)
+
+## Updates
+
+25/10/2018: **version 1.2**:
+
+* Added a message to answer cards, showing the current Priority (if it's not Normal)
+* Issue: https://github.com/ssricardo/anki-plugins/issues/3
