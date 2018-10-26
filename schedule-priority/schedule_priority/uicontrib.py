@@ -25,12 +25,12 @@ var prStyle = `<style type="text/css">
 }
 </style>`;
 
-$(prStyle).appendTo('#answer');
+$(prStyle).appendTo('#qa');
 
 var pdiv = `<div class="priorInfo">
 Priority: <i>%s</i>
 <div>`;
-$(pdiv).appendTo('#answer');
+$(pdiv).appendTo('#qa');
 """
 
 # Responsible for schedule-priority integration with Anki UI

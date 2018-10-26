@@ -89,7 +89,7 @@ The values for priorities should grow in sequence. And the higher the priority, 
 
 Please, feel free to make suggestions and open issues about possible bugs found.  
 
-That and the source code are available on: [Github](https://github.com/ssricardo/anki-plugins/tree/master/anki-markdown)
+That and the source code are available on: [Github](https://github.com/ssricardo/anki-plugins/tree/master/schedule-priority)
 
 ## Updates
 
