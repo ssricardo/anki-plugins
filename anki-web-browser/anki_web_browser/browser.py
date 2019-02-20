@@ -131,12 +131,15 @@ class AwBrowser(QDialog):
         if cfg.getConfig().browserAlwaysOnTop:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
+    def formatTargetURL(self, website: str, query: str = ''):
+        return website.format(urllib.parse.quote(query, encoding='utf8'))  #encode('utf8', 'ignore')
+
     def open(self, website, query: str):
         """
             Loads a given page with its replacing part with its query, and shows itself
         """
 
-        target = website.format(urllib.parse.quote(query, encoding='utf8'))  #encode('utf8', 'ignore')
+        target = self.formatTargetURL(website, query)
         self._web.load(QUrl( target ))
         self._itAddress.setText(target)
         

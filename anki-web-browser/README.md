@@ -1,9 +1,10 @@
 # Anki Web Browser
 
 The **Anki Web Browser** is simply an Internet Browser within Anki (as the name suggests).  
-It aims to make it simple when you are studying or editing a card and want to look something up in the internet.  
+It aims to make it simple when you are studying or editing a card and want to look something up on the internet.  
+You can also use it to open up your system desktop instead of the embedded browser (*from version 1.1*)
 
-For instance, you are studying a foreign language and suddenly there is a word which you haven't understant properlly. In such case it's common to shift to the web browser and make search for the term there. 
+For instance, you are studying a foreign language and suddenly there is a word which you haven't understood it properlly. In such case it's common to shift to the web browser and make search for the term there. 
 This addon makes this task smoother.  
 
 Therefore, this addon provides 2 functionalities:  
@@ -13,7 +14,7 @@ Therefore, this addon provides 2 functionalities:
 
 ## Configuration
 
-In order to search something in a website, the user is given a list of registered websites to choose from. This list is called **providers**.  
+In order to search something on a website, the user is given a list of registered websites to choose from. This list is called **providers**.  
 In the Configurations view, the user may specify the providers he wants.  
 
 The *web browser* may close itself the user shifts cards, that is, when a new card is shown as opposed to the one which was used for a query.  
@@ -21,11 +22,15 @@ This feature may be *enabled* or *disabled* using the configuration **Keep card 
 
 The config **Always on top** is intuitive. It means that if enabled, when the *web browser* is shown, it remains above everything. This might be useful when editiing several notes.  
 
+The config **Use System Browser** disabled the embedded web browser. With this the addons invokes the system web browser instead. Both the provider and the queried term will be used likewise.  
+
 ![Config View](doc/anki-webb-config.png)
+
+> This printscreen still haven't included the *Use System Browser* option.  
 
 ## Using
 
-The functions of this addons are accessed through the context menu (either *right click* on mouse or *right menu key* on the keyboard).
+The functions of this addons are accessed through the context menu (either *right click* on mouse or *right menu key* on the keyboard).  
 
 ### Search selected text
 
@@ -59,6 +64,8 @@ This way, the text or image will be appended to the selected field.
 Even the image! (It's downloaded and imported into the collection automatically)
 
 This feature makes it really simple and fast to get some information from the Internet and build or improve your Anki's collection.  
+
+> This feature works only using the embedded web browser. If you use the system browser, it's not possible to get data automatically
 
 ## Bugs / Suggestions / more...
 

@@ -1,6 +1,7 @@
 {
     "keepBrowserOpened": true,
     "browserAlwaysOnTop": false,
+    "useSystemBrowser": false, 
     "providers": [
         {
             "name": "Google Web",

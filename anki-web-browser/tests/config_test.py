@@ -27,7 +27,7 @@ class ConfigServiceTester(unittest.TestCase):
         self.assertIsNotNone(config)
         self.assertEqual(config.keepBrowserOpened, True)
         self.assertEqual(config.browserAlwaysOnTop, False)
-        self.assertEqual(4, len(config.providers))
+        self.assertEqual(5, len(config.providers))
 
 
     def test_loadNoFile(self):
@@ -74,6 +74,13 @@ class ConfigServiceTester(unittest.TestCase):
         except:
             pass
 
+    def test_valid_urls(self):
+        ch = cc.ConfigHolder()
+        ch.providers.append(cc.ConfigHolder.Provider('Google', 'https://www.google.com/search?tbm=isch&q={}'))
+        ch.providers.append(cc.ConfigHolder.Provider('Sentence', 'http://sentence.yourdictionary.com/{}?direct_search_result=yes'))
+        ch.providers.append(cc.ConfigHolder.Provider('issues#5', 'https://www.google.co.jp/search?tbm=isch&q={}+アニメ美少女'))
+        self._tested.validate(ch)
+
 
 class ConfigControllerTester(unittest.TestCase):
 
@@ -100,4 +107,4 @@ if __name__ == '__main__':
         view.open()
         sys.exit(app.exec_())
     else:
-        unittest.main()
+        unittest.main()e

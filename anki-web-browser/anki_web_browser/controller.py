@@ -16,14 +16,14 @@ import json
 from aqt.editor import Editor
 from aqt.reviewer import Reviewer
 from aqt.qt import QAction
-from aqt.utils import showInfo, tooltip, showWarning
+from aqt.utils import showInfo, tooltip, showWarning, openLink
 
 # Holds references so GC does kill them
 controllerInstance = None
 
 @staticmethod
 def _ankiShowInfo(*args):
-    tooltip(args)
+    tooltip(args, 3500)
 
 @staticmethod
 def _ankiShowError(*args):
@@ -37,6 +37,7 @@ def run():
     Feedback.log('Setting anki-web-browser controller')
     Feedback.showInfo = _ankiShowInfo
     Feedback.showError = _ankiShowError
+    Feedback.showWarn = lambda args: tooltip('<b>Warning</b><br />' + args, 7500)
         
     NoteMenuHandler.setOptions(cfg.getConfig().providers)
     controllerInstance = Controller(mw)
@@ -142,6 +143,11 @@ class Controller:
 
         self._currentNote = note
         Feedback.log('OpenInBrowser: {} ({})'.format(note, self.isEditing()))
+
+        if cfg.getConfig().useSystemBrowser:
+            target = self._browser.formatTargetURL(website, query)
+            openLink(target)
+            return
         
         if self.isEditing():
             fieldList = note.model()['flds']
@@ -152,10 +158,11 @@ class Controller:
 
         self._browser.open(website, query)
 
+
     def handleSelection(self, fieldIndex, value, isUrl = False):
         """
             Callback from the web browser. 
-            Invoked when there is a selection coming from the browser. It need to be delivered to a given field
+            Invoked when there is a selection coming from the browser. It needs to be delivered to a given field
         """
 
         if self._currentNote != self._editorReference.note:
@@ -172,10 +179,17 @@ class Controller:
     def handleUrlSelection(self, fieldIndex, value):
         """
         Imports an image from the link 'value' to the collection. 
-        Adds this new image tag to the given field in the current note"""
+        Adds this new img tag to the given field in the current note"""
 
         url = value.toString()
+        Feedback.log("Selected from browser: {} || ".format(url))
+
         imgReference = self._editorReference.urlToLink(url)
+        Feedback.log('handleUrlSelection.imgReference: ' + imgReference)
+
+        if (not imgReference) or not imgReference.startswith('<img'):
+            Feedback.showWarn('URL invalid! Only URLs with references to image files are supported (ex: http://images.com/any.jpg,  any.png)')
+            return
 
         self._editorReference.web.eval("focusField(%d);" % fieldIndex)
         self._editorReference.web.eval("setFormat('inserthtml', %s);" % json.dumps(imgReference))

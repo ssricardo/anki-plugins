@@ -26,8 +26,8 @@ except AttributeError:
 class Ui_ConfigView(object):
     def setupUi(self, ConfigView):
         ConfigView.setObjectName(_fromUtf8("ConfigView"))
-        ConfigView.resize(460, 400)
-        ConfigView.setFixedSize(460, 400)       # modif
+        ConfigView.resize(480, 400)
+        ConfigView.setFixedSize(480, 400)       # modif
         
         self.verticalLayoutWidget = QtWidgets.QWidget(ConfigView)
         # self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 400, 292))
@@ -53,6 +53,17 @@ class Ui_ConfigView(object):
         self.btAdd.setObjectName(_fromUtf8("btAdd"))
         self.horizontalLayout.addWidget(self.btAdd)
         self.verticalLayout.addLayout(self.horizontalLayout)
+
+        # modif
+        self.cbSystemBrowser = QtWidgets.QCheckBox(self.verticalLayoutWidget)
+        self.cbSystemBrowser.setObjectName("cbSystemBrowser")
+        self.verticalLayout.addWidget(self.cbSystemBrowser)
+
+        self.browserInfo = QtWidgets.QLabel("Importing features won't work for external browsers", self.verticalLayoutWidget)
+        self.browserInfo.setStyleSheet('QLabel  {color: #960c19}')
+        self.verticalLayout.addWidget(self.browserInfo)
+        self.browserInfo.setVisible(self.cbSystemBrowser.isChecked())
+
         self.rbKeepOpened = QtWidgets.QCheckBox(self.verticalLayoutWidget)
         self.rbKeepOpened.setObjectName(_fromUtf8("rbKeepOpened"))
         self.verticalLayout.addWidget(self.rbKeepOpened)
@@ -98,6 +109,7 @@ class Ui_ConfigView(object):
         self.btRemove.setText(_translate("ConfigView", "Remove", None))
         self.btAdd.setText(_translate("ConfigView", "Add", None))
         self.rbKeepOpened.setText(_translate("ConfigView", "Keep browser opened (after current card is changed)", None))
+        self.cbSystemBrowser.setText(_translate("ConfigView", "Use system browser (instead of Anki-Web-Browser)", None))
         self.rbOnTop.setText(_translate("ConfigView", "Keep always visible (on top)", None))
 
     def getIcon(self, qtStyle):

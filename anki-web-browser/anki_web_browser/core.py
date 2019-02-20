@@ -27,5 +27,9 @@ class Feedback:
         pass
 
     @staticmethod
+    def showWarn(*args):
+        pass
+
+    @staticmethod
     def showError(*args):
         pass
