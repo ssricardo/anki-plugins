@@ -60,6 +60,9 @@ code {
     line-height: 1.5;
     font-size: 13px;
 }
+amd {
+    border-left: 2px solid #050599;
+}
 </style>
 """
 

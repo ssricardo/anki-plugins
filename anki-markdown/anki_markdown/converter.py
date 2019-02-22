@@ -10,7 +10,8 @@ from .config import ConfigKey
 from .core import Feedback
 
 from markdown import markdown
-from bs4 import BeautifulSoup
+# from .html2text import __init__
+from . import html2text
 import re
 import os
 
@@ -21,6 +22,10 @@ class Converter:
 
     # _amdArea = re.compile('\<amd>(.)*\</amd>', flags=(re.MULTILINE | re.DOTALL))
     _amdArea = re.compile(r'<amd(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?>(.*)</amd>', flags=(re.MULTILINE | re.DOTALL))
+    _h2t = html2text.HTML2Text()
+
+    ANKI_CLOZE = "<span class=cloze>[...]</span>"
+    CLOZE_REPLACEMENT = '[[...CLOZE...]]'
 
     def convertMarkdown(self, inpt:str): 
         return markdown(inpt)
@@ -54,7 +59,7 @@ class Converter:
         return result
         
 
-    def findConvertArea(self, inpt:str, globalMustTrim: bool, globalReplaceSpace: bool):
+    def findConvertArea(self, inpt:str):
         """
             Finds an area delimited by <amd> tags. 
             Converts its contents to Markdown
@@ -68,47 +73,42 @@ class Converter:
         content = match.group(5)
         localOpts = {match.group(1): evalBool(match.group(2)), match.group(3): evalBool(match.group(4))}
 
-        content = self._preProcessContent(content,
-            localOpts[ConfigKey.TRIM_LINES] if ConfigKey.TRIM_LINES in localOpts else globalMustTrim,
-            localOpts[ConfigKey.REPLACE_SPACES] if ConfigKey.REPLACE_SPACES in localOpts else globalReplaceSpace
-        )
+        content = self._preProcessContent(content)
+
+        # ,
+          #  localOpts[ConfigKey.TRIM_LINES] if ConfigKey.TRIM_LINES in localOpts else globalMustTrim,
+           # localOpts[ConfigKey.REPLACE_SPACES] if ConfigKey.REPLACE_SPACES in localOpts else globalReplaceSpace
 
         return inpt[:start] + content + inpt[stop:]
 
 
-    def _preProcessContent(self, content: str, mustTrim: bool, mustReplaceSpace: bool):
-        hadCloze = "<span class=cloze>[...]</span>" in content
+    def _preProcessContent(self, content: str):
 
-        content = self.getTextFromHtml(content, mustReplaceSpace)
+        hasCloze = "<span class=cloze>[...]</span>" in content
+
+        # to keep cloze parts
+        if hasCloze:
+            content = content.replace(self.ANKI_CLOZE, self.CLOZE_REPLACEMENT)        
+
+        content = self.getTextFromHtml(content)
 
         # strip / trim
-        if mustTrim:
-            content = self._clearLine(content)
-        
+        # if mustTrim:
+        #     content = self._clearLine(content)
+
         content = self.convertMarkdown(content)
 
-        # tries to keed cloze parts - TODO improve in the future
-        if hadCloze:
-            content = content.replace("[...]", "<span class=cloze>[...]</span>")
+        if hasCloze:
+            content = content.replace(self.CLOZE_REPLACEMENT, self.ANKI_CLOZE)
 
         return content
     
 
-    def getTextFromHtml(self, html, replaceSpace):
+    def getTextFromHtml(self, html):
         """
             Extracts clear text from an HTML input
         """
-
-        html = (html.replace('<br>', os.linesep)
-            .replace('<br/>', os.linesep)
-            .replace('<br />', os.linesep)
-            .replace('</div>', os.linesep + '</div>'))
-
-        if replaceSpace:
-            html = html.replace('&nbsp;', ' ')
-
-        soup = BeautifulSoup(html, "html.parser")
-        return soup.getText('  ')
+        return self._h2t.handle(html)
 
 def evalBool(value):
     return None if value == None else ('true' == value.lower())
