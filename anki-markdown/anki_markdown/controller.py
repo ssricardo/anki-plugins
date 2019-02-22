@@ -15,7 +15,7 @@ import os
 from aqt.editor import Editor
 from aqt.reviewer import Reviewer
 from aqt.qt import QAction
-from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QMenu, QAction
 from aqt.utils import showInfo, tooltip, showWarning
 from anki.hooks import addHook
 
@@ -24,6 +24,46 @@ controllerInstance = None
 
 CWD = os.path.dirname(os.path.realpath(__file__))
 ICON_FILE = 'icons/markdown-3.png'
+
+# -------------------------- WEB --------------------------------
+
+EDITOR_STYLES = """
+        var prStyle = `<style type="text/css">
+            pre.amd {    
+                border-left: 3px solid #050766;
+                margin: 0px;
+            }
+
+            .amd_disabled {
+                background-color: red;
+            }
+
+            .amd_enabled {
+                background-color: green;
+            }
+            </style>`;
+
+        $(prStyle).appendTo('#fields');
+        """
+
+# Prevent default Enter behavior if as Markdown enabled
+EDITOR_SCRIPTS = """
+        function handleMdKey(evt) {
+            if (evt.keyCode === 13 && ! evt.shiftKey) {
+                evt.preventDefault();
+
+                if (currentField) {
+                    // var e = $.Event("keydown", { keyCode: 13, shiftKey: true }); 
+                    // $(currentField).trigger(e);
+
+                    $(currentField).append('\\n\\r');
+                }
+            }
+        }
+
+        $('.field').wrap('<pre class=\"amd\"></pre>');
+        $('.field').keypress(handleMdKey);
+        """
 
 # ---------------------------- Injected functions -------------------
 @staticmethod
@@ -66,52 +106,7 @@ class Controller:
 
     _trimConfig = None
     _replaceSpaceConfig = None
-    _editAsMarkdownEnabled = False    
-
-    _js_rewrite_inPreEnvironment = """
-        <script type="text/javascript">
-        // alert('Script init');
-        console.log('Script init');
-        var originalPreEnvironment = inPreEnvironment;
-        var editAsMarkdownEnabled = false;
-
-        console.log(inPreEnvironment);
-
-        function inPreEnvironment() {
-            return true;
-            if (editAsMarkdownEnabled) {
-                return true;
-            }
-            return originalPreEnvironment();
-        }
-
-        console.log('Func 1 ');
-
-        function insertNewline() {
-            if (!inPreEnvironment()) {
-                setFormat('insertText', '\\n');
-                console.log('insertNewline IN PreEnvironment');
-                return;
-            }
-            console.log('insertNewline: NOT inPreEnvironment');
-
-            var r = window.getSelection().getRangeAt(0);
-            if (!r.collapsed) {
-                // delete any currently selected text first, making
-                // sure the delete is undoable
-                setFormat("delete");
-            }
-
-            var oldHeight = currentField.clientHeight;
-            setFormat('inserthtml', '\\n');
-            if (currentField.clientHeight === oldHeight) {
-                setFormat('inserthtml', '\\n');
-            }
-        }
-
-        console.log('JS Loaded');
-        </script>
-    """
+    _editAsMarkdownEnabled = False
 
     def __init__(self):
         self._showButton = ConfigService.read(ConfigKey.SHOW_MARKDOWN_BUTTON, bool)
@@ -119,77 +114,69 @@ class Controller:
         self._trimConfig = ConfigService.read(ConfigKey.TRIM_LINES, bool)
         self._replaceSpaceConfig = ConfigService.read(ConfigKey.REPLACE_SPACES, bool)
 
+    # ------------------- Hooks / entry points -------------------------
 
     def setupBindings(self):
+        
+        # Review
         addHook("prepareQA", self.processField)
+
+        # Editing
         addHook("setupEditorButtons", self.setupButtons)
         addHook("setupEditorShortcuts", self.setupShortcuts)
-        addHook("loadNote", self.onLoadNote)
+        addHook("loadNote", self.onLoadNote)        
+        addHook('EditorWebView.contextMenuEvent', self._showCustomMenu)
 
-        # Editor.setupWeb = self._wrapEditorSetupWeb(Editor.setupWeb)
-        # Editor.setNote = self._wrapEditorSetNote(Editor.setNote)
-        # Editor.mungeHTML = self._wrapEditorMungeHTML(Editor.mungeHTML)
+        Editor.setupWeb = self._wrapEditorSetupWeb(Editor.setupWeb)
 
-    def _wrapEditorSetNote(self, f):
 
-        def wrapped(editor, note, hide=True, focusTo=None):
-            processedFields = []
-            for field in note.fields:
-                if (field.startswith('<pre>')):
-                    processedFields.append(field)
-                else:
-                    newValue = "<pre>{}</pre>".format(field)
-                    processedFields.append(newValue)
+    def _wrapEditorSetupWeb(self, f):
+        def wrapper(instance):
+            f(instance)
+            # btn = self._editorReference.addButton(None, 'toggle-md', tip="Edit as Markdown?", toggleable = True, keys = None,
+            #     func = 'toggle-md2')
 
-            note.fields = processedFields
+            self.setEditAsMarkdownEnabled(self._editAsMarkdownEnabled)  # initialization
 
-            f(editor, note, hide, focusTo)
+            # self._editorReference.web.eval("""
+            #     $('#topbutsleft').append("%s");
 
-        return wrapped
+            #     $('#bt_tg_md').click(function() {
+            #         $('#bt_tg_md').toggleClass('amd_enabled');
+            #     })
+            #     """ % btn.replace('"', '\\"'))
 
-    def _wrapEditorMungeHTML(self, f):
-        def wrapped(self, txt):
-            print(txt)
-            f(self, txt)
-        return wrapped
+        return wrapper
+
+
+    # --------------------------- Editing ----------------------------
+
+    def toggleMarkdown(self, editor = None):
+        print("toggleMarkdown")
+        self.setEditAsMarkdownEnabled(not self._editAsMarkdownEnabled)
+        self._editorReference.loadNoteKeepingFocus()
+
+    def _showCustomMenu(self, webview, menu):
+        submenu = QMenu('&Markdown', menu)
+
+        act1 = QAction('(&1) Convert to HTML', submenu,
+            triggered=lambda: self._convertToHTML())
+        submenu.addAction(act1)
+
+        act2 = QAction('(&2) Convert to MD', submenu,
+            triggered=lambda: self._clearHTML())
+        submenu.addAction(act2)
+
+        menu.addMenu(submenu)
+
 
     def onLoadNote(self, editor):
-        editor.web.eval("console.log('setNote')")
         note = editor.note
 
-        styles = """
-        var prStyle = `<style type="text/css">
-            pre.amd {    
-                border-left: 2px solid #070777;
-                margin: 0px;
-            }
-            </style>`;
-
-        $(prStyle).appendTo('#fields');
-        """
-        editor.web.eval(styles)
-        editor.web.eval("$('#fields').prepend('<h2>Markdown?</h2>')")
-        editor.web.eval("""
-        function handleMdKey(evt) {
-            if (event.keyCode === 13 && ! evt.shiftKey) {
-                event.preventDefault();
-                console.log('Enter pressed');
-
-                if (currentField) {
-                    $(currentField).append('\n');
-                }
-            }
-        }
-
-        $('.field').wrap('<pre class=\"amd\"></pre>');
-        $('.field').keypress(handleMdKey);
-        """)
-
-
-    def processField(self, inpt, card, phase, *args):
-        inpt = inpt
-        res = self._converter.findConvertArea(inpt)
-        return Style.MARKDOWN + os.linesep + res
+        if self._editAsMarkdownEnabled:
+            editor.web.eval(EDITOR_STYLES)
+            editor.web.eval("$('#fields').prepend('<h2>Markdown?</h2>')")   # FIXME
+            editor.web.eval(EDITOR_SCRIPTS)
 
 
     def setupButtons(self, buttons, editor):        
@@ -200,38 +187,33 @@ class Controller:
 
         self._editorReference = editor
         editor._links['apply-markdown'] = self._wrapAsMarkdown
-        editor._links['alert-msg'] = self._tmpAction
-        editor._links['apply-btn'] = self._tmpAction2
+        editor._links['toggle-md2'] = self.toggleMarkdown
+        # editor._links['apply-btn'] = self._tmpAction2
 
         return buttons + [editor._addButton(
             CWD + '/' + ICON_FILE,
             "apply-markdown",  "Apply Markdown ({})".format(self._shortcut)),
             editor._addButton(
             None,
-            "alert-msg",  "Tmp Alert"),
-            editor._addButton(
-            None,
-            "apply-btn",  "Apply")]
+            "toggle-md2",  "Edit as Markdown?", toggleable = True, id='bt_tg_md')]
 
 
     def setupShortcuts(self, scuts:list, editor):
         scuts.append((self._shortcut, self._wrapAsMarkdown))
-        # editor.web.eval("wrap(null, \"%s\")" % self._js_rewrite_inPreEnvironment)
-        
         
 
-    def _tmpAction(self, editor = None):
-        print('_tmpAction')
-        
-        # self.setEditAsMarkdownEnabled(not self._editAsMarkdownEnabled)  # invert
-        self._editorReference.web.eval("wrap('<pre>', '</pre>')")
+    def _clearHTML(self, editor = None):
+        Feedback.log('_convertToMD')
 
-        self._editorReference.web.eval("console.log('editAsMarkdownEnabled? ' + editAsMarkdownEnabled);")
-        self._editorReference.web.eval("console.log('Pre? ' + inPreEnvironment());")
+        cur = self._editorReference.currentField
+        note = self._editorReference.note
+        newValue = self._converter.getTextFromHtml(note.fields[cur])
+        note.fields[cur] = newValue
+        self._editorReference.setNote(note)
 
 
-    def _tmpAction2(self, editor = None):
-        print('_tmpAction2')
+    def _convertToHTML(self, editor = None):
+        Feedback.log('_convertToHTML')
 
         cur = self._editorReference.currentField
         note = self._editorReference.note
@@ -254,13 +236,18 @@ class Controller:
         editor.web.eval("wrap('<amd>', '</amd>');")
         Feedback.showInfo('Anki Markdown :: Added successfully')
 
-    def _unwrapMarkdown(self):
-        pass
 
-    def isEditing(self):
+    def _isEditing(self):
         'Checks anki current state. Whether is editing or not'
 
         return True if (self._ankiMw and self._editorReference) else False
+
+    # ------------------------------ Review ------------------------------------------
+
+    def processField(self, inpt, card, phase, *args):
+        inpt = inpt
+        res = self._converter.findConvertArea(inpt)
+        return Style.MARKDOWN + os.linesep + res
 
 
 # ---------------------------------- Events listeners ---------------------------------
