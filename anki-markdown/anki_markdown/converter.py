@@ -22,6 +22,8 @@ class Converter:
 
     # _amdArea = re.compile('\<amd>(.)*\</amd>', flags=(re.MULTILINE | re.DOTALL))
     _amdArea = re.compile(r'<amd(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?>(.*)</amd>', flags=(re.MULTILINE | re.DOTALL))
+    _clozeRE = re.compile(r'<span class=cloze>(\w+|\[\.\.\.\])</span>')
+    # _replacementRE = re.compile(r'\[\[\.\.\.(\w+|\[\.\.\.\])\.\.\.\]\]')
     _h2t = html2text.HTML2Text()
 
     ANKI_CLOZE = "<span class=cloze>[...]</span>"
@@ -59,10 +61,10 @@ class Converter:
         return result
         
 
-    def findConvertArea(self, inpt:str):
+    def convertAmdAreasToMD(self, inpt:str, cleanupHTML:bool = False):
         """
-            Finds an area delimited by <amd> tags. 
-            Converts its contents to Markdown
+            Finds areas delimited by <amd> tags. 
+            Converts their contents to Markdown
         """
 
         match = self._amdArea.search(inpt)
@@ -73,7 +75,7 @@ class Converter:
         content = match.group(5)
         localOpts = {match.group(1): evalBool(match.group(2)), match.group(3): evalBool(match.group(4))}
 
-        content = self._preProcessContent(content)
+        content = self._preProcessContent(content, cleanupHTML)
 
         # ,
           #  localOpts[ConfigKey.TRIM_LINES] if ConfigKey.TRIM_LINES in localOpts else globalMustTrim,
@@ -82,24 +84,30 @@ class Converter:
         return inpt[:start] + content + inpt[stop:]
 
 
-    def _preProcessContent(self, content: str):
+    def _preProcessContent(self, content: str, cleanupHTML: bool):
 
-        hasCloze = "<span class=cloze>[...]</span>" in content
-
+        print('-----------------------------')
         # to keep cloze parts
-        if hasCloze:
-            content = content.replace(self.ANKI_CLOZE, self.CLOZE_REPLACEMENT)        
+        clozeMatch = self._clozeRE.search(content)
+        clozeContents = list()
+        
+        while clozeMatch:
+            print(clozeMatch)
+            clozeContents.append(clozeMatch.group(1))
+            content = content.replace(clozeMatch.group(0), self.CLOZE_REPLACEMENT, 1)
+            clozeMatch = self._clozeRE.search(content)
 
-        content = self.getTextFromHtml(content)
-
-        # strip / trim
-        # if mustTrim:
-        #     content = self._clearLine(content)
+        if cleanupHTML:
+            content = self.getTextFromHtml(content)
 
         content = self.convertMarkdown(content)
 
-        if hasCloze:
-            content = content.replace(self.CLOZE_REPLACEMENT, self.ANKI_CLOZE)
+        print(clozeContents)
+
+        if clozeContents:
+            for value in clozeContents:
+                content = content.replace(self.CLOZE_REPLACEMENT, 
+                    self.ANKI_CLOZE.replace('[...]', value), 1)
 
         return content
     

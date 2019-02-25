@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+       
+
+        <style type="text/css">
+            body {
+                background-color: #333;
+                color: ghostwhite;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h3>File used to test scripts</h3>
+        <p id="field" class="field" contenteditable="true" 
+        style="min-height: 400px; border: 1px solid #113388;">This is an editable paragraph.</p>
+
+        <script type="text/javascript">
+            function handleMdKey(evt) {
+                let currentField = $('#field');
+                if (evt.keyCode === 13 && ! evt.shiftKey) {
+                    evt.preventDefault();
+
+                    if (currentField) {
+                        console.log('currentField');
+                        // var e = $.Event("keypress");
+                        // e.keyCode = 13;
+                        // e.which = 13;
+                        // e.shiftKey = true;
+                        // currentField.trigger(e);
+                        document.execCommand("insertText", false, "\n\n");
+                    }
+                }
+            }
+
+            $('.field').wrap('<pre class=\"amd\"></pre>');
+            $('.field').keypress(handleMdKey);
+        </script>
+    </body>
+    
+</html>

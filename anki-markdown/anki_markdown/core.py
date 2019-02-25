@@ -62,6 +62,7 @@ code {
 }
 amd {
     border-left: 2px solid #050599;
+    padding-left: 3px;
 }
 </style>
 """

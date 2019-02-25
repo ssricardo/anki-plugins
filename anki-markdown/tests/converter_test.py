@@ -100,6 +100,17 @@ Other text
 <amd>       ### Header 3</amd>
 """
 
+BLOCK_CLOZE = """
+<amd>
+# Code with cloze
+    
+    def <span class=cloze>[...]</span>: 
+    def <span class=cloze>Result</span> area
+
+> Done!
+</amd>
+"""
+
 #endregion
 
 class TransformerTest(unittest.TestCase):
@@ -127,7 +138,7 @@ class TransformerTest(unittest.TestCase):
     # TODO re check cases with \n
     @unittest.skip
     def testTransformArea(self):
-        value = self.tested.findConvertArea(MD_DELIMITED)
+        value = self.tested.convertAmdAreasToMD(MD_DELIMITED)
         self.assertIsNotNone(value)
         self.assertTrue("""<i>Outer MD</i>
 <h1>Converted</h1>
@@ -148,13 +159,14 @@ class TransformerTest(unittest.TestCase):
         self.assertTrue('> My quote' in value)
         
 
-    def testCodeHTML2(self):
-        value = self.tested.findConvertArea(DEMILITED_CODE)
+    def testTextWithHTML(self):
+        # cleanedCode = self.tested.getTextFromHtml(DEMILITED_CODE.strip())
+        value = self.tested.convertAmdAreasToMD(DEMILITED_CODE, True)
         self.assertTrue("<h2>Exemplos vão aqui!</h2>" in value)
         self.assertTrue("<code>" in value)
 
-    def testCodeHTML3(self):
-        value = self.tested.findConvertArea(DEMILITED_CODE2)
+    def testTextWithHTML2(self):
+        value = self.tested.convertAmdAreasToMD(DEMILITED_CODE2, True)
         self.assertTrue("<code>" in value)
 
     # TODO re check cases with spaces
@@ -164,23 +176,24 @@ class TransformerTest(unittest.TestCase):
         self.assertTrue('<h1>Header' in res)
         self.assertFalse('  # Header' in res)
 
-    def testInlineReplaceSpace(self):
-        res = self.tested.findConvertArea("""<amd replace-spaces="true">  *&nbsp;ListItem&nbsp;  </amd>""")
-        self.assertTrue('<li>ListItem' in res)
-        self.assertFalse('  *List' in res)
-
     # HTML with inline options
-    def testComplete(self):
-        res = self.tested.findConvertArea("""
+    def testConvertArea(self):
+        res = self.tested.convertAmdAreasToMD("""
 <amd trim="false" replace-spaces="true">
-    <div>&nbsp; &nbsp; &nbsp; &nbsp; System.out.println();</div><div>&nbsp; &nbsp; &nbsp; &nbsp; def test():</div><div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ra()</div>
+          System.out.println();\\n    def test():\\n
+          ra()
 </amd>""")
         self.assertTrue('<code>' in res)
+
+    def testClozeParts(self):
+        res = self.tested.convertAmdAreasToMD(BLOCK_CLOZE)
+        self.assertTrue('def <span class=cloze>[...]' in res)
+        self.assertTrue('def <span class=cloze>Result' in res)
 
 
     @unittest.skip
     def testMultipleBlocks(self):
-        value = self.tested.findConvertArea(MULTIPLE_BLOCKS)
+        value = self.tested.convertAmdAreasToMD(MULTIPLE_BLOCKS)
         print(value)
 
 unittest.main()

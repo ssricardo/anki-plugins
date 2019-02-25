@@ -34,12 +34,17 @@ EDITOR_STYLES = """
                 margin: 0px;
             }
 
-            .amd_disabled {
+            .amd_toggler {
                 background-color: red;
             }
 
             .amd_enabled {
                 background-color: green;
+            }
+
+            .amd_edit_notice {
+                float: right;
+                color: orange;
             }
             </style>`;
 
@@ -50,20 +55,20 @@ EDITOR_STYLES = """
 EDITOR_SCRIPTS = """
         function handleMdKey(evt) {
             if (evt.keyCode === 13 && ! evt.shiftKey) {
-                evt.preventDefault();
 
                 if (currentField) {
-                    // var e = $.Event("keydown", { keyCode: 13, shiftKey: true }); 
-                    // $(currentField).trigger(e);
-
-                    $(currentField).append('\\n\\r');
+                    console.log('currentField');
+                    document.execCommand("insertHTML", false, "\\n\\n");
                 }
+                return false;
             }
         }
 
         $('.field').wrap('<pre class=\"amd\"></pre>');
         $('.field').keypress(handleMdKey);
         """
+
+EDITOR_MD_NOTICE = """<div class=\"amd_edit_notice\" title=\"This addon tries to prevent Anki from formatting as HTML\">Markdown ON</div>"""
 
 # ---------------------------- Injected functions -------------------
 @staticmethod
@@ -133,18 +138,7 @@ class Controller:
     def _wrapEditorSetupWeb(self, f):
         def wrapper(instance):
             f(instance)
-            # btn = self._editorReference.addButton(None, 'toggle-md', tip="Edit as Markdown?", toggleable = True, keys = None,
-            #     func = 'toggle-md2')
-
             self.setEditAsMarkdownEnabled(self._editAsMarkdownEnabled)  # initialization
-
-            # self._editorReference.web.eval("""
-            #     $('#topbutsleft').append("%s");
-
-            #     $('#bt_tg_md').click(function() {
-            #         $('#bt_tg_md').toggleClass('amd_enabled');
-            #     })
-            #     """ % btn.replace('"', '\\"'))
 
         return wrapper
 
@@ -173,9 +167,13 @@ class Controller:
     def onLoadNote(self, editor):
         note = editor.note
 
+        mdCssClass = 'amd_enabled' if self._editAsMarkdownEnabled else 'amd_toggler'
+        self._editorReference.web.eval("$('#bt_tg_md').addClass('{}');".format(mdCssClass))
+        self._editorReference.web.eval("console.log($('#bt_tg_md').class());")
+
         if self._editAsMarkdownEnabled:
             editor.web.eval(EDITOR_STYLES)
-            editor.web.eval("$('#fields').prepend('<h2>Markdown?</h2>')")   # FIXME
+            editor.web.eval("$('#fields').prepend('{}');".format(EDITOR_MD_NOTICE))
             editor.web.eval(EDITOR_SCRIPTS)
 
 
@@ -187,15 +185,14 @@ class Controller:
 
         self._editorReference = editor
         editor._links['apply-markdown'] = self._wrapAsMarkdown
-        editor._links['toggle-md2'] = self.toggleMarkdown
-        # editor._links['apply-btn'] = self._tmpAction2
+        editor._links['toggle-md'] = self.toggleMarkdown
 
         return buttons + [editor._addButton(
             CWD + '/' + ICON_FILE,
             "apply-markdown",  "Apply Markdown ({})".format(self._shortcut)),
             editor._addButton(
             None,
-            "toggle-md2",  "Edit as Markdown?", toggleable = True, id='bt_tg_md')]
+            "toggle-md",  "Edit as Markdown?", "Markdown", toggleable = True, id='bt_tg_md')]
 
 
     def setupShortcuts(self, scuts:list, editor):
@@ -224,7 +221,7 @@ class Controller:
 
     def setEditAsMarkdownEnabled(self, value: bool):
         self._editAsMarkdownEnabled = value
-        self._editorReference.web.eval('editAsMarkdownEnabled = {};'.format(str(value).lower()))
+        self._editorReference.web.eval('editAsMarkdownEnabled = {};'.format(str(value).lower())) # TODO precisa?
 
 
     def _wrapAsMarkdown(self, editor = None):
@@ -245,8 +242,11 @@ class Controller:
     # ------------------------------ Review ------------------------------------------
 
     def processField(self, inpt, card, phase, *args):
-        inpt = inpt
-        res = self._converter.findConvertArea(inpt)
+        # inpt = inpt
+        print("processField: " + inpt)
+        res = self._converter.convertAmdAreasToMD(inpt)
+        print(res)
+        res = '<span class="amd">{}</span>'.format(res)        
         return Style.MARKDOWN + os.linesep + res
 
 
