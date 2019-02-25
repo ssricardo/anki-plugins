@@ -8,6 +8,7 @@
 from .config import ConfigKey, ConfigService
 from .core import Feedback, AppHolder, Style
 from .converter import Converter
+from .batch import BatchService
 
 import anki
 import os
@@ -106,6 +107,7 @@ class Controller:
     """
 
     _converter = Converter()
+    _batchService = BatchService(_converter)
     _showButton = None
     _shortcut = None
 
@@ -122,6 +124,9 @@ class Controller:
     # ------------------- Hooks / entry points -------------------------
 
     def setupBindings(self):
+        """
+            Register the entry points / interface with Anki
+        """
         
         # Review
         addHook("prepareQA", self.processField)
@@ -130,7 +135,8 @@ class Controller:
         addHook("setupEditorButtons", self.setupButtons)
         addHook("setupEditorShortcuts", self.setupShortcuts)
         addHook("loadNote", self.onLoadNote)        
-        addHook('EditorWebView.contextMenuEvent', self._showCustomMenu)
+        addHook('EditorWebView.contextMenuEvent', self._setupContextMenu)
+        addHook('browser.setupMenus', self._setupBrowserMenu)
 
         Editor.setupWeb = self._wrapEditorSetupWeb(Editor.setupWeb)
 
@@ -146,12 +152,20 @@ class Controller:
     # --------------------------- Editing ----------------------------
 
     def toggleMarkdown(self, editor = None):
-        print("toggleMarkdown")
         self.setEditAsMarkdownEnabled(not self._editAsMarkdownEnabled)
         self._editorReference.loadNoteKeepingFocus()
 
-    def _showCustomMenu(self, webview, menu):
-        submenu = QMenu('&Markdown', menu)
+
+    def _setupContextMenu(self, webview, menu):
+        submenu = self._showCustomMenu(menu)
+        menu.addMenu(submenu)
+
+
+    def _showCustomMenu(self, parent = None):
+        if not parent:
+            parent = self._editorReference.web
+
+        submenu = QMenu('&Markdown', parent)
 
         act1 = QAction('(&1) Convert to HTML', submenu,
             triggered=lambda: self._convertToHTML())
@@ -161,7 +175,9 @@ class Controller:
             triggered=lambda: self._clearHTML())
         submenu.addAction(act2)
 
-        menu.addMenu(submenu)
+        if not isinstance(parent, QMenu):
+            submenu.popup(parent.mapToGlobal( parent.pos() ))
+        return submenu
 
 
     def onLoadNote(self, editor):
@@ -196,8 +212,9 @@ class Controller:
 
 
     def setupShortcuts(self, scuts:list, editor):
-        scuts.append((self._shortcut, self._wrapAsMarkdown))
-        
+        # scuts.append((self._shortcut, self._wrapAsMarkdown))
+        scuts.append((self._shortcut, self._showCustomMenu))
+
 
     def _clearHTML(self, editor = None):
         Feedback.log('_convertToMD')
@@ -237,17 +254,44 @@ class Controller:
     def _isEditing(self):
         'Checks anki current state. Whether is editing or not'
 
-        return True if (self._ankiMw and self._editorReference) else False
+        return True if (self._editorReference) else False
 
     # ------------------------------ Review ------------------------------------------
 
     def processField(self, inpt, card, phase, *args):
         # inpt = inpt
-        print("processField: " + inpt)
         res = self._converter.convertAmdAreasToMD(inpt)
-        print(res)
         res = '<span class="amd">{}</span>'.format(res)        
         return Style.MARKDOWN + os.linesep + res
+
+    # --------------------------------------- Browser ------------------------------------
+    def _setupBrowserMenu(self, browser):
+        # Add batch operations to menu
+        print('_setupBrowserMenu')
+
+        submenu = QMenu('&Markdown Addon', browser.form.menu_Notes)
+
+        # submenu = QMenu()
+        act1 = QAction('(&1) Convert to HTML', submenu,
+            triggered=lambda: self._batchConvertHTML(browser))
+        submenu.addAction(act1)
+
+        act2 = QAction('(&2) Convert to MD', submenu,
+            triggered=lambda: self._batchConvertMD(browser))
+        submenu.addAction(act2)
+
+        browser.form.menu_Notes.addMenu(submenu)
+        
+
+    def _batchConvertHTML(self, browser):
+        selectedItens = browser.selectedNotes()
+        print('_batchConvertHTML - selected: ' + str(selectedItens))
+        self._batchService.convertNotesToHTML(selectedItens)
+
+    def _batchConvertMD(self, browser):
+        selectedItens = browser.selectedNotes()
+        print('_batchConvertMD - selected: ' + str(selectedItens))
+        self._batchService.convertNotesToMD(selectedItens)
 
 
 # ---------------------------------- Events listeners ---------------------------------

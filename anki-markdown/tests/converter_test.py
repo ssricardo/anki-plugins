@@ -106,6 +106,7 @@ BLOCK_CLOZE = """
     
     def <span class=cloze>[...]</span>: 
     def <span class=cloze>Result</span> area
+    def <span class=cloze>[...]</span>: 
 
 > Done!
 </amd>
@@ -189,7 +190,8 @@ class TransformerTest(unittest.TestCase):
         res = self.tested.convertAmdAreasToMD(BLOCK_CLOZE)
         self.assertTrue('def <span class=cloze>[...]' in res)
         self.assertTrue('def <span class=cloze>Result' in res)
-
+        self.assertFalse('[[...CLOZE...]]' in res)
+        
 
     @unittest.skip
     def testMultipleBlocks(self):

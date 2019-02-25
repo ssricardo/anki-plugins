@@ -20,45 +20,15 @@ class Converter:
         Responsible for converting texts between differents formats
     """
 
-    # _amdArea = re.compile('\<amd>(.)*\</amd>', flags=(re.MULTILINE | re.DOTALL))
     _amdArea = re.compile(r'<amd(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?>(.*)</amd>', flags=(re.MULTILINE | re.DOTALL))
-    _clozeRE = re.compile(r'<span class=cloze>(\w+|\[\.\.\.\])</span>')
-    # _replacementRE = re.compile(r'\[\[\.\.\.(\w+|\[\.\.\.\])\.\.\.\]\]')
+    _clozeRE = re.compile(r'<span class=cloze>((.)+)</span>')
     _h2t = html2text.HTML2Text()
 
     ANKI_CLOZE = "<span class=cloze>[...]</span>"
-    CLOZE_REPLACEMENT = '[[...CLOZE...]]'
+    CLOZE_REPLACEMENT = '||...CLOZE...||'
 
     def convertMarkdown(self, inpt:str): 
         return markdown(inpt)
-
-
-    def _clearLine(self, content: str):
-        """
-            Trims each line, because it matters for markdown.
-            Tries to preserv lines within code blocks
-        """
-
-        isInCode = False
-        result = ''
-
-        for line in content.split(os.linesep):
-            wasInCode = isInCode
-            trimed = line.strip()
-            if isInCode:
-                if trimed == os.linesep:
-                    continue
-                trimed = line
-
-            if "```" in trimed:
-
-                # not balanced, it's either opening or closing from other line
-                if (trimed.count("```") % 2) != 0:
-                    isInCode = not isInCode                    
-                
-            result += trimed + os.linesep
-
-        return result
         
 
     def convertAmdAreasToMD(self, inpt:str, cleanupHTML:bool = False):
@@ -86,13 +56,11 @@ class Converter:
 
     def _preProcessContent(self, content: str, cleanupHTML: bool):
 
-        print('-----------------------------')
         # to keep cloze parts
         clozeMatch = self._clozeRE.search(content)
         clozeContents = list()
         
         while clozeMatch:
-            print(clozeMatch)
             clozeContents.append(clozeMatch.group(1))
             content = content.replace(clozeMatch.group(0), self.CLOZE_REPLACEMENT, 1)
             clozeMatch = self._clozeRE.search(content)
@@ -101,8 +69,6 @@ class Converter:
             content = self.getTextFromHtml(content)
 
         content = self.convertMarkdown(content)
-
-        print(clozeContents)
 
         if clozeContents:
             for value in clozeContents:
@@ -117,6 +83,7 @@ class Converter:
             Extracts clear text from an HTML input
         """
         return self._h2t.handle(html)
+
 
 def evalBool(value):
     return None if value == None else ('true' == value.lower())
