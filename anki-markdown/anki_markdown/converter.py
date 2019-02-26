@@ -47,10 +47,6 @@ class Converter:
 
         content = self._preProcessContent(content, cleanupHTML)
 
-        # ,
-          #  localOpts[ConfigKey.TRIM_LINES] if ConfigKey.TRIM_LINES in localOpts else globalMustTrim,
-           # localOpts[ConfigKey.REPLACE_SPACES] if ConfigKey.REPLACE_SPACES in localOpts else globalReplaceSpace
-
         return inpt[:start] + content + inpt[stop:]
 
 
@@ -59,7 +55,7 @@ class Converter:
         # to keep cloze parts
         clozeMatch = self._clozeRE.search(content)
         clozeContents = list()
-        
+
         while clozeMatch:
             clozeContents.append(clozeMatch.group(1))
             content = content.replace(clozeMatch.group(0), self.CLOZE_REPLACEMENT, 1)
@@ -76,7 +72,7 @@ class Converter:
                     self.ANKI_CLOZE.replace('[...]', value), 1)
 
         return content
-    
+
 
     def getTextFromHtml(self, html):
         """

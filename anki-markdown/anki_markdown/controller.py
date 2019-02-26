@@ -29,28 +29,10 @@ ICON_FILE = 'icons/markdown-3.png'
 # -------------------------- WEB --------------------------------
 
 EDITOR_STYLES = """
-        var prStyle = `<style type="text/css">
-            pre.amd {    
-                border-left: 3px solid #050766;
-                margin: 0px;
-            }
-
-            .amd_toggler {
-                background-color: red;
-            }
-
-            .amd_enabled {
-                background-color: green;
-            }
-
-            .amd_edit_notice {
-                float: right;
-                color: orange;
-            }
-            </style>`;
+        var prStyle = `{}`;
 
         $(prStyle).appendTo('#fields');
-        """
+        """.format(Style.MARKDOWN)
 
 # Prevent default Enter behavior if as Markdown enabled
 EDITOR_SCRIPTS = """
@@ -109,17 +91,15 @@ class Controller:
     _converter = Converter()
     _batchService = BatchService(_converter)
     _showButton = None
-    _shortcut = None
+    _shortcutMenu = None
+    _shortcutButton = None
 
-    _trimConfig = None
-    _replaceSpaceConfig = None
     _editAsMarkdownEnabled = False
 
     def __init__(self):
         self._showButton = ConfigService.read(ConfigKey.SHOW_MARKDOWN_BUTTON, bool)
-        self._shortcut = ConfigService.read(ConfigKey.SHORTCUT, str)
-        self._trimConfig = ConfigService.read(ConfigKey.TRIM_LINES, bool)
-        self._replaceSpaceConfig = ConfigService.read(ConfigKey.REPLACE_SPACES, bool)
+        self._shortcutMenu = ConfigService.read(ConfigKey.SHORTCUT, str)
+        self._shortcutButton = ConfigService.read(ConfigKey.SHORTCUT_EDIT, str)
 
     # ------------------- Hooks / entry points -------------------------
 
@@ -175,6 +155,10 @@ class Controller:
             triggered=lambda: self._clearHTML())
         submenu.addAction(act2)
 
+        act3 = QAction('(&3) Mark as Markdown block', submenu,
+            triggered=lambda: self._wrapAsMarkdown())
+        submenu.addAction(act3)
+
         if not isinstance(parent, QMenu):
             submenu.popup(parent.mapToGlobal( parent.pos() ))
         return submenu
@@ -182,10 +166,6 @@ class Controller:
 
     def onLoadNote(self, editor):
         note = editor.note
-
-        mdCssClass = 'amd_enabled' if self._editAsMarkdownEnabled else 'amd_toggler'
-        self._editorReference.web.eval("$('#bt_tg_md').addClass('{}');".format(mdCssClass))
-        self._editorReference.web.eval("console.log($('#bt_tg_md').class());")
 
         if self._editAsMarkdownEnabled:
             editor.web.eval(EDITOR_STYLES)
@@ -200,20 +180,18 @@ class Controller:
             return buttons
 
         self._editorReference = editor
-        editor._links['apply-markdown'] = self._wrapAsMarkdown
-        editor._links['toggle-md'] = self.toggleMarkdown
+        editor._links['amd-menu'] = self.toggleMarkdown
 
-        return buttons + [editor._addButton(
-            CWD + '/' + ICON_FILE,
-            "apply-markdown",  "Apply Markdown ({})".format(self._shortcut)),
+        return buttons + [
             editor._addButton(
-            None,
-            "toggle-md",  "Edit as Markdown?", "Markdown", toggleable = True, id='bt_tg_md')]
+            CWD + '/' + ICON_FILE,
+            "amd-menu",  "Edit as Markdown? ({})".format(self._shortcutButton), 
+            toggleable = True, id='bt_tg_md')]
 
 
     def setupShortcuts(self, scuts:list, editor):
-        # scuts.append((self._shortcut, self._wrapAsMarkdown))
-        scuts.append((self._shortcut, self._showCustomMenu))
+        scuts.append((self._shortcutButton, self.toggleMarkdown))
+        scuts.append((self._shortcutMenu, self._showCustomMenu))
 
 
     def _clearHTML(self, editor = None):
@@ -266,9 +244,6 @@ class Controller:
 
     # --------------------------------------- Browser ------------------------------------
     def _setupBrowserMenu(self, browser):
-        # Add batch operations to menu
-        print('_setupBrowserMenu')
-
         submenu = QMenu('&Markdown Addon', browser.form.menu_Notes)
 
         # submenu = QMenu()
@@ -287,6 +262,7 @@ class Controller:
         selectedItens = browser.selectedNotes()
         print('_batchConvertHTML - selected: ' + str(selectedItens))
         self._batchService.convertNotesToHTML(selectedItens)
+
 
     def _batchConvertMD(self, browser):
         selectedItens = browser.selectedNotes()

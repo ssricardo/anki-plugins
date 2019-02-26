@@ -2,6 +2,8 @@
 # Module for anki-markdown addon
 # -------------------------------------------------------------
 
+__version__ = "2.0"
+
 try:
     from .controller import run
     run()

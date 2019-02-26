@@ -47,22 +47,34 @@ h5 {
 
 blockquote {
     margin: 3px;
-    border-left: 2px solid orange;
+    border-left: 1px solid red;
     padding-left: 5px;
 }
 
 pre {
-    padding: 2px 20px;
+    padding: 2px 10px;
     white-space: pre-wrap;
 }
 code {
     font-family: Consolas, Monaco, Andale Mono, monospace;
-    line-height: 1.5;
+    line-height: 1.2;
     font-size: 13px;
 }
-amd {
-    border-left: 2px solid #050599;
-    padding-left: 3px;
+.amd {
+    border-left: 3px solid #50117C;
+    padding-left: 5px;
+    display: block;
+}
+
+pre.amd {
+    margin: 0px;
+    padding: 0;
+    border-left: 3px solid #50117C;
+}
+
+.amd_edit_notice {
+    float: right;
+    color: orange;
 }
 </style>
 """

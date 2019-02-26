@@ -1,14 +1,15 @@
 # Anki Markdown Formatter
 
-> TLDR; Surround your content with `<amd>` to have it processed as Markdown. There are some customization/configurations below...
+> TLDR; Surround your content with `<amd>` to have it processed as Markdown.  
+> Or use the context menu to convert it in-place (From version 2.0)
 
 [If you already know Markdown, skip the next paragraph...]  
 
 Markdown is an easy way of formatting texts, based on a predefined syntax.  
-It makes it simple and fast to write texts because the user doesn't need to worry about annoying details, like when you user tool like Word. 
+It makes it simple and fast to write texts because the user doesn't need to worry about annoying details, like when you use tools like Word.  
 It's like on WhatsApp, you write \_text_ and after sending it, its shown as _text_.  
 
-Check more information and the syntax out on the following websites:  
+Check out more information and the syntax on the following websites:  
 
 * [markdownguide](https://www.markdownguide.org/)
     * [Syntax](https://www.markdownguide.org/basic-syntax/)
@@ -16,14 +17,16 @@ Check more information and the syntax out on the following websites:
 
 And many other websites...
 
-**This addon** makes it possible to interpret cards (or parts of them) as Markdown.  
-While editing or adding cards, write it in plain text. No formatting is done in this view.  
-Then, when reviewing the card, it is interpreted as markdown and converted to formatted text (HTML actually).
+**This add-on** makes it possible to interpret cards (or parts of them) as Markdown.  
+While editing or adding cards, write it in plain text. No formatting is required in this view.  
+Then, when reviewing the card, it is interpreted as markdown and converted to HTML.
 
+Other option is to convert the content in-place during the edition, either getting a clean text or producing HTML.  
+These operations may also be executed in batch.  
 
 ## Usage
 
-Markdown-formatter won't process everything. Therefore, you need to identify the area(s) that it should work on.  
+You need to identify the area(s) on the cards that the add-on should work on.  
 This is done using a markup tag: `<amd>`.  
 
 On the HTML code, put the tags `<amd>` and `</amd>` around the area to be processed.  
@@ -32,7 +35,11 @@ On the HTML code, put the tags `<amd>` and `</amd>` around the area to be proces
 
         <amd>{{Example}}</amd>
 
-This might be done either in the Card Type (Note) level or in parts of a given card. 
+This might be done either in the Card Type level (recommended) or in parts of a given card (in card edition).  
+
+> Markdown-formatter won't process the entire cards, only the delimited areas.  
+
+The area being processed by this add-on will be shown with a purple left border.  
 
 ### Format the entire card type
 
@@ -40,53 +47,71 @@ This is done through Card Type Configuration. Thus, it's applied to all cards of
 
 ![Card type config](doc/md-tags-cards.png)
 
-### Format part of a card
+### Card Edition
 
-In the editor, you can either use the Markdown button in the toolbar or use the shortcut.  
-The default **shorcut** is *Ctrl+Shift+M* (may be changed in Configurations).  
+In the editor there is a button *Markdown* to activate/deactivate the Markdown mode.  
+When enabled this will *tell* Anki that the text being edited is pre-formatted and should not be *escaped*. Otherwise, Anki converts the text to HTML (For instance, line breaks become `<br>` tags).  
+The default **shorcut** is *Ctrl+Shift+K* (may be changed in Configurations).  
 
-Just **select the block** to be processed, then use one of the options.
+This won't convert the Markdown to HTML yet!
 
-![Modifying from editor](doc/md-button-editor.png)
+![Modifying from editor](doc/md-edit-v2_blur.png)
 
-### Pre-processing
 
-Some handling needs to be done in the content before processing it as Markdown.  This happens duo to the way Anki stores the content (as HTML).
+### The conversion
 
-1. Trim lines
-    * Trimming means removing spaces before the first word and after the last one on each line.
-1. Replace escaped spaces
-    * Anki uses HTML format, which escapes spaces using `&nbsp;`. So, even though the user sees an empty space, there are some extra characters there. 
+There are 2 modes to make the add-on convert the content:
 
-#### Effects and customization
+#### In runtime
 
-These procedures are needed because Markdown has a specific syntax. Some markup needs to be at the beginning of the line. Likewise, some of them requires one or more empty spaces. 
-For instance: headers, list-itens, blockquotes...
+Save the card with the pre-formatted text and use the `<amd>` tag around the content.  
+During the review, this content will be converted and showed as HTML (it won't be stored as HTML).  
+This mode is the existing one since version 1.  
 
-Conversely, trimmig the lines (and perhaps replacing spaces) leads to problems with other formats, like *code blocks*.  
+#### In place
 
-Therefore, these procedures may be set (customized) in two levels.  Both globally, through the addon's configurations, and locally, into the `amd` tag. Check the example below!  
+> From version 2.x
 
-**Local customization** for a code block:  
+In the editor, use the context menu (right click) to invoke the processing immediately.  There are 2 options:
 
-        <amd trim="false" replace-spaces="true">
-        {{CodeField}}
-        </amd>
+* Convert to MD
+  * Used to clean up existing formatting in the card, preparing it to be used as Markdown
+* Convert to HTML
+  * Interprets the content as Markdown and produces HTML (replacing the content)
+  * May be used if you'd like to edit as Markdown, but you prefer to store as HTML
+
+The other option on this menu is to wrap the selected content with `<amd>`.  
+
+The default **shorcut** to show the menu is *Ctrl+Shift+M*.  
+
+### Batch
+
+> From version 2.0
+
+It is possible to invoke the conversions for several notes at once.  
+This is useful in cases like: 
+
+* When you start using this add-on and need to clean the HTML existing in your collection (Convert to MD)
+* When you use your cards on Anki Mobile and need them in HTML (Convert to HTML)
+
+The batch operation are available on:  
+
+> *Browse* -> *Notes* Menu -> *Markdown Addon*
+
+> You need to select the cards you want to apply the conversion
 
 ## Configuration
 
 The following customization are available:  
 
-* Shortcut
-    * As it says... shortcut for adding tags around selected text
+* Shortcut Edit
+    * In the editor, it used to activate/deactivate the Markdown mode
+* Shortcut Menu
+    * In the editor, invokes the Markdown context menu
 * Show markdown button
     * Indicates whether the Markdown button shoud be shown or not
-* Trim
-    * Indicates whether each line should be trimmed
-* Replace-spaces
-    * Indicates whether it should replace escaped HTML spaces (\&nbsp;)
 
-
+> *trim* and *replace spaces* configuration were dropped
 
 ## Bugs / Suggestions / more...
 
@@ -96,13 +121,23 @@ That and the source code are available on: [Github](https://github.com/ssricardo
 
 ## Updates
 
-24/10/2018: **version 1.1**:
+24/10/2018: **version 1.1**
 
 * Support for *trim* and *replace-spaces* configuration, both globally and locally
 * Config renamed: showMdButton -> show-md-button  
 * There is no longer the limitation for code block, as trimmimg may is customizable  
 
+26/02/2019: **2.0**  
+
+* Large refactor
+* Added conversion from HTML to MD
+* Added options to execute the conversions immediately (in-place) (Either HTML to MD or MD to HTML)
+* Handles notes edition, preventing Anki from formatting the inputs as HTML
+* Added options to invoke the conversions as a batch operation (on Browser view)
+* Added visual demarcation to parts handled by this add on (left border)
+* Dropped the configurations *trim* and *replace-spaces* as they aren't necessary anymore
+
 ## About
 
-Addon developed by *ssricardo*.  
-Check out more of my addons on [https://github.com/ssricardo/anki-plugins]()
+Add-on developed by *ssricardo*.  
+Check out more of my add-ons on [https://github.com/ssricardo/anki-plugins]()
