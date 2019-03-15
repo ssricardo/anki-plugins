@@ -28,8 +28,17 @@ class Converter:
     CLOZE_REPLACEMENT = '||...CLOZE...||'
 
     def convertMarkdown(self, inpt:str): 
+
+        # Pre processing
+        # inpt = inpt.replace('&lt;', '<').replace('&gt;', '>') # TOBE improved
+
         return markdown(inpt)
-        
+
+
+    def isAmdAreaPresent(self, input:str):
+        match = self._amdArea.search(input)
+        return match and len(match.groups()) >= 5
+
 
     def convertAmdAreasToMD(self, inpt:str, cleanupHTML:bool = False):
         """

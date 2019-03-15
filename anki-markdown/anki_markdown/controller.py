@@ -173,7 +173,7 @@ class Controller:
             editor.web.eval(EDITOR_SCRIPTS)
 
 
-    def setupButtons(self, buttons, editor):        
+    def setupButtons(self, buttons, editor):
         """Add buttons to editor"""        
 
         if not self._showButton:
@@ -237,10 +237,11 @@ class Controller:
     # ------------------------------ Review ------------------------------------------
 
     def processField(self, inpt, card, phase, *args):
-        # inpt = inpt
-        res = self._converter.convertAmdAreasToMD(inpt)
-        res = '<span class="amd">{}</span>'.format(res)        
-        return Style.MARKDOWN + os.linesep + res
+        if self._converter.isAmdAreaPresent(inpt):
+            res = self._converter.convertAmdAreasToMD(inpt)
+            res = '<span class="amd">{}</span>'.format(res)        
+            return Style.MARKDOWN + os.linesep + res
+        return inpt
 
     # --------------------------------------- Browser ------------------------------------
     def _setupBrowserMenu(self, browser):
