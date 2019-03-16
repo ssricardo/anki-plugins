@@ -28,10 +28,6 @@ class Converter:
     CLOZE_REPLACEMENT = '||...CLOZE...||'
 
     def convertMarkdown(self, inpt:str): 
-
-        # Pre processing
-        # inpt = inpt.replace('&lt;', '<').replace('&gt;', '>') # TOBE improved
-
         return markdown(inpt)
 
 
@@ -55,9 +51,12 @@ class Converter:
         localOpts = {match.group(1): evalBool(match.group(2)), match.group(3): evalBool(match.group(4))}
 
         content = self._preProcessContent(content, cleanupHTML)
+        content = self._wrapStyle(content)
 
         return inpt[:start] + content + inpt[stop:]
 
+    def _wrapStyle(self, input):
+        return '<span class="amd">{}</span>'.format(input)
 
     def _preProcessContent(self, content: str, cleanupHTML: bool):
 
@@ -72,6 +71,10 @@ class Converter:
 
         if cleanupHTML:
             content = self.getTextFromHtml(content)
+                
+        content = content \
+            .replace('&lt;', '<').replace('&gt;', '>') \
+            .replace('&amp;', '&')
 
         content = self.convertMarkdown(content)
 

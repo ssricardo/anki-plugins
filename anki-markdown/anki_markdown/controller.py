@@ -239,7 +239,7 @@ class Controller:
     def processField(self, inpt, card, phase, *args):
         if self._converter.isAmdAreaPresent(inpt):
             res = self._converter.convertAmdAreasToMD(inpt)
-            res = '<span class="amd">{}</span>'.format(res)        
+            # res = '<span class="amd">{}</span>'.format(res)        
             return Style.MARKDOWN + os.linesep + res
         return inpt
 
