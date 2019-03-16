@@ -20,3 +20,8 @@
 * Added options to invoke the conversions as a batch operation (on Browser view)
 * Added visual demarcation to parts handled by this add on (left border)
 * Dropped the configurations *trim* and *replace-spaces* as they aren't necessary anymore
+
+**2.1** | 16/03/2019
+
+* Fix: Formating area was around everything, must be around <amd> parts only
+* Pre processing HTML escaped chars

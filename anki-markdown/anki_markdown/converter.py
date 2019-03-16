@@ -29,7 +29,12 @@ class Converter:
 
     def convertMarkdown(self, inpt:str): 
         return markdown(inpt)
-        
+
+
+    def isAmdAreaPresent(self, input:str):
+        match = self._amdArea.search(input)
+        return match and len(match.groups()) >= 5
+
 
     def convertAmdAreasToMD(self, inpt:str, cleanupHTML:bool = False):
         """
@@ -46,9 +51,12 @@ class Converter:
         localOpts = {match.group(1): evalBool(match.group(2)), match.group(3): evalBool(match.group(4))}
 
         content = self._preProcessContent(content, cleanupHTML)
+        content = self._wrapStyle(content)
 
         return inpt[:start] + content + inpt[stop:]
 
+    def _wrapStyle(self, input):
+        return '<span class="amd">{}</span>'.format(input)
 
     def _preProcessContent(self, content: str, cleanupHTML: bool):
 
@@ -63,6 +71,10 @@ class Converter:
 
         if cleanupHTML:
             content = self.getTextFromHtml(content)
+                
+        content = content \
+            .replace('&lt;', '<').replace('&gt;', '>') \
+            .replace('&amp;', '&')
 
         content = self.convertMarkdown(content)
 
