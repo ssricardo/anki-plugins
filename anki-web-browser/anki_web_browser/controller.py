@@ -91,12 +91,12 @@ class Controller:
         Listens when the current showed card is changed. Either in Reviewer or Editor.
         Send msg to browser to cleanup its state"""
 
-        def wrapped(args, focusTo=None):
+        def wrapped(focusTo=None ):
 
             if focusTo:
-                originalFunction(args, focusTo)
+                originalFunction(focusTo)
             else:
-                originalFunction(args)
+                originalFunction()
 
             if not self._browser:
                 return
@@ -108,7 +108,6 @@ class Controller:
             self._browser.unload()
             if not cfg.getConfig().keepBrowserOpened:
                 self._browser.close()
-                
 
         return wrapped
 

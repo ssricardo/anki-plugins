@@ -2,7 +2,7 @@
 # Module for anki-markdown addon
 # -------------------------------------------------------------
 
-__version__ = "2.0"
+__version__ = "2.1"
 
 try:
     from .controller import run

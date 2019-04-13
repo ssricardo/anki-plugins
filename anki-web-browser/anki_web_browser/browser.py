@@ -12,7 +12,6 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMenu, QAction, QDialog, QVBoxLayout, QStatusBar, QLabel
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData
-from requests.utils import requote_uri
 
 BLANK_PAGE = """
     <html>
@@ -149,7 +148,7 @@ class AwBrowser(QDialog):
     def unload(self):
         try:
             self._web.setHtml(BLANK_PAGE)
-        except Exception:
+        except (RuntimeError) as err:
             pass
 
     def onClose(self):
