@@ -13,9 +13,9 @@ from .batch import BatchService
 import anki
 import os
 
-from aqt.editor import Editor
+from aqt.editor import Editor, EditorWebView
 from aqt.reviewer import Reviewer
-from aqt.qt import QAction
+from aqt.qt import *
 from PyQt5.QtWidgets import QMenu, QAction
 from aqt.utils import showInfo, tooltip, showWarning
 from anki.hooks import addHook
@@ -120,6 +120,32 @@ class Controller:
         addHook('browser.setupMenus', self._setupBrowserMenu)
 
         Editor.setupWeb = self._wrapEditorSetupWeb(Editor.setupWeb)
+        EditorWebView._onPaste = self._wrapOnPaste(EditorWebView._onPaste)
+
+
+    def _wrapOnPaste(self, fn):
+        ref = self
+        
+        def _onPaste(self, mode):
+            extended = self.editor.mw.app.queryKeyboardModifiers() & Qt.ShiftModifier
+            mime = self.editor.mw.app.clipboard().mimeData(mode=mode)
+
+            if ref._editAsMarkdownEnabled:
+                if not (mime.html() and mime.html().startswith("<!--anki-->")):
+                    cur = self.editor.currentField
+                    note = self.editor.note
+                    note.fields[cur] = mime.text()
+                    self.editor.setNote(note)
+
+                    return
+
+            html, internal = self._processMime(mime)
+
+            if not html:
+                return
+            self.editor.doPaste(html, internal, extended)
+
+        return _onPaste
 
 
     def _wrapEditorSetupWeb(self, f):
@@ -196,6 +222,10 @@ class Controller:
 
 
     def _clearHTML(self, editor = None):
+        """
+            Convert to Text (MD)
+        """
+        
         Feedback.log('_convertToMD')
 
         cur = self._editorReference.currentField
@@ -217,7 +247,7 @@ class Controller:
 
     def setEditAsMarkdownEnabled(self, value: bool):
         self._editAsMarkdownEnabled = value
-        self._editorReference.web.eval('editAsMarkdownEnabled = {};'.format(str(value).lower())) # TODO precisa?
+        self._editorReference.web.eval('editAsMarkdownEnabled = {};'.format(str(value).lower())) # check is it needed?
 
 
     def _wrapAsMarkdown(self, editor = None):
@@ -239,13 +269,12 @@ class Controller:
 
     def processField(self, inpt, card, phase, *args):
         if self._converter.isAmdAreaPresent(inpt):  
-            AppHolder.app.reviewer.web.eval("console.log(`%s`);" % inpt)          
-            AppHolder.app.reviewer.web.eval("console.log(`%s`);" % ('-'*50))
+            # AppHolder.app.reviewer.web.eval("console.log(`%s`);" % inpt)          
+            # AppHolder.app.reviewer.web.eval("console.log(`%s`);" % ('-'*50))
             
-            res = self._converter.convertAmdAreasToMD(inpt, 
-                isTypeMode = True)
+            res = self._converter.convertAmdAreasToMD(inpt, isTypeMode = True)
 
-            AppHolder.app.reviewer.web.eval("console.log(`%s`);" % res)
+            # AppHolder.app.reviewer.web.eval("console.log(`%s`);" % res)
 
             return Style.MARKDOWN + os.linesep + res            
         return inpt

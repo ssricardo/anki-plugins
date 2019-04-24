@@ -14,29 +14,19 @@ import shutil
 currentLocation = os.path.dirname(os.path.realpath(__file__))
 
 class TypeClozeHander:
+
+    DEFAULT_ANKI_CLOZE = """
+    <center>
+    <input type=text id=typeans onkeypress="_typeAnsPress();"
+    style="font-family: '%s'; font-size: %spx;">
+    </center>
+    """
         
     def setupBindings(self, reviewer):
         self.reviewer = reviewer
 
         reviewer.typeAnsQuestionFilter = self.typeAnsQuestionFilter
         # reviewer.typeAnsAnswerFilter = self.typeAnsAnswerFilter
-
-
-    def _typeAnsQuestionFilterWrapper(self, fn):
-        def questionFilter(buf):
-            self.reviewer.buf = 'Question: ' +  buf
-            res = fn(buf)            
-            return res
-
-        return questionFilter
-
-    def _typeAnsAnswerFilterWrapper(self, fn):
-        def answerFilter(buf):
-            self.reviewer.buf = 'Answer: ' + buf
-            res = fn(buf)
-            return res
-
-        return answerFilter
 
     def typeAnsQuestionFilter(self, buf):
         self.typeCorrect = None
@@ -81,17 +71,20 @@ Please run Tools>Empty Cards""")
                 return re.sub(ref.typeAnsPat, "", buf)
 
         if not clozeIdx:
-            return re.sub(ref.typeAnsPat, """
-    <center>
-    <input type=text id=typeans onkeypress="_typeAnsPress();"
-    style="font-family: '%s'; font-size: %spx;">
-    </center>
-    """ % (ref.typeFont, ref.typeSize), buf)
+            return re.sub(ref.typeAnsPat, DEFAULT_ANKI_CLOZE % (ref.typeFont, ref.typeSize), buf)
 
         else:
             ref.typeCorrect = None
-            return re.sub(ref.typeAnsPat, 
+            result = re.sub(ref.typeAnsPat, 
                 self._formatTypeCloze(text, entries), buf)
+
+            # not working
+            # ref.web.eval("""
+            #     (function (){
+            #         $('#typeans0').focus();
+            #     }())
+            # """)
+            return result
             
 
     def _customContentForCloze(self, txt, idx):
@@ -122,9 +115,9 @@ Please run Tools>Empty Cards""")
         for idx, val in enumerate(entries):
             item = """<input type="text" id="typeans{0}" 
      onkeyup="checkFieldValue('{1}', $('#typeans{0}'));"
-     class="ftb" />""".format(idx, val) 
+     class="ftb" style="width: {2}em" />""".format(idx, val, (len(val) * 0.62)) 
             res = res.replace('[...]', item, 1)
-        
+            autofocus = ''
         return res
 
     def typeAnsAnswerFilter(self, buf):

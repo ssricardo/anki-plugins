@@ -14,7 +14,7 @@ mode = None
 target = None
 
 acceptedArgs = ('-source', '-dist', '-dev', '-clear')
-existingAddons = ('schedule-priority', 'anki-web-browser', 'anki-markdown')
+existingAddons = ('schedule-priority', 'anki-web-browser', 'anki-markdown', 'fill-the-blanks')
 
 print ('====================== Building RSS Addon =====================')
 
@@ -25,7 +25,7 @@ for index, value in enumerate(sys.argv):
     if value == acceptedArgs[0]: #source
         if (index + 1) > len(sys.argv) - 1:
             raise IOError('Incorrect parameters. After "-source" there must be a value ')
-        addonIndex = sys.argv[index + 1]
+        addonIndex = int(sys.argv[index + 1])
     elif value == acceptedArgs[1]:
         mode = Const.ZIP      # dist
         target = '/dist'
@@ -41,17 +41,19 @@ for index, value in enumerate(sys.argv):
 
 # -----------------------------------------------------------
 
-print ('Choose an addon to be processed ===============================')
+if not addonIndex:
 
-for index, name in enumerate(existingAddons):
-    print('{} - {}'.format(index + 1, name))
+    print ('Choose an addon to be processed ===============================')
 
-print ('-'*60)
+    for index, name in enumerate(existingAddons):
+        print('{} - {}'.format(index + 1, name))
 
-addonIndex = int(input('> '))
+    print ('-'*60)
 
-if not addonIndex or addonIndex > len(existingAddons):
-    raise IOError('It was not possible to determine a valid addon as input')
+    addonIndex = int(input('> '))
+
+    if not addonIndex or addonIndex > len(existingAddons):
+        raise IOError('It was not possible to determine a valid addon as input')
 
 addon = existingAddons[addonIndex - 1]
 
@@ -82,7 +84,7 @@ elif mode == Const.ANKI:
 
     print('Copying files to anki directory')
     addonRoot = currentDir + '/' + addon
-    shutil.copytree(addonRoot + '/' + addon.replace('-', '_'),  target + '/' + addon.replace('-', '_'), 
+    shutil.copytree(addonRoot + '/src',  target + '/' + addon.replace('-', '_'), 
     ignore=shutil.ignore_patterns('tests', 'doc', '*_test*', '__pycache__'))
 
 # Deletes from anki addons

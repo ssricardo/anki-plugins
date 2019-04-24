@@ -18,12 +18,14 @@ input.ftb {
     border-radius: 5px;
     border: 1px solid;
     width: 150px;
+    min-width: 120px;
+    max-width: 400px;
     padding: 3px;
     color: #333 !important;
     margin: 2px;
 }
 input.st-incomplete {
-    background-color: #abb1fc !important;
+    background-color: #ABDAFC !important;
 }
 input.st-error {
     background-color: #ff9999 !important;

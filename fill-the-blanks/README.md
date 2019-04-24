@@ -1,6 +1,6 @@
 # Fill the blanks - Improved type:cloze
 
-> TLDR;  
+> *TLDR;*  
 > This addons makes Anki handle cards of the kind *type:cloze* properly and adds support for multiple cloze parts on those cards
 
 With the addon applied:  
@@ -9,12 +9,12 @@ With the addon applied:
 
 ## Motivation
 
-Typing in the answers are interesting for studying. For many people, writing is more eficient for memorization than just reading.  
-On cloze cards, hiding just the cloze parts, it's possible to study contents within a context.  
+Typing in the answers are interesting for studying. For many people, writing is more efficient for memorization than just reading.  
+On cloze cards, when hiding just the cloze parts, it's possible to study contents within a context.  
 
-The current version of Anki doesn't work well with that combination. On cloze card, it replaces the entire content with a single *input text*.  
+The current version of Anki doesn't work well with that combination (On cloze card, it replaces the entire content with a single *input text*).  
 
-This addons solves this issue.  
+This addon solves this issue. 
 
 ## How it works
 
@@ -26,18 +26,18 @@ This addons solves this issue.
 
 ![The card template editor](doc/card-template.png)
 
-* Then, on review time, the cloze parts will be replace with *input texts*
+* Then, on review time, the cloze parts will be replaced with *input texts*
 
 ![Modifying to use the addon](doc/from-cloze-to-input.gif)
 
-> Note: the images have dark background because of the Night Mode addon (this behavior has nothing to do with the *Fill the blanks* addon)
+> Note: the images have a dark background because of the Night Mode addon (this behavior has nothing to do with the *Fill the blanks* addon)
 
 ## Extra feature
 
 ### Instant feedback
 
 While the user types in the answer, the input field changes according to the value.  
-The background changes according whether the answer is:
+The background changes according to whether the answer is:
 
 * incomplete: blue
 * correct: green
@@ -60,4 +60,4 @@ That and the source code are available on: [Github](https://github.com/ssricardo
 ## About
 
 Add-on developed by *ssricardo*.  
-Check out more of my add-ons on [https://github.com/ssricardo/anki-plugins]()
+Check out more of my add-ons on [https://github.com/ssricardo/anki-plugins/tree/master/fill-the-blanks]()
