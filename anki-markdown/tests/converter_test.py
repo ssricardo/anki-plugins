@@ -10,7 +10,7 @@ import os
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 
 import unittest
-from anki_markdown.converter import Converter
+from src.converter import Converter
 
 #region Markdowns
 
@@ -112,6 +112,19 @@ BLOCK_CLOZE = """
 </amd>
 """
 
+BLOCK_INPUTS = """
+<amd>
+# Code with inputs, for type
+    
+    def <input type=text style="anytrhing;" />: 
+    def <input id="iptID" type="text" style="anytrhing;" onclick="function()"> area
+    def <span class=cloze>[...]</span>: 
+
+> Done!
+</amd>
+"""
+
+
 #endregion
 
 class TransformerTest(unittest.TestCase):
@@ -191,7 +204,16 @@ class TransformerTest(unittest.TestCase):
         self.assertTrue('def <span class=cloze>[...]' in res)
         self.assertTrue('def <span class=cloze>Result' in res)
         self.assertFalse('[[...CLOZE...]]' in res)
-        
+
+
+    def testInputsParts(self):
+        res = self.tested.convertAmdAreasToMD(BLOCK_INPUTS, isTypeMode=True)
+
+        print(res, flush=True)
+        self.assertTrue('def <input type=text style="anytrhing;" />' in res)
+        self.assertTrue('id="iptID"' in res)
+        self.assertFalse('||...INPUT...||' in res)
+
 
     @unittest.skip
     def testMultipleBlocks(self):

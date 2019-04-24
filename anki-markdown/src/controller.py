@@ -110,6 +110,7 @@ class Controller:
         
         # Review
         addHook("prepareQA", self.processField)
+        # Reviewer._mungeQA = self._createMungeFn(AppHolder.app.reviewer)
 
         # Editing
         addHook("setupEditorButtons", self.setupButtons)
@@ -237,11 +238,18 @@ class Controller:
     # ------------------------------ Review ------------------------------------------
 
     def processField(self, inpt, card, phase, *args):
-        if self._converter.isAmdAreaPresent(inpt):
-            res = self._converter.convertAmdAreasToMD(inpt)
-            # res = '<span class="amd">{}</span>'.format(res)        
-            return Style.MARKDOWN + os.linesep + res
+        if self._converter.isAmdAreaPresent(inpt):  
+            AppHolder.app.reviewer.web.eval("console.log(`%s`);" % inpt)          
+            AppHolder.app.reviewer.web.eval("console.log(`%s`);" % ('-'*50))
+            
+            res = self._converter.convertAmdAreasToMD(inpt, 
+                isTypeMode = True)
+
+            AppHolder.app.reviewer.web.eval("console.log(`%s`);" % res)
+
+            return Style.MARKDOWN + os.linesep + res            
         return inpt
+
 
     # --------------------------------------- Browser ------------------------------------
     def _setupBrowserMenu(self, browser):
