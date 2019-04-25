@@ -25,7 +25,7 @@ input.ftb {
     margin: 2px;
 }
 input.st-incomplete {
-    background-color: #ABDAFC !important;
+    background-color: #FFFF77 !important;
 }
 input.st-error {
     background-color: #ff9999 !important;

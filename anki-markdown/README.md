@@ -84,6 +84,12 @@ The other option on this menu is to wrap the selected content with `<amd>`.
 
 The default **shorcut** to show the menu is *Ctrl+Shift+M*.  
 
+#### Pasting data
+
+> From version 2.2
+
+In the editor, if the Markdown mode is *On*, when pasting some data, it will be set as plain text. This prevents Anki default behavior (which converts the data to HTML).
+
 ### Batch
 
 > From version 2.0
@@ -112,6 +118,8 @@ The following customization are available:
     * Indicates whether the Markdown button shoud be shown or not
 
 > *trim* and *replace spaces* configuration were dropped
+
+> The shortcuts work only when the focus is into an input field
 
 ## Bugs / Suggestions / more...
 

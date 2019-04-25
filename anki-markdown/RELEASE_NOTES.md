@@ -25,3 +25,12 @@
 
 * Fix: Formating area was around everything, must be around <amd> parts only
 * Pre processing HTML escaped chars
+
+**2.2** | 25/04/2019
+
+* Better handling of chars: `< > &`
+* Added handling for pasting data, when editing 
+  * Now, if the Markdown is On, the data will pasted as plain text
+* Refactor for using it along with other addons
+
+> More precisely, make it work with my new Addon: *Fill the blanks*

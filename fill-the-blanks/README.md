@@ -36,10 +36,10 @@ This addon solves this issue.
 
 ### Instant feedback
 
-While the user types in the answer, the input field changes according to the value.  
-The background changes according to whether the answer is:
+While the user types in the answer, the input field changes while the user types.  
+The background changes  according to the value:
 
-* incomplete: blue
+* incomplete: yellow
 * correct: green
 * incorrect: red
 
