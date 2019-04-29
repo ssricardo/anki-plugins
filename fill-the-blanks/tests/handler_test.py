@@ -69,9 +69,41 @@ class HandlerTest(unittest.TestCase):
 
         print(res)
 
+    def test_with_quotes(self):
+        self.reviewer.card.note()['Text'] = """A small step for a man, 
+        a big {{c1::one("q", 'step')}}, {{c1::..}}...
+            {{c2::plainText}}
+        """
+
+        res = self.reviewer.typeAnsQuestionFilter("""
+            <span class="content">
+            [[type:cloze:Text]]
+            </span>
+        """)
+
+        print(res)
+
     def test_withRegexStr(self):
         self.reviewer.card.note()['Text'] = """
             Some content here with [ \\t\\n\\x\\r\\f].
+        """
+
+        res = self.reviewer.typeAnsQuestionFilter("""
+            <span class="content">
+            [[type:cloze:Text]]
+            </span>
+        """)
+
+        print(res)
+
+    
+    def test_issue_14(self):
+        self.reviewer.card.note()['Text'] = """
+<center><table class="highlighttable"><tbody><tr><td><div class="linenodiv" style="background-color: #f0f0f0; padding-right: 10px"><pre style="line-height: 125%">1
+2</pre></div></td><td class="code"><div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">def</span> test():
+    {{c1::Print(<span style="font-family: &quot;DejaVu Sans&quot;; color: rgb(186, 33, 33);">"Test"</span><span style="font-family: &quot;DejaVu Sans&quot;;">)}}</span>
+</pre></div>
+</td></tr></tbody></table></center><br>
         """
 
         res = self.reviewer.typeAnsQuestionFilter("""

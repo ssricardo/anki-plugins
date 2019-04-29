@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-# ...
-# ...
+# Class responsible for the processing
 #
-# This files is part of fill-the-blanks addon
+# This file is part of fill-the-blanks addon
 # @author ricardo saturnino
 # -------------------------------------------------------
 
@@ -10,6 +9,7 @@ import os
 import json
 import re
 import shutil
+from bs4 import BeautifulSoup
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
 
@@ -75,15 +75,10 @@ Please run Tools>Empty Cards""")
 
         else:
             ref.typeCorrect = None
-            result = re.sub(ref.typeAnsPat, 
-                self._formatTypeCloze(text, entries), buf)
+            result = buf[:m.start()] + \
+                self._formatTypeCloze(text, entries) + \
+                buf[m.end():]
 
-            # not working
-            # ref.web.eval("""
-            #     (function (){
-            #         $('#typeans0').focus();
-            #     }())
-            # """)
             return result
             
 
@@ -94,8 +89,7 @@ Please run Tools>Empty Cards""")
             return (txt, [])
 
         matches = [self._noHint(txt) for txt in matches]
-        words = matches
-
+        words = map(self._extractTxt, matches)
         txt = re.sub(reCloze, "[...]", txt)
 
         # Replace other cloze (not current id)
@@ -104,20 +98,31 @@ Please run Tools>Empty Cards""")
         return (txt, words)
 
 
+    def _extractTxt(self, input:str): 
+        try:
+            content = BeautifulSoup('<span/>' + input, 'html.parser')
+            text = ''.join(content.findAll(text=True))
+            return text
+        except UserWarning:
+            return input
+
+
     def _noHint(self, txt):
-            if "::" in txt:
-                return txt.split("::")[0]
-            return txt
+        if "::" in txt:
+            return txt.split("::")[0]
+        return txt
 
 
     def _formatTypeCloze(self, text, entries):
         res = text
+
         for idx, val in enumerate(entries):
-            item = """<input type="text" id="typeans{0}" 
-     onkeyup="checkFieldValue('{1}', $('#typeans{0}'));"
-     class="ftb" style="width: {2}em" />""".format(idx, val, (len(val) * 0.62)) 
+            item = """<input type="hidden" id="ansval%d" value="%s" />""" % (idx, val.replace('"', '&quot;'))
+            item = item + """<input type="text" id="typeans{0}" 
+     onkeyup="checkFieldValue($('#ansval{0}').val(), $('#typeans{0}'));"
+     class="ftb" style="width: {1}em" />""".format(idx, (len(val) * 0.62)) 
             res = res.replace('[...]', item, 1)
-            autofocus = ''
+
         return res
 
     def typeAnsAnswerFilter(self, buf):

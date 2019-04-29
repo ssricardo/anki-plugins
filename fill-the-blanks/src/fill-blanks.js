@@ -1,6 +1,5 @@
 
 
-
 function checkFieldValue(reference, field) {
     if (window.event.keyCode === 13) {
         pycmd("ans");
