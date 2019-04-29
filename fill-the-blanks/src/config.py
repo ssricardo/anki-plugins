@@ -21,15 +21,10 @@ currentLocation = os.path.dirname(os.path.realpath(__file__))
 class ConfigKey:
 
     SHORTCUT = 'shortcut-menu'
-    SHORTCUT_EDIT = 'shortcut-edit'
-    SHOW_MARKDOWN_BUTTON = 'show-md-button'
-
 
 # ------------------------------ Service class --------------------------
 DEFAULT_CONFIG = {
-    ConfigKey.SHORTCUT: 'Ctrl+Shift+M',
-    ConfigKey.SHORTCUT_EDIT: 'Ctrl+Shift+K',
-    ConfigKey.SHOW_MARKDOWN_BUTTON: True,
+    ConfigKey.SHORTCUT: 'Ctrl+Shift+...'
 }
 
 class ConfigService:

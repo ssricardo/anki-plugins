@@ -6,3 +6,8 @@
   * Fixes Anki handling for type:cloze
   * Adds support for multiple cloze in those kind of cards
   * Adds Instant feedback (while typing in)
+
+
+**1.1** | 29/04/2019
+
+* Improvement on handler for special characters and for working with other add-ons (with change the original content)

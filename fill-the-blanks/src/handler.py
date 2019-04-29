@@ -37,7 +37,6 @@ class TypeClozeHander:
         cCard = self.reviewer.card
         ref = self.reviewer
 
-        # buf = re.escape(buf)
         m = re.search(ref.typeAnsPat, buf)
         if not m:
             return buf
@@ -61,8 +60,7 @@ class TypeClozeHander:
         if not ref.typeCorrect:
             if ref.typeCorrect is None:
                 if clozeIdx:
-                    warn = _("""\
-Please run Tools>Empty Cards""")
+                    warn = _("""Please run Tools>Empty Cards""")
                 else:
                     warn = _("Type answer: unknown field %s") % fld
                 return re.sub(ref.typeAnsPat, warn, buf)
