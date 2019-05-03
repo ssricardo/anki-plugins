@@ -104,9 +104,11 @@ BLOCK_CLOZE = """
 <amd>
 # Code with cloze
     
+    :::python
     def <span class=cloze>[...]</span>: 
     def <span class=cloze>Result</span> area
     def <span class=cloze>[...]</span>: 
+    
 
 > Done!
 </amd>
@@ -147,7 +149,7 @@ class TransformerTest(unittest.TestCase):
         res = self.tested.convertMarkdown(MD_WITH_CODE)
         self.assertIsNotNone(res)
         self.assertTrue('<code>System.out.println();' in res)
-        self.assertTrue("""<blockquote>\n<p>Um""" in res)
+        self.assertTrue("""<blockquote>\n<p>Um""" in res)        
 
     # TODO re check cases with \n
     @unittest.skip
@@ -197,10 +199,12 @@ class TransformerTest(unittest.TestCase):
           System.out.println();\\n    def test():\\n
           ra()
 </amd>""")
+        print(res)
         self.assertTrue('<code>' in res)
 
     def testClozeParts(self):
         res = self.tested.convertAmdAreasToMD(BLOCK_CLOZE)
+        # print(res)
         self.assertTrue('def <span class=cloze>[...]' in res)
         self.assertTrue('def <span class=cloze>Result' in res)
         self.assertFalse('[[...CLOZE...]]' in res)
@@ -209,7 +213,7 @@ class TransformerTest(unittest.TestCase):
     def testInputsParts(self):
         res = self.tested.convertAmdAreasToMD(BLOCK_INPUTS, isTypeMode=True)
 
-        print(res, flush=True)
+        # print(res, flush=True)
         self.assertTrue('def <input type=text style="anytrhing;" />' in res)
         self.assertTrue('id="iptID"' in res)
         self.assertFalse('||...INPUT...||' in res)
@@ -219,5 +223,31 @@ class TransformerTest(unittest.TestCase):
     def testMultipleBlocks(self):
         value = self.tested.convertAmdAreasToMD(MULTIPLE_BLOCKS)
         print(value)
+
+    
+    def testCodeToMarkdown(self):
+        t = self.tested
+        # print(t.getTextFromHtml(t.convertMarkdown("""
+        # def _wrapOnPaste(self, fn):
+        #     ref = self
+        
+        # def _onPaste(self, mode):
+        #     extended = self.editor.mw.app.queryKeyboardModifiers() & Qt.ShiftModifier
+        #     mime = self.editor.mw.app.clipboard().mimeData(mode=mode)
+        # """)))
+
+
+    def test_stripAmdTags(self):
+        t = self.tested
+        self.assertEqual('{{FieldOne}}', t.stripAmdTagForField('<amd>{{FieldOne}}</amd>', 'FieldOne'))
+        self.assertEqual('{{FieldOne}}', t.stripAmdTagForField('<amd some="param">{{FieldOne}}</amd>', 'FieldOne'))
+        # self.assertEqual('More Content [[FieldOne]] After', t.stripAmdTags('More Content <amd>[[FieldOne]]</amd> After'))
+
+    
+    def test_stripAmdTagsMultiple(self):
+        t = self.tested
+        self.assertEqual('{{FieldOne}}', t.stripAmdTagForField('<amd><amd>{{FieldOne}}</amd></amd>', 'FieldOne'))
+        self.assertEqual('{{FieldOne}}<amd>:Two</amd>', t.stripAmdTagForField('<amd some="param">{{FieldOne}}</amd><amd>:Two</amd>', 'FieldOne'))
+
 
 unittest.main()

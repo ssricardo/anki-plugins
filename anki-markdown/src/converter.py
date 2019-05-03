@@ -10,7 +10,6 @@ from .config import ConfigKey
 from .core import Feedback
 
 from markdown import markdown
-# from .html2text import __init__
 from . import html2text
 import re
 import os
@@ -20,7 +19,8 @@ class Converter:
         Responsible for converting texts between differents formats
     """
 
-    _amdArea = re.compile(r'<amd(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?>(.*)</amd>', flags=(re.MULTILINE | re.DOTALL))
+    _attributeParts = '(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)'
+    _amdArea = re.compile(r"<amd%s?>(?P<value>.*?)</amd>" % _attributeParts, flags=(re.MULTILINE | re.DOTALL))
     _clozeRE = re.compile(r'<span class=cloze>((.)+)</span>')
     _inputRE = re.compile(r'(&lt;input ((.)+?)&gt;)', flags=(re.MULTILINE | re.DOTALL))
     _h2t = html2text.HTML2Text()
@@ -30,7 +30,7 @@ class Converter:
     INPUT_REPLACEMENT = '||...INPUT...||'
 
     def convertMarkdown(self, inpt:str): 
-        return markdown(inpt)
+        return markdown(inpt, extensions=[]) # Need better tests 'codehilite'
 
 
     def isAmdAreaPresent(self, input:str):
@@ -49,7 +49,7 @@ class Converter:
             return inpt
 
         (start, stop) = match.span()
-        content = match.group(5)
+        content = match.group('value')
         localOpts = {match.group(1): evalBool(match.group(2)), match.group(3): evalBool(match.group(4))}
 
         content = self._preProcessContent(content, cleanupHTML, isTypeMode)
@@ -105,9 +105,6 @@ class Converter:
 
         return content
 
-        # return ("<!-- content -->%s<!-- /content -->" % content)
-
-    # _reContent = re.compile(r'<!-- content -->((.)+)<!-- /content -->', flags=(re.MULTILINE | re.DOTALL))
 
     def _unwrapContent(self, value):
         return value \
@@ -131,6 +128,21 @@ class Converter:
         """
         return self._h2t.handle(html)
 
+
+    def stripAmdTagForField(self, input: str, fieldName: str, regexField = None):
+        _amdField = regexField if regexField else \
+            re.compile(r"<amd%s?>\s*(?P<value>\{\{((type:)?(cloze:)?){0,1}%s\}\})\s*</amd>" % (self._attributeParts, fieldName), flags=(re.MULTILINE | re.DOTALL))
+
+        match = _amdField.search(input)
+        if not match:
+            print('no match')
+            return input
+
+        result = input[:match.start()] + \
+                match.group('value') + \
+                input[match.end():]
+
+        return self.stripAmdTagForField(result, fieldName, _amdField)
 
 def evalBool(value):
     return None if value == None else ('true' == value.lower())

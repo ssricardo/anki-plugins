@@ -1,0 +1,39 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="../src/a-md.js"></script>
+
+        <style type="text/css">
+            body {
+                background-color: #CCC;
+            }
+        </style>
+
+        <script type="text/javascript">
+        
+            setInterval(() => {
+                console.log('Selection: ' + window.getSelection());
+            }, 150000);
+        </script>
+    </head>
+
+    <body>
+        <div style="margin: 0 auto; width: 1024px; border: 1px solid #777;" id="fields">
+            <h1>Test fields</h1>
+            <hr />
+            
+            <div>
+                <label>País: </label>
+                <input type="text" id="typeans1" style="width: 300px;" />
+            </div>
+
+            <br />
+            <div>
+                <label>Land: </label>
+                <textarea id="t-area" style="width: 100%;">
+                </textarea>
+            </div>
+        </div>
+        
+    </body>
+</html>

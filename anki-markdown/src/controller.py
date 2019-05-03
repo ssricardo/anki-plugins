@@ -9,14 +9,17 @@ from .config import ConfigKey, ConfigService
 from .core import Feedback, AppHolder, Style
 from .converter import Converter
 from .batch import BatchService
+from .field_ctrl import NoteFieldControler
 
 import anki
 import os
+import json
 
 from aqt.editor import Editor, EditorWebView
 from aqt.reviewer import Reviewer
 from aqt.qt import *
-from PyQt5.QtWidgets import QMenu, QAction
+from aqt import mw
+from PyQt5.QtWidgets import QMenu, QAction, QApplication
 from aqt.utils import showInfo, tooltip, showWarning
 from anki.hooks import addHook
 
@@ -34,22 +37,7 @@ EDITOR_STYLES = """
         $(prStyle).appendTo('#fields');
         """.format(Style.MARKDOWN)
 
-# Prevent default Enter behavior if as Markdown enabled
-EDITOR_SCRIPTS = """
-        function handleMdKey(evt) {
-            if (evt.keyCode === 13 && ! evt.shiftKey) {
 
-                if (currentField) {
-                    console.log('currentField');
-                    document.execCommand("insertHTML", false, "\\n\\n");
-                }
-                return false;
-            }
-        }
-
-        $('.field').wrap('<pre class=\"amd\"></pre>');
-        $('.field').keypress(handleMdKey);
-        """
 
 EDITOR_MD_NOTICE = """<div class=\"amd_edit_notice\" title=\"This addon tries to prevent Anki from formatting as HTML\">Markdown ON</div>"""
 
@@ -69,18 +57,19 @@ def _ankiConfigRead(key):
 
 def run():
     global controllerInstance
-    
-    from aqt import mw  
 
     Feedback.log('Setting anki-markdown controller')
     Feedback.showInfo = _ankiShowInfo
     Feedback.showError = _ankiShowError
-    
+
     AppHolder.app = mw
     ConfigService._f = _ankiConfigRead
 
     controllerInstance = Controller()
     controllerInstance.setupBindings()
+
+    noteFieldCtrl = NoteFieldControler(controllerInstance._converter)
+    noteFieldCtrl.setup()
 
 
 class Controller:
@@ -88,18 +77,25 @@ class Controller:
         The mediator/adapter between Anki with its components and this addon specific API
     """
 
+    JS_LOCATION = CWD + '/a-md.js'
+
     _converter = Converter()
     _batchService = BatchService(_converter)
     _showButton = None
     _shortcutMenu = None
     _shortcutButton = None
-
     _editAsMarkdownEnabled = False
+    _jsContent = None
 
     def __init__(self):
         self._showButton = ConfigService.read(ConfigKey.SHOW_MARKDOWN_BUTTON, bool)
         self._shortcutMenu = ConfigService.read(ConfigKey.SHORTCUT, str)
         self._shortcutButton = ConfigService.read(ConfigKey.SHORTCUT_EDIT, str)
+
+        f = open(self.JS_LOCATION, 'r')
+        self._jsContent = f.read()
+        f.close()
+
 
     # ------------------- Hooks / entry points -------------------------
 
@@ -110,7 +106,6 @@ class Controller:
         
         # Review
         addHook("prepareQA", self.processField)
-        # Reviewer._mungeQA = self._createMungeFn(AppHolder.app.reviewer)
 
         # Editing
         addHook("setupEditorButtons", self.setupButtons)
@@ -123,6 +118,19 @@ class Controller:
         EditorWebView._onPaste = self._wrapOnPaste(EditorWebView._onPaste)
 
 
+    def _wrapEditorSetupWeb(self, fn):
+        def wrapper(editor):
+            fn(editor)
+
+            editor.web.eval(EDITOR_STYLES)
+
+            editor.web.eval("""
+                %s
+            """ % self._jsContent)
+
+        return wrapper
+
+
     def _wrapOnPaste(self, fn):
         ref = self
         
@@ -132,10 +140,8 @@ class Controller:
 
             if ref._editAsMarkdownEnabled:
                 if not (mime.html() and mime.html().startswith("<!--anki-->")):
-                    cur = self.editor.currentField
-                    note = self.editor.note
-                    note.fields[cur] = mime.text()
-                    self.editor.setNote(note)
+                    cur = self.editor.currentField                    
+                    self.eval("pasteAmdContent(%s);" % json.dumps(mime.text()))
 
                     return
 
@@ -146,14 +152,6 @@ class Controller:
             self.editor.doPaste(html, internal, extended)
 
         return _onPaste
-
-
-    def _wrapEditorSetupWeb(self, f):
-        def wrapper(instance):
-            f(instance)
-            self.setEditAsMarkdownEnabled(self._editAsMarkdownEnabled)  # initialization
-
-        return wrapper
 
 
     # --------------------------- Editing ----------------------------
@@ -195,9 +193,11 @@ class Controller:
         note = editor.note
 
         if self._editAsMarkdownEnabled:
-            editor.web.eval(EDITOR_STYLES)
-            editor.web.eval("$('#fields').prepend('{}');".format(EDITOR_MD_NOTICE))
-            editor.web.eval(EDITOR_SCRIPTS)
+
+            # Prevent default Enter behavior if as Markdown enabled
+            self.setEditAsMarkdownEnabled(self._editAsMarkdownEnabled)  # initialization
+            editor.web.eval("showMarkDownNotice();")
+            editor.web.eval("handleNoteAsMD();")
 
 
     def setupButtons(self, buttons, editor):
@@ -269,12 +269,7 @@ class Controller:
 
     def processField(self, inpt, card, phase, *args):
         if self._converter.isAmdAreaPresent(inpt):  
-            # AppHolder.app.reviewer.web.eval("console.log(`%s`);" % inpt)          
-            # AppHolder.app.reviewer.web.eval("console.log(`%s`);" % ('-'*50))
-            
             res = self._converter.convertAmdAreasToMD(inpt, isTypeMode = True)
-
-            # AppHolder.app.reviewer.web.eval("console.log(`%s`);" % res)
 
             return Style.MARKDOWN + os.linesep + res            
         return inpt
