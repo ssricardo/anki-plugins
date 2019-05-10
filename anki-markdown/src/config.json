@@ -1,5 +1,6 @@
 {
     "shortcut-edit": "Ctrl+Shift+K",
     "shortcut-menu": "Ctrl+Shift+M",
-    "show-md-button": true
+    "show-md-button": true,
+    "enable-preview": true
 }
