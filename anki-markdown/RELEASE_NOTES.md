@@ -34,3 +34,9 @@
 * Refactor for using it along with other addons
 
 > More precisely, make it work with my new Addon: *Fill the blanks*
+
+**2.3** | 09/05/2019
+
+* Add feature: Preview
+* Improve how to handle pasting (on editor)
+* Other small adjustments

@@ -34,12 +34,12 @@ ICON_FILE = 'icons/markdown-3.png'
 EDITOR_STYLES = """
         var prStyle = `{}`;
 
-        $(prStyle).appendTo('#fields');
+        $(prStyle).appendTo('body');
         """.format(Style.MARKDOWN)
 
 
 
-EDITOR_MD_NOTICE = """<div class=\"amd_edit_notice\" title=\"This addon tries to prevent Anki from formatting as HTML\">Markdown ON</div>"""
+# EDITOR_MD_NOTICE = """<div class=\"amd_edit_notice\" title=\"This addon tries to prevent Anki from formatting as HTML\">Markdown ON</div>"""
 
 # ---------------------------- Injected functions -------------------
 @staticmethod
@@ -91,10 +91,15 @@ class Controller:
         self._showButton = ConfigService.read(ConfigKey.SHOW_MARKDOWN_BUTTON, bool)
         self._shortcutMenu = ConfigService.read(ConfigKey.SHORTCUT, str)
         self._shortcutButton = ConfigService.read(ConfigKey.SHORTCUT_EDIT, str)
+        self._enablePreview = ConfigService.read(ConfigKey.ENABLE_PREVIEW, bool)
 
-        f = open(self.JS_LOCATION, 'r')
-        self._jsContent = f.read()
-        f.close()
+        try:
+            f = open(self.JS_LOCATION, 'r')
+            self._jsContent = f.read()
+            f.close()
+        except e:
+            print(e)
+            Feedback.showError('An error occoured on loading Markdown Preview. You may need to restart Anki.')
 
 
     # ------------------- Hooks / entry points -------------------------
@@ -113,6 +118,7 @@ class Controller:
         addHook("loadNote", self.onLoadNote)        
         addHook('EditorWebView.contextMenuEvent', self._setupContextMenu)
         addHook('browser.setupMenus', self._setupBrowserMenu)
+        addHook('editTimer', lambda n: self._updatePreview())
 
         Editor.setupWeb = self._wrapEditorSetupWeb(Editor.setupWeb)
         EditorWebView._onPaste = self._wrapOnPaste(EditorWebView._onPaste)
@@ -127,6 +133,9 @@ class Controller:
             editor.web.eval("""
                 %s
             """ % self._jsContent)
+
+            if self._enablePreview:
+                editor.web.eval('setPreviewUp()')
 
         return wrapper
 
@@ -199,6 +208,8 @@ class Controller:
             editor.web.eval("showMarkDownNotice();")
             editor.web.eval("handleNoteAsMD();")
 
+        self._updatePreview()
+
 
     def setupButtons(self, buttons, editor):
         """Add buttons to editor"""        
@@ -259,6 +270,13 @@ class Controller:
         editor.web.eval("wrap('<amd>', '</amd>');")
         Feedback.showInfo('Anki Markdown :: Added successfully')
 
+
+    def _updatePreview(self):
+        note = self._editorReference.note
+        # pass
+        for fld, val in list(note.items()):
+            self._editorReference.web.eval('setFieldPreview("%s", `%s`);' % (fld, 
+                self._converter.convertMarkdown(val)))
 
     def _isEditing(self):
         'Checks anki current state. Whether is editing or not'

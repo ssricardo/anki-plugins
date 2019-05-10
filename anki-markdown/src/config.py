@@ -23,6 +23,7 @@ class ConfigKey:
     SHORTCUT = 'shortcut-menu'
     SHORTCUT_EDIT = 'shortcut-edit'
     SHOW_MARKDOWN_BUTTON = 'show-md-button'
+    ENABLE_PREVIEW = 'enable-preview'
 
 
 # ------------------------------ Service class --------------------------
@@ -30,6 +31,7 @@ DEFAULT_CONFIG = {
     ConfigKey.SHORTCUT: 'Ctrl+Shift+M',
     ConfigKey.SHORTCUT_EDIT: 'Ctrl+Shift+K',
     ConfigKey.SHOW_MARKDOWN_BUTTON: True,
+    ConfigKey.ENABLE_PREVIEW: True
 }
 
 class ConfigService:
