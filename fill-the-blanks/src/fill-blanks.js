@@ -1,10 +1,14 @@
-
+let ifEnabled = true;
 
 function checkFieldValue(reference, field) {
     if (window.event.keyCode === 13) {
         pycmd("ans");
         return;
-    }    
+    }
+
+    if (! ifEnabled) {
+        return;
+    }
 
     let current = field.val().trim();
     // console.log('Cur: ' + current + '; starts? ' + reference.startsWith(current));
@@ -33,4 +37,18 @@ function checkFieldValue(reference, field) {
         }
     }
     field.data('lastValue', current);
+}
+
+function disableInstantFb() {
+    ifEnabled = false;
+}
+
+function focusOnFirst() {
+    setTimeout(() => {
+        try {
+            $('#typeans0').focus();
+        } catch (error) {
+            console.warn(error);
+        }        
+    }, 300);   
 }

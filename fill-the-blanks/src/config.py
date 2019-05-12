@@ -6,7 +6,7 @@
 # @author ricardo saturnino
 # -------------------------------------------------------
 
-from .core import Feedback
+# from .core import Feedback
 
 import os
 import json
@@ -20,11 +20,11 @@ currentLocation = os.path.dirname(os.path.realpath(__file__))
 
 class ConfigKey:
 
-    SHORTCUT = 'shortcut-menu'
+    FEEDBACK_ENABLED = 'feedback-enabled'
 
 # ------------------------------ Service class --------------------------
 DEFAULT_CONFIG = {
-    ConfigKey.SHORTCUT: 'Ctrl+Shift+...'
+    ConfigKey.FEEDBACK_ENABLED: True
 }
 
 class ConfigService:

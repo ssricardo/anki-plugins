@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 currentLocation = os.path.dirname(os.path.realpath(__file__))
 
 class TypeClozeHander:
+    _currentFirst = None
 
     DEFAULT_ANKI_CLOZE = """
     <center>
@@ -22,15 +23,18 @@ class TypeClozeHander:
     </center>
     """
         
-    def setupBindings(self, reviewer):
+    def setupBindings(self, reviewer, addHook):
         self.reviewer = reviewer
 
         reviewer.typeAnsQuestionFilter = self.typeAnsQuestionFilter
+        addHook("showQuestion", self.onShowQuestion)
+        
         # reviewer.typeAnsAnswerFilter = self.typeAnsAnswerFilter
 
     def typeAnsQuestionFilter(self, buf):
         self.typeCorrect = None
         clozeIdx = None
+        self._currentFirst = None
 
         text = buf
         entries = []
@@ -121,7 +125,11 @@ class TypeClozeHander:
      class="ftb" style="width: {1}em" />""".format(idx, (len(val) * 0.62)) 
             res = res.replace('[...]', item, 1)
 
+            if not self._currentFirst:
+                self._currentFirst = 'typeans0'
+
         return res
+
 
     def typeAnsAnswerFilter(self, buf):
         if not self.typeCorrect:
@@ -153,3 +161,11 @@ class TypeClozeHander:
                 s = "<hr id=answer>" + s
             return s
         return re.sub(self.typeAnsPat, repl, buf)
+
+
+    def onShowQuestion(self):
+        if self._currentFirst:
+
+            web = self.reviewer.mw.web
+            web.setFocus()
+            web.eval("focusOnFirst();")

@@ -114,6 +114,10 @@ function setFieldPreview(name, value) {
     element.html(value);
 }
 
+function cleanPreview() {
+    $('#preview').empty();
+}
+
 function togglePreview() {
     let prevDiv = $('#preview');
     if (prevDiv.css('display') == 'none') {

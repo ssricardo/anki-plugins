@@ -9,6 +9,11 @@ instance = None
 
 import os
 from .handler import TypeClozeHander
+from .config import ConfigService, ConfigKey 
+
+from aqt.utils import showInfo, tooltip, showWarning
+from anki.hooks import wrap, addHook
+from aqt import mw
 
 CWD = os.path.dirname(os.path.realpath(__file__))
 
@@ -20,31 +25,36 @@ input.ftb {
     width: 150px;
     min-width: 120px;
     max-width: 400px;
-    padding: 3px;
-    color: #333 !important;
+    padding: 3px;    
     margin: 2px;
 }
 input.st-incomplete {
     background-color: #FFFF77 !important;
+    color: #333 !important;
 }
 input.st-error {
     background-color: #ff9999 !important;
+    color: #333 !important;
 }
 input.st-ok {
     background-color: #99ff99 !important;
+    color: #333 !important;
 }
 
 </style>
 """
 
-def run():
-    from aqt.utils import showInfo, tooltip, showWarning
-    from anki.hooks import wrap
-    # tooltip('Loading fill-the-blanks Handler')
+def _ankiConfigRead(key):
+    return mw.addonManager.getConfig(__name__)[key]
 
-    from aqt import mw
+
+def run():
+    
+    # tooltip('Loading fill-the-blanks Handler')
     instance = Controller(mw)
     instance.setupBindings(mw.reviewer, wrap)
+
+    ConfigService._f = _ankiConfigRead
 
 
 class Controller:
@@ -60,7 +70,7 @@ class Controller:
             print('No reviewer')
             return
         self.handler = TypeClozeHander()
-        self.handler.setupBindings(reviewer)
+        self.handler.setupBindings(reviewer, addHook)
         reviewer._initWeb = self.wrapInitWeb(reviewer._initWeb)
 
     def wrapInitWeb(self, fn):
@@ -80,6 +90,9 @@ class Controller:
             self._mw.reviewer.web.eval("""
                 %s
             """ % f.read())
+
+            if not ConfigService.read(ConfigKey.FEEDBACK_ENABLED, bool):
+                self._mw.reviewer.web.eval('disableInstantFb();')
 
         return _initReviewerWeb
 

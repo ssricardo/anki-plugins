@@ -37,10 +37,6 @@ EDITOR_STYLES = """
         $(prStyle).appendTo('body');
         """.format(Style.MARKDOWN)
 
-
-
-# EDITOR_MD_NOTICE = """<div class=\"amd_edit_notice\" title=\"This addon tries to prevent Anki from formatting as HTML\">Markdown ON</div>"""
-
 # ---------------------------- Injected functions -------------------
 @staticmethod
 def _ankiShowInfo(*args):
@@ -68,8 +64,8 @@ def run():
     controllerInstance = Controller()
     controllerInstance.setupBindings()
 
-    noteFieldCtrl = NoteFieldControler(controllerInstance._converter)
-    noteFieldCtrl.setup()
+    # noteFieldCtrl = NoteFieldControler(controllerInstance._converter)
+    # noteFieldCtrl.setup()
 
 
 class Controller:
@@ -115,7 +111,7 @@ class Controller:
         # Editing
         addHook("setupEditorButtons", self.setupButtons)
         addHook("setupEditorShortcuts", self.setupShortcuts)
-        addHook("loadNote", self.onLoadNote)        
+        addHook("loadNote", self.onLoadNote)
         addHook('EditorWebView.contextMenuEvent', self._setupContextMenu)
         addHook('browser.setupMenus', self._setupBrowserMenu)
         addHook('editTimer', lambda n: self._updatePreview())
@@ -273,7 +269,8 @@ class Controller:
 
     def _updatePreview(self):
         note = self._editorReference.note
-        # pass
+        # pass        
+        self._editorReference.web.eval('cleanPreview();')
         for fld, val in list(note.items()):
             self._editorReference.web.eval('setFieldPreview("%s", `%s`);' % (fld, 
                 self._converter.convertMarkdown(val)))

@@ -1,3 +1,4 @@
 # Fill the Blanks
 
-> This add-on needs no additional configuration. Just install/enable it ;)
+* feedback-enabled
+  * Indicates whether *Instant Feedback* should be enabled

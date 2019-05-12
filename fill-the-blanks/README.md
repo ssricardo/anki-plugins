@@ -38,6 +38,8 @@ This addon solves this issue.
 
 ### Instant feedback
 
+> Enable/disable it using the configuration *feedback-enabled*
+
 While the user types in the answer, the corresponding input field changes.  
 The background color changes according to the value:  
 
