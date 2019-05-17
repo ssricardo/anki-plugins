@@ -117,8 +117,11 @@ class Controller:
         addHook('editTimer', lambda n: self._updatePreview())
 
         Editor.setupWeb = self._wrapEditorSetupWeb(Editor.setupWeb)
-        EditorWebView._onPaste = self._wrapOnPaste(EditorWebView._onPaste)
-
+        try:
+            EditorWebView._onPaste = self._wrapOnPaste(EditorWebView._onPaste)
+        except:
+            Feedback.log('Markdown: Handling "Paste" is disabled duo to an error')
+        
 
     def _wrapEditorSetupWeb(self, fn):
         def wrapper(editor):
