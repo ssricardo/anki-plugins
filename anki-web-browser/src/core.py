@@ -8,7 +8,7 @@
 
 
 class Label:
-    CARD_MENU = 'Search in &Web'
+    CARD_MENU = 'Search on &Web'
     BROWSER_ASSIGN_TO = 'Assign to field:'
 
 

@@ -199,6 +199,7 @@ class AwBrowser(QDialog):
         self._web.setHtml(WELCOME_PAGE)
         self._itAddress.setText('about:blank')
         self.show()
+        self.raise_()
 
 # ------------------------------------ Menu ---------------------------------------
 

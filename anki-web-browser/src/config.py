@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import QDialog
 from PyQt5.Qt import QIcon
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
-CONFIG_FILE = 'meta.json'
+CONFIG_FILE = 'config.json'
 
 # ---------------------------------- Model ------------------------------
 
@@ -71,16 +71,21 @@ class ConfigService:
     def load(self, createIfNotExists = True):
         Feedback.log('[INFO] Trying to read config file in {}'.format(currentLocation + '/' + CONFIG_FILE))
         try:
-            with open(currentLocation + '/' + CONFIG_FILE) as f:
-                obj = json.load(f)
-                Feedback.log(obj)
-                conf = ConfigHolder(**obj)
+            conf = self._readFileToObj()
         except:
             conf = False        
 
         if not conf and createIfNotExists:
             conf = self._createConfiguration()
         self._config = conf
+        return conf
+
+    def _readFileToObj(self):
+        with open(currentLocation + '/' + CONFIG_FILE) as f:
+            obj = json.load(f)
+            Feedback.log(obj)
+            conf = ConfigHolder(**obj)
+
         return conf
 
 
@@ -304,8 +309,7 @@ class ConfigViewAdapter(Ui_ConfigView):
         self.setupUi(self.window)
 
         self.verticalLayWidget.setFixedSize(480, 432)
-        # self.verticalLayWidget.setGeometry(QDialog.geometry())
-        self.verticalLayout.setContentsMargins(10, 10, 10, 10)        # modif
+        self.verticalLayout.setContentsMargins(10, 10, 10, 10)
 
         self.browserInfo.setVisible(self.cbSystemBrowser.isChecked()) #keep
 
