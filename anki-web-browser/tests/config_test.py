@@ -11,7 +11,7 @@ import os
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 
 import unittest
-import anki_web_browser.config as cc
+import src.config as cc
 
 from PyQt5 import QtWidgets
 app = QtWidgets.QApplication(sys.argv)
@@ -107,4 +107,4 @@ if __name__ == '__main__':
         view.open()
         sys.exit(app.exec_())
     else:
-        unittest.main()e
+        unittest.main()

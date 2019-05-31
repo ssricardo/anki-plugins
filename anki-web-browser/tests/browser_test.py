@@ -7,10 +7,13 @@ import os
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 
-import anki_web_browser.browser
-from anki_web_browser.browser import AwBrowser
-from PyQt5.QtWidgets import QMenu, QApplication
+import src.browser
+from src.browser import AwBrowser
+from PyQt5.QtWidgets import QMenu, QApplication, QMainWindow
 from PyQt5.QtCore import QPoint
+from src.core import Feedback
+
+Feedback.log = lambda i: print(i)
 
 class FakeBrowser:
 
@@ -51,7 +54,7 @@ class Tester(unittest.TestCase):
             {'name': 'Test'},
             {'name': 'Item2'}
         ])
-        b.setSelectionListener(lambda a, b, c: print(a, b, c))
+        b.setSelectionHandler(lambda a, b, c: print(a, b, c))
         b.selectedText = self.customSelected
         b.contextMenuEvent(FakeEvent())
 
@@ -72,7 +75,19 @@ class Tester(unittest.TestCase):
         pass
 
 if __name__ == '__main__':
+    app = QApplication(sys.argv)    
+    if '-view' in sys.argv:        
+        main = QMainWindow()
+        view = AwBrowser(main)
+        view.setFields({0: 'Example'})
+        view.infoList = ['No action available']
 
-    app = QApplication(sys.argv)
-    
-    unittest.main()
+        def handlerFn(f, v, l):
+            print(l)
+            print(v)
+
+        view._selectionHandler = handlerFn
+        view.open('https://www.google.com/search?tbm=isch&tbs=isz:i&q={}', 'calendar')
+        sys.exit(app.exec_())
+    else:
+        unittest.main()

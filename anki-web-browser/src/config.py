@@ -6,7 +6,7 @@
 # @author ricardo saturnino
 # -------------------------------------------------------
 
-from . import config_view
+from .config_view import Ui_ConfigView
 from .core import Feedback
 
 import os
@@ -14,25 +14,34 @@ import json
 import re
 import shutil
 from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtWidgets import QDialog
+from PyQt5.Qt import QIcon
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
-CONFIG_FILE = 'config.json'
+CONFIG_FILE = 'meta.json'
 
 # ---------------------------------- Model ------------------------------
 
 class ConfigHolder:
+    SHORTCUT = 'Ctrl+Shift+B'
+    RP_SHORT = 'F10'
 
-    def __init__(self, keepBrowserOpened = True, browserAlwaysOnTop = False, providers = [], useSystemBrowser = False, **kargs):
+    def __init__(self, keepBrowserOpened = True, browserAlwaysOnTop = False, menuShortcut = SHORTCUT, \
+            providers = [], repeatShortcut = RP_SHORT, useSystemBrowser = False, **kargs):
         self.providers = [ConfigHolder.Provider(**p) for p in providers ] #providers
         self.keepBrowserOpened = keepBrowserOpened
         self.browserAlwaysOnTop = browserAlwaysOnTop
         self.useSystemBrowser = useSystemBrowser
+        self.menuShortcut = menuShortcut
+        self.repeatShortcut = repeatShortcut
 
     def toDict(self):
         res = dict({
             'keepBrowserOpened': self.keepBrowserOpened,
             'browserAlwaysOnTop': self.browserAlwaysOnTop,
             'useSystemBrowser': self.useSystemBrowser,
+            'menuShortcut': self.menuShortcut,
+            'repeatShortcut': self.repeatShortcut, 
             'providers': [p for p in  map(lambda p: p.__dict__, self.providers)]
         })
         return res
@@ -106,7 +115,7 @@ class ConfigService:
         # default providers
         conf.providers = [
             ConfigHolder.Provider('Google Web', 'https://google.com/search?q={}'), 
-            ConfigHolder.Provider('Google Translate', 'https://translate.google.com/#op=translate&sl=auto&tl=en&text={}'),
+            ConfigHolder.Provider('Google Translate', 'https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text={}'),
             ConfigHolder.Provider('Google Images', 'https://www.google.com/search?tbm=isch&q={}'),
             ConfigHolder.Provider('Your Sentence', 'http://sentence.yourdictionary.com/{}?direct_search_result=yes'),
             ConfigHolder.Provider('Pixabay', 'https://pixabay.com/en/photos/?q={}&image_type=all')]
@@ -154,8 +163,7 @@ class ConfigService:
             if not self._validURL.match(url):
                 raise ValueError('Some URL is invalid. Check the URL and if it contains {} that will be replaced by the text: %s' % url)
 
-        
-
+    
 # ------------------------------ View Controller --------------------------
 
 class ConfigController:
@@ -164,16 +172,13 @@ class ConfigController:
     """
 
     _ui = None
-    _dialog = None
     _hasSelection = False
     _pendingChanges = False
     _tempCfg = None
 
     def __init__(self, myParent):
         self._tempCfg = service.getConfig()
-        self._dialog = QtWidgets.QDialog(parent=myParent)
-        self._ui = config_view.Ui_ConfigView()
-        self._ui.setupUi(self._dialog)
+        self._ui = ConfigViewAdapter(myParent)
         self.setupBinds()
         self.setupInitialState()
 
@@ -187,7 +192,6 @@ class ConfigController:
         self._ui.btAdd.clicked.connect(lambda: self.onAddClick())
         self._ui.btRemove.clicked.connect(lambda: self.onRemoveClick())
         self._ui.tbProviders.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self._ui.tbProviders.horizontalHeader().setStretchLastSection(True)
         self._ui.cbSystemBrowser.stateChanged.connect(lambda: self.onUsedBrowserChange())
 
     def setupInitialState(self):
@@ -198,6 +202,7 @@ class ConfigController:
         self._ui.browserInfo.setVisible(useSystemBrowser)
         self._ui.rbKeepOpened.setEnabled(not useSystemBrowser)
         self._ui.rbOnTop.setEnabled(not useSystemBrowser)
+        
 
     def open(self):
         'Opens the Config window'
@@ -206,8 +211,10 @@ class ConfigController:
         self._ui.rbKeepOpened.setChecked(bool(self._tempCfg.keepBrowserOpened))
         self._ui.rbOnTop.setChecked(bool(self._tempCfg.browserAlwaysOnTop))
         self._ui.cbSystemBrowser.setChecked(bool(self._tempCfg.useSystemBrowser))
+        self._ui.teShortcutMenu.setText(self._tempCfg.menuShortcut)
+        self._ui.teShortcutRepeat.setText(self._tempCfg.repeatShortcut)
         self.setupDataTable()
-        self._dialog.show()
+        self._ui.window.show()
 
 
     def setupDataTable(self):
@@ -251,7 +258,7 @@ class ConfigController:
 
     def onCancelClick(self):
         self._tempCfg = None
-        self._dialog.close()
+        self._ui.window.close()
 
 
     def onSaveClick(self):
@@ -259,6 +266,11 @@ class ConfigController:
         _tempCfg.browserAlwaysOnTop = self._ui.rbOnTop.isChecked()
         _tempCfg.keepBrowserOpened = self._ui.rbKeepOpened.isChecked()
         _tempCfg.useSystemBrowser = self._ui.cbSystemBrowser.isChecked()
+        _tempCfg.menuShortcut = self._ui.teShortcutMenu.text().strip()
+        _tempCfg.repeatShortcut = self._ui.teShortcutRepeat.text().strip()
+
+        # if not isValidShortcut():
+        #     Feedback.showInfo('Shortcuts must contain')
 
         tab = self._ui.tbProviders
         _tempCfg.providers = [None] * tab.rowCount()
@@ -280,6 +292,32 @@ class ConfigController:
     
     def onChangeItem(self):
         self._pendingChanges = True
+
+# ----------------------------------------------------------------------------
+# Adjust on View
+
+class ConfigViewAdapter(Ui_ConfigView):
+
+    def __init__(self, myParent):
+        self.window = QtWidgets.QDialog(parent=myParent)
+        # self._ui = ConfigView(myParent)
+        self.setupUi(self.window)
+
+        self.verticalLayWidget.setFixedSize(480, 432)
+        # self.verticalLayWidget.setGeometry(QDialog.geometry())
+        self.verticalLayout.setContentsMargins(10, 10, 10, 10)        # modif
+
+        self.browserInfo.setVisible(self.cbSystemBrowser.isChecked()) #keep
+
+        self.btRemove.setIcon(self.getIcon(QtWidgets.QStyle.SP_TrashIcon)) 
+        self.btAdd.setIcon(self.getIcon(QtWidgets.QStyle.SP_DirLinkIcon))
+        self.btSave.setIcon(self.getIcon(QtWidgets.QStyle.SP_DialogApplyButton))
+        self.btCancel.setIcon(self.getIcon(QtWidgets.QStyle.SP_DialogCancelButton))
+
+    def getIcon(self, qtStyle):
+        return QIcon(QtWidgets.QApplication.style().standardIcon(qtStyle))
+
+
 
 # -----------------------------------------------------------------------------
 # global instances

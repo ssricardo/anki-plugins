@@ -17,8 +17,14 @@ package "anki" {
 }
 
 package "addon" as ad {
-    [Browser view] as bsr
+    [BrowserView] as bsr
+    [BrowserController] as bctr    
+    [SearchingContext] as sctx
     [Note menu] as nMenu
+
+    package "buiders" {
+        [MenuBuilder] as mbd
+    }
 }
 
 ad .. cons
@@ -29,6 +35,7 @@ main --> abr : get/set listeners
 main --> aed : get/set listeners
 main -up-> bsr : set data / listeners
 nMenu .> bsr : Calls
+mbd ..> sctx : Creates
 
 
 @enduml

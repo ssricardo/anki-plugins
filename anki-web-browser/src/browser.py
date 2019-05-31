@@ -9,7 +9,7 @@ from .config import service as cfg
 from .core import Label, Feedback
 
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMenu, QAction, QDialog, QVBoxLayout, QStatusBar, QLabel
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData
 
@@ -50,10 +50,10 @@ WELCOME_PAGE = """
             </div>
             <p>
                 Its use is pretty simple.<br />
-                It is based on <i>text selecting</i> and <i>context menu</i>.
+                It is based on <i>text selecting</i> and <i>context menu</i> (or shortcut).
             </p>
             <div>
-                Check more details on the <a href="#">documentation</a>
+                Check more details on the <a href="https://github.com/ssricardo/anki-plugins/tree/master/anki-web-browser">documentation</a>
             </div>
         </body>   
     </html>
@@ -64,16 +64,27 @@ class AwBrowser(QDialog):
         Customization and configuration of a web browser to run within Anki
     """
 
+    SINGLETON = None
+
     _parent = None
     _fields = []
-    _selectedListener = None
+    _selectionHandler = None
     _web = None
     _urlInfo = None
+    infoList = []
     
     def __init__(self, myParent):
-        QDialog.__init__(self, myParent)
+        QDialog.__init__(self, None)
         self._parent = myParent
         self.setupUI()
+
+        if myParent:
+            def wrapClose(fn):
+                def clozeBrowser(evt):                    
+                    self.close()
+                    fn(evt)
+                return clozeBrowser
+            myParent.closeEvent = wrapClose(myParent.closeEvent)
         
     def setupUI(self):
         self.setWindowTitle('Anki :: Web Browser Addon')
@@ -130,8 +141,14 @@ class AwBrowser(QDialog):
         if cfg.getConfig().browserAlwaysOnTop:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
+    @classmethod
+    def singleton(clz, parent):
+        if not clz.SINGLETON:
+            clz.SINGLETON = AwBrowser(parent)
+        return clz.SINGLETON
+
     def formatTargetURL(self, website: str, query: str = ''):
-        return website.format(urllib.parse.quote(query, encoding='utf8'))  #encode('utf8', 'ignore')
+        return website.format(urllib.parse.quote(query, encoding='utf8'))
 
     def open(self, website, query: str):
         """
@@ -143,11 +160,13 @@ class AwBrowser(QDialog):
         self._itAddress.setText(target)
         
         self.show()
+        self.raise_()
         return self._web
 
     def unload(self):
         try:
             self._web.setHtml(BLANK_PAGE)
+            self._itAddress.setText('about:blank')
         except (RuntimeError) as err:
             pass
 
@@ -173,10 +192,12 @@ class AwBrowser(QDialog):
         self._web.show()
     
     def onPageChange(self, url):
-        self._itAddress.setText(url.toString())
+        if url and url.toString().startswith('http'):
+            self._itAddress.setText(url.toString())
 
-    def welcome(self):
+    def welcome(self):        
         self._web.setHtml(WELCOME_PAGE)
+        self._itAddress.setText('about:blank')
         self.show()
 
 # ------------------------------------ Menu ---------------------------------------
@@ -187,7 +208,7 @@ class AwBrowser(QDialog):
             Only with lambda, it would repeat only the last element
         """
 
-        return lambda: self._selectedListener.handleSelection(field, value, isLink)
+        return lambda: self._selectionHandler(field, value, isLink)
 
     def contextMenuEvent(self, evt):
         """
@@ -195,8 +216,8 @@ class AwBrowser(QDialog):
             Shows and handle options (from field list), only if in edit mode.
         """
 
-        if not (self._fields and self._selectedListener):
-            return
+        if not (self._fields and self._selectionHandler):
+            return self.createInfoMenu(evt)
 
         isLink = False
         value = None
@@ -208,25 +229,69 @@ class AwBrowser(QDialog):
                     and self._web.page().contextMenuData().mediaUrl()):
                 isLink = True
                 value = self._web.page().contextMenuData().mediaUrl()
+                Feedback.log('Link: '+ value.toString())
+                Feedback.log('toLocal: ' + value.toLocalFile())             
+
+                if not self._checkSuffix(value):
+                    return
 
         if not value:
-            return
+            Feedback.log('No value')
+            return self.createInfoMenu(evt)
 
         self.createCtxMenu(value, isLink, evt)
+
+    def _checkSuffix(self, value):
+        if value and not value.toString().endswith(("jpg", "jpeg", "png", "gif")):
+            answ = QMessageBox.question(self, 'Anki support', 
+                """This link may not be accepted by Anki. 
+Usually the suffix should be one of 
+(jpg, jpeg, png, gif).
+Try it anyway? """, QMessageBox.Yes|QMessageBox.No)
+
+            if answ != QMessageBox.Yes:
+                return False
+
+        return True
 
     def createCtxMenu(self, value, isLink, evt):
         'Creates and configures the menu itself'
         
         m = QMenu(self)
-        sub = QMenu(Label.BROWSER_ASSIGN_TO, m)
+        m.addAction(QAction('Copy',  m, 
+            triggered=lambda: self._copy(value)))
+        m.addSeparator()
+
+        labelAct = QAction(Label.BROWSER_ASSIGN_TO, m)
+        labelAct.setDisabled(True)
+        m.addAction(labelAct)
+        # sub = QMenu(Label.BROWSER_ASSIGN_TO, m)
         m.setTitle(Label.BROWSER_ASSIGN_TO)
         for index, label in self._fields.items():
             act = QAction(label, m, 
                 triggered=self._makeMenuAction(index, value, isLink))
-            sub.addAction(act)
+            m.addAction(act)
 
-        m.addMenu(sub)
+        # m.addMenu(sub)
         action = m.exec_(self.mapToGlobal(evt.pos()))
+
+
+    def createInfoMenu(self, evt):
+        'Creates and configures a menu with only some information'
+        m = QMenu(self)
+        for item in self.infoList:
+            act = QAction(item)
+            act.setEnabled(False)
+            m.addAction(act)
+        action = m.exec_(self.mapToGlobal(evt.pos()))
+
+    
+    def _copy(self, value):
+        if not value:
+            return
+        clip = QApplication.clipboard()        
+        clip.setText(value if isinstance(value, str) else value.toString())
+
 
     def load(self, qUrl):
         self._web.load(qUrl)
@@ -236,5 +301,5 @@ class AwBrowser(QDialog):
     def setFields(self, fList):
         self._fields = fList
 
-    def setSelectionListener(self, value):
-        self._selectedListener = value
+    def setSelectionHandler(self, value):
+        self._selectionHandler = value

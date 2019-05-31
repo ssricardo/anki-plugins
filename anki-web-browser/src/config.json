@@ -2,6 +2,8 @@
     "keepBrowserOpened": true,
     "browserAlwaysOnTop": false,
     "useSystemBrowser": false, 
+    "menuShortcut": "Ctrl+Shift+B", 
+    "repeatShortcut": "F10", 
     "providers": [
         {
             "name": "Google Web",
@@ -12,12 +14,20 @@
             "url": "https://www.google.com/search?tbm=isch&q={}"
         },
         {
+            "name": "Google Translator",
+            "url": "https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text={}"
+        },
+        {
             "name": "Forvo",
             "url": "https://forvo.com/search/{}/"
         },
         {
             "name": "Pixabay",
             "url": "https://pixabay.com/en/photos/?q={}&image_type=all"
+        },
+        {
+            "name": "Your sentence",
+            "url": "https://sentence.yourdictionary.com/{}"
         }
     ]
 }

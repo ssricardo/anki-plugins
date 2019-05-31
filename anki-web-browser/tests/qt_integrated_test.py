@@ -10,7 +10,7 @@ from PyQt5.QtCore import *
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 
-import anki_web_browser.browser as brw
+import src.browser as brw
 
 def wiki(self):
     print('Load')
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     print('Running Qt App')
     app = QApplication(sys.argv)
     web = brw.AwBrowser(None)
-    web.setSelectionListener(onSelected)
+    web.setSelectionHandler(onSelected)
     web.setFields([
         {'name': 'Front'},
         {'name': 'Back'},
