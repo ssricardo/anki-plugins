@@ -19,8 +19,14 @@ class Feedback:
 
     @staticmethod
     def log(*args, **kargs):
-        pass
-        # print(args, kargs)
+        # pass
+        print(args, kargs)
+        # import os
+        # import config
+        # if not os.path.exists (config.currentLocation + '/ab.log'):
+        # f = open(config.currentLocation + '/ab.log', 'w')
+        # f.write(args)
+        # f.close()
 
     @staticmethod
     def showInfo(*args):

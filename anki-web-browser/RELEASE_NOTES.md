@@ -20,3 +20,11 @@
 * Add shortcuts
   * Show web browser menu
   * Search again with same provider (skip menu)
+
+**1.3** | 21/06
+
+* Fix openLink using System browser  
+  * Related issue #23
+* Improve message for unaccepted links 
+  * Shows the link on the message
+  * Related issue #20

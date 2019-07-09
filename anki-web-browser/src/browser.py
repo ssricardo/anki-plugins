@@ -5,6 +5,7 @@
 # ---------------------------------------
 
 import urllib.parse
+from textwrap import shorten
 from .config import service as cfg
 from .core import Label, Feedback
 
@@ -244,11 +245,14 @@ class AwBrowser(QDialog):
 
     def _checkSuffix(self, value):
         if value and not value.toString().endswith(("jpg", "jpeg", "png", "gif")):
+            msgLink = value.toString()
+            if len(value.toString()) < 80:
+                msgLink = msgLink[:50] + '...' + msgLink[50:]
             answ = QMessageBox.question(self, 'Anki support', 
-                """This link may not be accepted by Anki. 
+                """This link may not be accepted by Anki: \n\n "%s" \n
 Usually the suffix should be one of 
 (jpg, jpeg, png, gif).
-Try it anyway? """, QMessageBox.Yes|QMessageBox.No)
+Try it anyway? """ % msgLink, QMessageBox.Yes|QMessageBox.No)
 
             if answ != QMessageBox.Yes:
                 return False

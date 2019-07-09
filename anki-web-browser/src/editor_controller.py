@@ -9,6 +9,7 @@ from .searching import SearchingContext
 
 from aqt.editor import Editor
 from anki.hooks import addHook
+from aqt.utils import openLink
 import json
 
 class EditorController:
