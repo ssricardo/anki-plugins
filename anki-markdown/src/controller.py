@@ -271,8 +271,9 @@ class Controller:
 
 
     def _updatePreview(self):
-        note = self._editorReference.note
-        # pass        
+        if not (self._editorReference and self._editorReference.note):
+            return
+        note = self._editorReference.note       
         self._editorReference.web.eval('cleanPreview();')
         for fld, val in list(note.items()):
             self._editorReference.web.eval('setFieldPreview("%s", `%s`);' % (fld, 

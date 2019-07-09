@@ -61,7 +61,7 @@ code {
     font-size: 13px;
 }
 .amd {
-    border-left: 3px solid #7e08ed;
+    border-left: 2px solid #7e08ed;
     padding-left: 5px;
     display: block;
 }
@@ -69,7 +69,7 @@ code {
 pre.amd {
     margin: 0px;
     padding: 0;
-    border-left: 3px solid #7e08ed;
+    border-left: 2px solid #7e08ed;
 }
 
 .amd_edit_notice {

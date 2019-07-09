@@ -40,3 +40,8 @@
 * Add feature: Preview
 * Improve how to handle pasting (on editor)
 * Other small adjustments
+
+**2.4** | 09/07/2019
+
+* Handle issue on timer for previewer
+  * Related issue: #21
