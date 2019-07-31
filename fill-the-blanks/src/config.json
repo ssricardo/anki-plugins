@@ -1,3 +1,4 @@
 {
-    "feedback-enabled": true
+    "feedback-enabled": true,
+    "feedback-ignore-case": false
 }

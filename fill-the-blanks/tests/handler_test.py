@@ -16,6 +16,9 @@ import unittest
 from handler import TypeClozeHander
 from anki_mocks_test import TestReviewer
 
+def hookFakeFn(*args, **vargs):
+    pass
+
 class HandlerTest(unittest.TestCase):
 
     tested = TypeClozeHander()
@@ -23,7 +26,7 @@ class HandlerTest(unittest.TestCase):
     def setUp(self):
         print('----------------- {} -----------------'.format(self._testMethodName))
         self.reviewer = TestReviewer()
-        self.tested.setupBindings(self.reviewer)
+        self.tested.setupBindings(self.reviewer, hookFakeFn)
 
 
     def test_nocloze(self):

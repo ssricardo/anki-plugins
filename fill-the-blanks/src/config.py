@@ -22,9 +22,12 @@ class ConfigKey:
 
     FEEDBACK_ENABLED = 'feedback-enabled'
 
+    IGNORE_CASE = 'feedback-ignore-case'
+
 # ------------------------------ Service class --------------------------
 DEFAULT_CONFIG = {
-    ConfigKey.FEEDBACK_ENABLED: True
+    ConfigKey.FEEDBACK_ENABLED: True,
+    ConfigKey.IGNORE_CASE: False
 }
 
 class ConfigService:

@@ -47,6 +47,8 @@ The background color changes according to the value:
 * correct: green
 * incorrect: red
 
+> It's possible to make it case INsensitive through configuration
+
 ![Feedback](doc/intant-feedback.gif)
 
 > Note from dev: In my own tests, this is really good. It makes me try harder to get the right answer.

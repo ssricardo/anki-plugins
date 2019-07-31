@@ -1,4 +1,5 @@
 let ifEnabled = true;
+let shouldIgnoreCase = false;
 
 function checkFieldValue(reference, field) {
     if (window.event.keyCode === 13) {
@@ -18,13 +19,16 @@ function checkFieldValue(reference, field) {
         return;
     }
 
-    field.removeClass('st-ok');
-    field.removeClass('st-incomplete');
-    field.removeClass('st-error');
+    cleanUpView(field);
 
     if (current == '' ) {
         field.data('lastValue', '');
         return;
+    }
+
+    if (shouldIgnoreCase) {
+        current = current.toLowerCase();
+        reference = reference.toLowerCase();
     }
 
     if (current == reference) {
@@ -39,8 +43,18 @@ function checkFieldValue(reference, field) {
     field.data('lastValue', current);
 }
 
+function cleanUpView(field) {
+    field.removeClass('st-ok');
+    field.removeClass('st-incomplete');
+    field.removeClass('st-error');
+}
+
 function disableInstantFb() {
     ifEnabled = false;
+}
+
+function ignoreCaseOnFeedback() {
+    shouldIgnoreCase = true;
 }
 
 function focusOnFirst() {

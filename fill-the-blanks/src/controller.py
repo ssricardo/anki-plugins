@@ -94,6 +94,8 @@ class Controller:
             if not ConfigService.read(ConfigKey.FEEDBACK_ENABLED, bool):
                 self._mw.reviewer.web.eval('disableInstantFb();')
 
+            if ConfigService.read(ConfigKey.IGNORE_CASE, bool):
+                self._mw.reviewer.web.eval('ignoreCaseOnFeedback();')
         return _initReviewerWeb
 
     

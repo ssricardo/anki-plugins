@@ -16,3 +16,7 @@
 
 * Makes *instant feedback* optional (added configuration 'feedback-enabled', default: true)
 * Tries to set focus to the first input field
+
+**1.3** | 01/08/2019
+
+* Makes *case sensitivity* optional (added configuration 'feedback-ignore-case', default: false)
