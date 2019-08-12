@@ -4,7 +4,7 @@
 # Shows registered providers (websites) to search for the selected sentence
 # --------------------------------------------
 
-from .core import Label, Feedback
+from .core import Label, Feedback, Style
 from .config import service as cfgService
 from PyQt5.QtWidgets import QMenu, QAction
 
@@ -30,6 +30,7 @@ class SearchingContext:
             raise AttributeError('menuParent must be not null')
 
         submenu = QMenu(Label.CARD_MENU, menuParent)
+        submenu.setStyleSheet(Style.MENU_STYLE)
 
         pList = cfgService.getConfig().providers
         for index, prov in enumerate(pList):

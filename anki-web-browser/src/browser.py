@@ -7,12 +7,18 @@
 import urllib.parse
 from textwrap import shorten
 from .config import service as cfg
-from .core import Label, Feedback
+from .core import Label, Feedback, Style
+from .searching import SearchingContext
+from .exception_handler import exceptionHandler
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QUrl, Qt
+from PyQt5.QtCore import QUrl, Qt, QSize
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData
+
+import os
+
+CWD = os.path.dirname(os.path.realpath(__file__))
 
 BLANK_PAGE = """
     <html>
@@ -66,13 +72,16 @@ class AwBrowser(QDialog):
     """
 
     SINGLETON = None
+    TITLE = 'Anki :: Web Browser Addon'
 
     _parent = None
     _fields = []
     _selectionHandler = None
     _web = None
-    _urlInfo = None
+    # _urlInfo = None
+    _context = None
     infoList = []
+    providerList = []
     
     def __init__(self, myParent):
         QDialog.__init__(self, None)
@@ -88,45 +97,17 @@ class AwBrowser(QDialog):
             myParent.closeEvent = wrapClose(myParent.closeEvent)
         
     def setupUI(self):
-        self.setWindowTitle('Anki :: Web Browser Addon')
-        self.setGeometry(450, 200, 800, 450)
+        self.setWindowTitle(AwBrowser.TITLE)
+        self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        self.setGeometry(450, 200, 800, 450)        
         self.setMinimumWidth (640)
         self.setMinimumHeight(450)
+        self.setStyleSheet(Style.DARK_BG)
 
         mainLayout = QVBoxLayout()
         mainLayout.setContentsMargins(0,0,0,0)
         mainLayout.setSpacing(0)
         self.setLayout(mainLayout)
-
-        topWidget = QtWidgets.QWidget(self)
-        topWidget.setFixedHeight(50)
-
-        topLayout = QtWidgets.QHBoxLayout(topWidget)
-        topLayout.setObjectName("topLayout")
-        
-        lbSite = QtWidgets.QLabel(topWidget)
-        lbSite.setObjectName("label")
-        lbSite.setText("Website: ")
-
-        topLayout.addWidget(lbSite)
-        self._itAddress = QtWidgets.QLineEdit(topWidget)
-        self._itAddress.setObjectName("itSite")
-        topLayout.addWidget(self._itAddress)
-        cbGo = QtWidgets.QCommandLinkButton(topWidget)
-        cbGo.setObjectName("cbGo")
-        cbGo.setFixedSize(30, 30)
-        topLayout.addWidget(cbGo)
-        # cbImport = QtWidgets.QCommandLinkButton(topWidget)
-        # cbImport.setObjectName("cbImport")
-        # cbImport.setFixedSize(30, 30)
-        # topLayout.addWidget(cbImport)
-        self._loadingBar = QtWidgets.QProgressBar(topWidget)
-        self._loadingBar.setFixedWidth(100)
-        self._loadingBar.setProperty("value", 100)
-        self._loadingBar.setObjectName("loadingBar")
-        topLayout.addWidget(self._loadingBar)
-
-        mainLayout.addWidget(topWidget)
 
         self._web = QWebEngineView(self)
         self._web.contextMenuEvent = self.contextMenuEvent
@@ -135,9 +116,73 @@ class AwBrowser(QDialog):
         self._web.page().loadProgress.connect(self.onProgress)
         self._web.page().urlChanged.connect(self.onPageChange)
 
-        cbGo.clicked.connect(self._goToAddress)
+        # -------------------- Top / toolbar ----------------------
+        navtbar = QToolBar("Navigation")
+        navtbar.setIconSize( QSize(16,16) )
+        mainLayout.addWidget(navtbar)
 
+        backBtn = QAction( QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-back.png')), "Back", self)
+        backBtn.setStatusTip("Back to previous page")
+        backBtn.triggered.connect( self._web.back )
+        navtbar.addAction(backBtn)        
+
+        self.forwardBtn = QAction( QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-forward.png')), "Forward", self)
+        self.forwardBtn.setStatusTip("Next visited page")
+        self.forwardBtn.triggered.connect( self._web.forward )
+        navtbar.addAction(self.forwardBtn)
+
+        refreshBtn = QAction( QtGui.QIcon(os.path.join(CWD, 'assets', 'reload.png')), "Reload", self)
+        refreshBtn.setStatusTip("Reload")
+        refreshBtn.triggered.connect( self._web.reload )
+        navtbar.addAction(refreshBtn)
+
+        self.createProvidersMenu(navtbar)
+
+        self._itAddress = QtWidgets.QLineEdit(self)
+        self._itAddress.setObjectName("itSite")
+        self._itAddress.setStyleSheet('background-color: #F5F5F5;')
+        self._itAddress.returnPressed.connect(self._goToAddress)
+        navtbar.addWidget(self._itAddress)
+
+        cbGo = QAction( QtGui.QIcon(os.path.join(CWD, 'assets','go-icon.png')), "Go", self)
+        cbGo.setObjectName("cbGo")
+        navtbar.addAction(cbGo)
+        cbGo.triggered.connect(self._goToAddress)
+
+        self.stopBtn = QAction( QtGui.QIcon(os.path.join(CWD, 'assets','stop.png')), "Stop", self)
+        self.stopBtn.setStatusTip("Stop loading")
+        self.stopBtn.triggered.connect( self._web.stop )
+        navtbar.addAction(self.stopBtn)
+        # -------------------- Center ----------------------
         mainLayout.addWidget(self._web)
+        # -------------------- Bottom bar ----------------------
+        
+        bottomWidget = QtWidgets.QWidget(self)
+        bottomWidget.setFixedHeight(30)
+
+        bottomLayout = QtWidgets.QHBoxLayout(bottomWidget)
+        bottomLayout.setObjectName("bottomLayout")
+        bottomWidget.setStyleSheet('color: #FFF;')
+        
+        lbSite = QtWidgets.QLabel(bottomWidget)
+        lbSite.setObjectName("label")
+        lbSite.setText("Context: ")
+        lbSite.setFixedWidth(70)
+        lbSite.setStyleSheet('font-weight: bold;')
+        bottomLayout.addWidget(lbSite)
+
+        self.ctxWidget = QtWidgets.QLabel(bottomWidget)
+        self.ctxWidget.width = 300
+        self.ctxWidget.setStyleSheet('text-align: left;')
+        bottomLayout.addWidget(self.ctxWidget)        
+
+        self._loadingBar = QtWidgets.QProgressBar(bottomWidget)
+        self._loadingBar.setFixedWidth(100)
+        self._loadingBar.setProperty("value", 100)
+        self._loadingBar.setObjectName("loadingBar")
+        bottomLayout.addWidget(self._loadingBar)
+
+        mainLayout.addWidget(bottomWidget)
 
         if cfg.getConfig().browserAlwaysOnTop:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
@@ -151,15 +196,18 @@ class AwBrowser(QDialog):
     def formatTargetURL(self, website: str, query: str = ''):
         return website.format(urllib.parse.quote(query, encoding='utf8'))
 
+    @exceptionHandler
     def open(self, website, query: str):
         """
             Loads a given page with its replacing part with its query, and shows itself
         """
 
+        self._context = query
+        self._updateContextWidget()        
         target = self.formatTargetURL(website, query)
         self._web.load(QUrl( target ))
         self._itAddress.setText(target)
-        
+
         self.show()
         self.raise_()
         return self._web
@@ -177,30 +225,51 @@ class AwBrowser(QDialog):
         self.close()
 
     def onStartLoading(self):
+        self.stopBtn.setEnabled(True)
         self._loadingBar.setProperty("value", 1)
 
     def onProgress(self, prog):
         self._loadingBar.setProperty("value", prog)
 
     def onLoadFinish(self, result):
+        self.stopBtn.setDisabled(True)    
         self._loadingBar.setProperty("value", 100)
+
         if not result:
-            Feedback.showInfo('Error loading page')
-            Feedback.log('Error on loading page! ', result)
+            Feedback.log('No result on loading page! ')
 
     def _goToAddress(self):
-        self._web.load(QUrl( self._itAddress.text() ))
+        q = QUrl( self._itAddress.text() )
+        if q.scheme() == "":
+            q.setScheme("http")
+
+        self._web.load(q)
         self._web.show()
     
     def onPageChange(self, url):
         if url and url.toString().startswith('http'):
             self._itAddress.setText(url.toString())
+        self.forwardBtn.setEnabled( self._web.history().canGoForward() ) 
 
     def welcome(self):        
         self._web.setHtml(WELCOME_PAGE)
         self._itAddress.setText('about:blank')
         self.show()
         self.raise_()
+
+    def _updateContextWidget(self):
+        self.ctxWidget.setText(self._context)
+
+# ---------------------------------------------------------------------------------
+    def createProvidersMenu(self, parentWidget):
+        providerBtn = QAction( QtGui.QIcon(os.path.join(CWD, 'assets', 'gear-icon.png')), "Providers", parentWidget)
+        providerBtn.setStatusTip("Search with Provider")
+        providerBtn.triggered.connect( lambda: self.newProviderMenu(providerBtn) )
+        parentWidget.addAction(providerBtn)
+
+    def newProviderMenu(self, parentBtn):
+        ctx = SearchingContext(None, self._context, self.open)
+        ctx.showCustomMenu(parentBtn.parentWidget())
 
 # ------------------------------------ Menu ---------------------------------------
 
