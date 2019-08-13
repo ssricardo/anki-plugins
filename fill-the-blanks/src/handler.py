@@ -73,7 +73,7 @@ class TypeClozeHander:
                 return re.sub(ref.typeAnsPat, "", buf)
 
         if not clozeIdx:
-            return re.sub(ref.typeAnsPat, DEFAULT_ANKI_CLOZE % (ref.typeFont, ref.typeSize), buf)
+            return re.sub(ref.typeAnsPat, TypeClozeHander.DEFAULT_ANKI_CLOZE % (ref.typeFont, ref.typeSize), buf)
 
         else:
             ref.typeCorrect = None

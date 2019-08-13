@@ -20,3 +20,7 @@
 **1.3** | 01/08/2019
 
 * Makes *case sensitivity* optional (added configuration 'feedback-ignore-case', default: false)
+
+**1.4** | 13/08/2019
+
+* Try to solve issue #27 (DEFAULT_ANKI_CLOZE is not defined)
