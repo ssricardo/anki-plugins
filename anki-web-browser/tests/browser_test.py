@@ -13,7 +13,10 @@ from PyQt5.QtWidgets import QMenu, QApplication, QMainWindow
 from PyQt5.QtCore import QPoint
 from src.core import Feedback
 
-Feedback.log = lambda i: print(i)
+def testLog(*args, **vargs):
+    print(args, vargs)
+
+Feedback.log = testLog
 
 class FakeBrowser:
 

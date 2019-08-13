@@ -19,14 +19,11 @@ class Feedback:
 
     @staticmethod
     def log(*args, **kargs):
-        # pass
-        print(args, kargs)
-        # import os
-        # import config
-        # if not os.path.exists (config.currentLocation + '/ab.log'):
-        # f = open(config.currentLocation + '/ab.log', 'w')
-        # f.write(args)
-        # f.close()
+        try:
+            pass
+            # print(args, kargs)
+        except:
+            pass
 
     @staticmethod
     def showInfo(*args):
@@ -39,3 +36,29 @@ class Feedback:
     @staticmethod
     def showError(*args):
         pass
+
+class Style:
+
+    DARK_BG = """
+        QMessageBox {
+            background-color: #FFFFBB;
+            color: #FFF;
+        }
+        AwBrowser {
+            background-color: #152032;
+        }
+        QLineEdit {
+            color: #000;
+        }
+    """
+    
+    # "background-color: #152032;"
+    MENU_STYLE = """
+            QMenu {
+                background-color: #B0C4DE;
+                color: #333;
+            }
+            QMenu::item:selected {
+                background-color: #6495ED;
+            }
+        """

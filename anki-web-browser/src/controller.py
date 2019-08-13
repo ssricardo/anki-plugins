@@ -10,6 +10,7 @@ from .core import Feedback
 from .browser import AwBrowser
 from .editor_controller import EditorController
 from .searching import SearchingContext
+from .exception_handler import exceptionHandler
 
 import anki
 import json
@@ -112,6 +113,7 @@ class Controller:
 
     def wrap_shortcutKeys(self, fn):
         ref = self
+
         def customShortcut(self):
             sList = fn(self)
             sList.append( (cfg.getConfig().menuShortcut, \
@@ -123,6 +125,7 @@ class Controller:
 
         return customShortcut
 
+    @exceptionHandler
     def _repeatProviderOrShowMenu(self):
         if not self._lastProvider:
             return self.createReviewerMenu(self._ankiMw.web, self._ankiMw.web, self.openInBrowser)
@@ -133,7 +136,7 @@ class Controller:
         query = webView.selectedText()
         self.openInBrowser(self._lastProvider, query)
 
-
+    @exceptionHandler
     def createReviewerMenu(self, webView, menu, menuFn):
         'Handles context menu event on Reviewer'
 
