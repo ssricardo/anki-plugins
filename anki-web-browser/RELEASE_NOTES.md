@@ -28,3 +28,12 @@
 * Improve message for unaccepted links 
   * Shows the link on the message
   * Related issue #20
+
+
+**2.0** | 13/08
+
+* Major changes on web browser window
+  * Added common features: back, forward, stop, reload
+  * Made possible to search with another provider within browser window
+* Improve error handling
+* Try to solve issues #22 and #25
