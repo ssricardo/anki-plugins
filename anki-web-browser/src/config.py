@@ -122,7 +122,7 @@ class ConfigService:
             ConfigHolder.Provider('Google Web', 'https://google.com/search?q={}'), 
             ConfigHolder.Provider('Google Translate', 'https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text={}'),
             ConfigHolder.Provider('Google Images', 'https://www.google.com/search?tbm=isch&q={}'),
-            ConfigHolder.Provider('Your Sentence', 'http://sentence.yourdictionary.com/{}?direct_search_result=yes'),
+            ConfigHolder.Provider('Forvo', 'https://forvo.com/search/{}/'),
             ConfigHolder.Provider('Pixabay', 'https://pixabay.com/en/photos/?q={}&image_type=all')]
 
         self.__writeToFile(conf)
@@ -169,6 +169,14 @@ class ConfigService:
                 raise ValueError('Some URL is invalid. Check the URL and if it contains {} that will be replaced by the text: %s' % url)
 
     
+    def sortProviders(self, config: ConfigHolder):
+        """
+            Re sorts providers based on its name
+        """
+
+        config.providers.sort(key=lambda i: i.name)
+
+    
 # ------------------------------ View Controller --------------------------
 
 class ConfigController:
@@ -196,6 +204,7 @@ class ConfigController:
 
         self._ui.btAdd.clicked.connect(lambda: self.onAddClick())
         self._ui.btRemove.clicked.connect(lambda: self.onRemoveClick())
+        self._ui.btSortProvider.clicked.connect(lambda: self.onSortProviders())
         self._ui.tbProviders.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self._ui.cbSystemBrowser.stateChanged.connect(lambda: self.onUsedBrowserChange())
 
@@ -274,9 +283,6 @@ class ConfigController:
         _tempCfg.menuShortcut = self._ui.teShortcutMenu.text().strip()
         _tempCfg.repeatShortcut = self._ui.teShortcutRepeat.text().strip()
 
-        # if not isValidShortcut():
-        #     Feedback.showInfo('Shortcuts must contain')
-
         tab = self._ui.tbProviders
         _tempCfg.providers = [None] * tab.rowCount()
 
@@ -298,6 +304,11 @@ class ConfigController:
     def onChangeItem(self):
         self._pendingChanges = True
 
+    def onSortProviders(self):
+        self._ui.tbProviders.clearSelection()
+        service.sortProviders(self._tempCfg)
+        self.setupDataTable()
+
 # ----------------------------------------------------------------------------
 # Adjust on View
 
@@ -317,6 +328,7 @@ class ConfigViewAdapter(Ui_ConfigView):
         self.btAdd.setIcon(self.getIcon(QtWidgets.QStyle.SP_DirLinkIcon))
         self.btSave.setIcon(self.getIcon(QtWidgets.QStyle.SP_DialogApplyButton))
         self.btCancel.setIcon(self.getIcon(QtWidgets.QStyle.SP_DialogCancelButton))
+        self.btSortProvider.setIcon(self.getIcon(QtWidgets.QStyle.SP_ArrowDown))
 
     def getIcon(self, qtStyle):
         return QIcon(QtWidgets.QApplication.style().standardIcon(qtStyle))

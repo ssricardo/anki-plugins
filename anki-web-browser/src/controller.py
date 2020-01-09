@@ -9,7 +9,7 @@ from .config import service as cfg
 from .core import Feedback
 from .browser import AwBrowser
 from .editor_controller import EditorController
-from .searching import SearchingContext
+from .provider_selection import ProviderSelectionController
 from .exception_handler import exceptionHandler
 
 import anki
@@ -65,6 +65,7 @@ class Controller:
         self.browser = AwBrowser.singleton(ankiMw)
         self.browser.setSelectionHandler(None)
         self._ankiMw = ankiMw
+        self._providerSelection = ProviderSelectionController()
 
 
     def setupBindings(self):
@@ -148,9 +149,7 @@ class Controller:
         if not query:
             return
 
-        ctx = SearchingContext(note, query, menuFn)
-        ctx.showCustomMenu(menu)
-        return ctx
+        self._providerSelection.showCustomMenu(menu)
     
 
 # ---------------------------------- Events listeners ---------------------------------

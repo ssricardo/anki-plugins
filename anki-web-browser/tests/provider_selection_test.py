@@ -7,8 +7,7 @@ from anki_mocks_test import *
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
 
-import src.searching as searching
-from src.searching import SearchingContext
+from src.provider_selection import ProviderSelectionController
 
 from PyQt5.QtWidgets import QMenu, QAction, QApplication
 
@@ -20,33 +19,26 @@ class FakeBrowser:
 class Tester(unittest.TestCase):
 
     def test_providers(self):
-        sc = SearchingContext(None, None, FakeBrowser.open)
+        sc = ProviderSelectionController()
         try:
-            sc.showCustomMenu(None) # no parent
+            sc.showCustomMenu(None, FakeBrowser.open) # no parent
         except AttributeError:
             pass
 
     def test_showMenu(self):
-        sc = SearchingContext(None, None, FakeBrowser.open)
+        sc = ProviderSelectionController()
         class Parent(QMenu):
             done = False
             def addMenu(self, m):
                 self.done = True
 
         p = Parent()
-        sc.showCustomMenu(p)
+        sc.showCustomMenu(p, FakeBrowser.open)
         self.assertTrue(p.done)
 
     def selectedWithText(self):
         return 'teste'
 
-    # def test_menu_in_reviewer(self):
-    #     TestWebView.selectedText = self.selectedWithText
-    #     builder.createReviewerMenu(TestWebView(), QMenu(), TestNote(), FakeBrowser.open)
-
-    # def test_menu_in_editor(self):
-    #     TestWebView.selectedText = self.selectedWithText
-    #     builder.createEditorMenu(TestWebView(), QMenu(), FakeBrowser.open)
 
 if __name__ == '__main__':
     # searching.mw = mw

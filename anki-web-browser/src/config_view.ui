@@ -9,12 +9,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>441</width>
-    <height>422</height>
+    <width>522</width>
+    <height>520</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
     <horstretch>1</horstretch>
     <verstretch>1</verstretch>
    </sizepolicy>
@@ -48,12 +48,12 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>445</width>
-     <height>440</height>
+     <width>531</width>
+     <height>521</height>
     </rect>
    </property>
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
      <horstretch>1</horstretch>
      <verstretch>1</verstretch>
     </sizepolicy>
@@ -66,16 +66,16 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>441</width>
-      <height>418</height>
+      <width>520</width>
+      <height>517</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0,0,0,0,0,0,0,0,0">
+    <layout class="QVBoxLayout" name="verticalLayout">
      <property name="spacing">
       <number>7</number>
      </property>
      <property name="sizeConstraint">
-      <enum>QLayout::SetDefaultConstraint</enum>
+      <enum>QLayout::SetFixedSize</enum>
      </property>
      <property name="leftMargin">
       <number>10</number>
@@ -137,7 +137,7 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="leftMargin">
-        <number>200</number>
+        <number>100</number>
        </property>
        <property name="topMargin">
         <number>0</number>
@@ -148,6 +148,27 @@
        <property name="bottomMargin">
         <number>0</number>
        </property>
+       <item>
+        <widget class="QPushButton" name="btProviderUp">
+         <property name="text">
+          <string>Up</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btProviderDown">
+         <property name="text">
+          <string>Down</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btSortProvider">
+         <property name="text">
+          <string>Sort</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QPushButton" name="btRemove">
          <property name="text">
@@ -208,6 +229,27 @@ color: rgb(255, 0, 0);
         <string>It may be necessary to restart Anki to apply the changes</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="lbWordFilter">
+         <property name="text">
+          <string>Filter following words: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="teWordFilter">
+         <property name="maximumSize">
+          <size>
+           <width>300</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
       <widget class="Line" name="line">

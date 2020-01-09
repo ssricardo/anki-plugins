@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\dev\git\anki-plugins\anki-web-browser\src\config_view.ui'
+# Form implementation generated from reading ui file '.\config_view.ui'
 #
 # Created by: PyQt5 UI code generator 5.12.1
 #
@@ -14,10 +14,10 @@ class Ui_ConfigView(object):
         ConfigView.setObjectName("ConfigView")
         ConfigView.setWindowModality(QtCore.Qt.ApplicationModal)
         ConfigView.resize(441, 422)
-        ConfigView.setFixedSize(441, 422)    
-        # ConfigView.setSizePolicy(sizePolicy)  # modif
-        # ConfigView.setMinimumSize(QtCore.QSize(0, 0)) # modif
-        # ConfigView.setMaximumSize(QtCore.QSize(1000, 1000))   # modif
+        ConfigView.setFixedSize(441, 422)
+        # ConfigView.setSizePolicy(sizePolicy)
+        # ConfigView.setMinimumSize(QtCore.QSize(0, 0))
+        # ConfigView.setMaximumSize(QtCore.QSize(1000, 1000))
         ConfigView.setAutoFillBackground(True)
         ConfigView.setStyleSheet("")
         ConfigView.setSizeGripEnabled(False)
@@ -63,6 +63,9 @@ class Ui_ConfigView(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setContentsMargins(200, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
+        self.btSortProvider = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.btSortProvider.setObjectName("btSortProvider")
+        self.horizontalLayout.addWidget(self.btSortProvider)
         self.btRemove = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.btRemove.setObjectName("btRemove")
         self.horizontalLayout.addWidget(self.btRemove)
@@ -74,7 +77,7 @@ class Ui_ConfigView(object):
         self.cbSystemBrowser.setObjectName("cbSystemBrowser")
         self.verticalLayout.addWidget(self.cbSystemBrowser)
         self.browserInfo = QtWidgets.QLabel(self.verticalLayoutWidget)
-        self.browserInfo.setStyleSheet("QLabel  { color: rgb(255, 0, 0);}")
+        self.browserInfo.setStyleSheet("QLabel  { color: rgb(255, 0, 0); }")
         self.browserInfo.setObjectName("browserInfo")
         self.verticalLayout.addWidget(self.browserInfo)
         self.rbKeepOpened = QtWidgets.QCheckBox(self.verticalLayoutWidget)
@@ -84,7 +87,9 @@ class Ui_ConfigView(object):
         self.rbOnTop.setObjectName("rbOnTop")
         self.verticalLayout.addWidget(self.rbOnTop)
         self.bottomInfo = QtWidgets.QLabel(self.verticalLayoutWidget)
-        self.bottomInfo.setStyleSheet("QLabel  { color: rgb(255, 0, 0);}")
+        self.bottomInfo.setStyleSheet("QLabel  {\n"
+"    color: rgb(255, 0, 0);\n"
+"}")
         self.bottomInfo.setObjectName("bottomInfo")
         self.verticalLayout.addWidget(self.bottomInfo)
         self.line = QtWidgets.QFrame(self.verticalLayoutWidget)
@@ -148,6 +153,7 @@ class Ui_ConfigView(object):
         item.setText(_translate("ConfigView", "Name"))
         item = self.tbProviders.horizontalHeaderItem(1)
         item.setText(_translate("ConfigView", "URL"))
+        self.btSortProvider.setText(_translate("ConfigView", "Sort"))
         self.btRemove.setText(_translate("ConfigView", "Remove"))
         self.btAdd.setText(_translate("ConfigView", "&Add"))
         self.cbSystemBrowser.setText(_translate("ConfigView", "Use System Browser (instead of Anki-Web-Browser)"))

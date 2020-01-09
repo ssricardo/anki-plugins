@@ -5,7 +5,8 @@
 from .config import service as cfg
 from .core import Feedback
 from .browser import AwBrowser
-from .searching import SearchingContext
+from .no_selection import NoSelectionController, NoSelectionResult
+from .provider_selection import ProviderSelectionController
 
 from aqt.editor import Editor
 from anki.hooks import addHook
@@ -18,13 +19,17 @@ class EditorController:
     _currentNote = None
     _ankiMw = None
     _lastProvider = None
+    _noSelectionHandler = None
 
     def __init__(self, ankiMw):
         self._browser = AwBrowser.singleton(ankiMw)
         self._browser.setSelectionHandler(self.handleSelection)
         self._ankiMw = ankiMw
+        self._noSelectionHandler = NoSelectionController(ankiMw)
+        self._providerSelection = ProviderSelectionController()
         self.setupBindings()
 
+# ------------------------ Anki interface ------------------
 
     def setupBindings(self):
         addHook('EditorWebView.contextMenuEvent', self.onEditorHandle)
@@ -67,7 +72,7 @@ class EditorController:
         """
 
         self._editorReference = webView.editor
-        self.createEditorMenu(webView, menu, self.openInBrowser)
+        self.createEditorMenu(menu, self.handleProviderSelection)
 
 
     def setupShortcuts(self, scuts:list, editor):
@@ -75,46 +80,87 @@ class EditorController:
         scuts.append((cfg.getConfig().menuShortcut, self._showBrowserMenu))
         scuts.append((cfg.getConfig().repeatShortcut, self._repeatProviderOrShowMenu))
 
+# ------------------------ Addon operation -------------------------
 
     def _showBrowserMenu(self, parent = None):
         if not parent:
             parent = self._editorReference
 
-        self.createEditorMenu(parent.web, parent.web, self.openInBrowser)
+        self.createEditorMenu(parent.web, self.handleProviderSelection)
 
 
     def _repeatProviderOrShowMenu(self):
         webView = self._editorReference.web
         if not self._lastProvider:
-            return self.createEditorMenu(webView, webView, self.openInBrowser)
+            return self.createEditorMenu(webView, self.handleProviderSelection)
 
-        if not webView.hasSelection():
+        query = self._getQueryValue(webView)
+        if not query:
             return
-        query = webView.selectedText()
-        self.openInBrowser(self._lastProvider, query)
+        self.openInBrowser(query)
 
     
-    def createEditorMenu(self, webView, menu, menuFn):
-        """ Handles context menu event on Editor """
+    def createEditorMenu(self, parent, menuFn):
+        """ Deletegate the menu creation and work related to providers """
 
-        if not webView.hasSelection():
+        return self._providerSelection.showCustomMenu(parent, menuFn)
+
+    def handleProviderSelection(self, result):
+        if not self._editorReference:
+            raise Exception('Illegal state found. It was not possible to recover the reference to Anki editor')
+        webview = self._editorReference.web
+        query = self._getQueryValue(webview)
+        self._lastProvider = result
+        if not query:
             return
-        query = webView.selectedText()
+        Feedback.log('Query: %s' % query)
+        self._currentNote = self._editorReference.note
+        self.openInBrowser(query)
 
-        note = webView.editor.note
-        ctx = SearchingContext(note, query, menuFn)
-        ctx.showCustomMenu(menu)
-        return ctx
+
+    def _getQueryValue(self, webview):
+        if webview.hasSelection():
+            return webview.selectedText()
+
+        if self._noSelectionHandler.isRepeatOption():
+            noSelectionResult = self._noSelectionHandler.getValue()
+            if noSelectionResult.resultType == NoSelectionResult.USE_FIELD:
+                self._editorReference.currentField = noSelectionResult.value
+
+                Feedback.log('USE_FIELD {}: {}'.format(noSelectionResult.value, self._currentNote.fields[result]))
+                return self._currentNote.fields[noSelectionResult.value]
+        else:
+            note = webview.editor.note
+            fieldList = note.model()['flds']
+            fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
+            self._noSelectionHandler.setFields(fieldsNames)
+            self._noSelectionHandler.handle(self.handleNoSelectionResult)
+
+        return None
+
+    def handleNoSelectionResult(self, resultValue: NoSelectionResult):
+        if not resultValue or \
+                resultValue.resultType in (NoSelectionResult.NO_RESULT, NoSelectionResult.SELECTION_NEEDED):
+            Feedback.showInfo('No value selected')
+            return
+        value = resultValue.value
+        if resultValue.resultType == NoSelectionResult.USE_FIELD:
+            self._editorReference.currentField = resultValue.value    # fieldIndex
+            value = self._currentNote.fields[resultValue.value]
+            Feedback.log('USE_FIELD {}: {}'.format(resultValue.value, value))
+
+        return self.openInBrowser(value)
 
 # ---------------------------------- --------------- ---------------------------------
-    def openInBrowser(self, website, query):
+    def openInBrowser(self, query):
         """
             Setup enviroment for web browser and invoke it
         """
 
+        website = self._lastProvider
         note = self._currentNote
-        self._lastProvider = website
-        Feedback.log('OpenInBrowser: {}'.format(note))
+        
+        Feedback.log('OpenInBrowser: %s < %s' % (query, website))
 
         if cfg.getConfig().useSystemBrowser:
             target = self._browser.formatTargetURL(website, query)

@@ -70,6 +70,21 @@ class Tester(unittest.TestCase):
         b = AwBrowser(None)
         b.contextMenuEvent(FakeEvent())
 
+    def test_repeatableAction(self):
+        b = AwBrowser(None)
+        b.setFields([
+            {'name': 'Test'},
+            {'name': 'Item2'}
+        ])
+        b.setSelectionHandler(lambda a, b, c: print(a, b, c))
+
+        self.assertFalse (b._assignToLastField('Novo', False))
+        menuFn = b._makeMenuAction(b._fields[1], 'Test', False)
+        menuFn()
+        b._tryRepeat = True
+        self.assertTrue (b._assignToLastField('Novo', False))
+
+
     def test_close(self):
         b = AwBrowser(None)
         b.onClose()
@@ -82,12 +97,12 @@ if __name__ == '__main__':
     if '-view' in sys.argv:        
         main = QMainWindow()
         view = AwBrowser(main)
-        view.setFields({0: 'Example'})
+        view.setFields({0: 'Example', 1: 'Other'})
         view.infoList = ['No action available']
 
         def handlerFn(f, v, l):
-            print(l)
-            print(v)
+            print('Field: %s' % (f))
+            print('Link/Value: %s / %s' % (l, v))
 
         view._selectionHandler = handlerFn
         view.open('https://www.google.com/search?tbm=isch&tbs=isz:i&q={}', 'calendar')

@@ -8,12 +8,13 @@ import urllib.parse
 from textwrap import shorten
 from .config import service as cfg
 from .core import Label, Feedback, Style
-from .searching import SearchingContext
+from .provider_selection import ProviderSelectionController
 from .exception_handler import exceptionHandler
 
 from PyQt5 import QtWidgets, QtGui
+from PyQt5.QtGui import QImage, QMouseEvent
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QUrl, Qt, QSize
+from PyQt5.QtCore import QUrl, Qt, QSize, QEvent
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData
 
 import os
@@ -80,6 +81,8 @@ class AwBrowser(QDialog):
     _web = None
     # _urlInfo = None
     _context = None
+    _lastAssignedField = None
+    _tryRepeat = False
     infoList = []
     providerList = []
     
@@ -187,6 +190,54 @@ class AwBrowser(QDialog):
         if cfg.getConfig().browserAlwaysOnTop:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
+        self._web.installEventFilter(self)
+
+
+    def eventFilter(self, source, event):
+        if (event.type() == QEvent.ChildAdded and            
+            event.child().isWidgetType()):
+            event.child().installEventFilter(self)
+        elif (event.type() == QEvent.MouseButtonPress):
+            if QApplication.keyboardModifiers() == Qt.ControlModifier \
+                    and event.button() == Qt.LeftButton:
+                self._tryRepeat = True
+                newEvt = QMouseEvent(QEvent.MouseButtonRelease, event.pos(), 
+                    Qt.RightButton, Qt.MouseButton.NoButton, Qt.NoModifier)
+                QApplication.postEvent(source, newEvt)
+
+        return super().eventFilter(source, event)
+
+    # def dragEnterEvent(self, e):
+    #     print('Enter: ')
+    #     print(e.mimeData().formats())
+    #     print(e.mimeData().text())
+    #     print(e.mimeData().urls())
+    #     QApplication.clipboard().setMimeData(e.mimeData())
+
+        # e.mimeData().clear()
+
+        # if (e.mimeData().urls()):
+        #     url = e.mimeData().urls()[0]
+        #     if self._checkSuffix(url):
+        #         data = url.toEncoded()
+        #         e.mimeData().clear()
+        #         e.mimeData().setData('application/octet-stream', data)
+        #         # e.mimeData().setImageData(QImage(url.toString(), 'image/png'))
+        #         # e.mimeData().setUrls([])
+        #         # e.mimeData().setHtml(None)
+        #         # e.mimeData().setText(None)
+
+        # print(e.mimeData().formats())
+
+        # e.accept()
+
+        # if e.mimeData().hasText() or e.mimeData().hasHtml() or e.mimeData().hasImage():
+        #     e.accept()
+        #     print('accepted')
+        # else:
+        #     e.ignore()
+        #     print('ignored')
+
     @classmethod
     def singleton(clz, parent):
         if not clz.SINGLETON:
@@ -268,8 +319,13 @@ class AwBrowser(QDialog):
         parentWidget.addAction(providerBtn)
 
     def newProviderMenu(self, parentBtn):
-        ctx = SearchingContext(None, self._context, self.open)
-        ctx.showCustomMenu(parentBtn.parentWidget())
+        ctx = ProviderSelectionController()
+        ctx.showCustomMenu(parentBtn.parentWidget(), self.reOpenSameQuery)
+
+    @exceptionHandler
+    def reOpenSameQuery(self, website):
+        self.open(website, self._context)
+
 
 # ------------------------------------ Menu ---------------------------------------
 
@@ -279,7 +335,12 @@ class AwBrowser(QDialog):
             Only with lambda, it would repeat only the last element
         """
 
-        return lambda: self._selectionHandler(field, value, isLink)
+        def _processMenuSelection():
+            self._lastAssignedField = field
+            self._selectionHandler(field, value, isLink)
+
+        return _processMenuSelection
+
 
     def contextMenuEvent(self, evt):
         """
@@ -287,6 +348,8 @@ class AwBrowser(QDialog):
             Shows and handle options (from field list), only if in edit mode.
         """
 
+        tryRepeat = self._tryRepeat
+        self._tryRepeat = False
         if not (self._fields and self._selectionHandler):
             return self.createInfoMenu(evt)
 
@@ -309,6 +372,10 @@ class AwBrowser(QDialog):
         if not value:
             Feedback.log('No value')
             return self.createInfoMenu(evt)
+
+        if tryRepeat:
+            if self._assignToLastField(value, isLink):
+                return
 
         self.createCtxMenu(value, isLink, evt)
 
@@ -358,6 +425,18 @@ Try it anyway? """ % msgLink, QMessageBox.Yes|QMessageBox.No)
             act.setEnabled(False)
             m.addAction(act)
         action = m.exec_(self.mapToGlobal(evt.pos()))
+
+
+    def _assignToLastField(self, value, isLink):
+        'Tries to set the new value to the same field used before, if set...'
+
+        if self._lastAssignedField:
+            if self._lastAssignedField in self._fields:
+                self._selectionHandler(self._lastAssignedField, value, isLink)
+                return True
+            else:
+                self._lastAssignedField = None
+        return False
 
     
     def _copy(self, value):

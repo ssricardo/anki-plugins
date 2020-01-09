@@ -19,11 +19,7 @@ class Feedback:
 
     @staticmethod
     def log(*args, **kargs):
-        try:
-            pass
-            # print(args, kargs)
-        except:
-            pass
+        pass
 
     @staticmethod
     def showInfo(*args):

@@ -81,6 +81,15 @@ class ConfigServiceTester(unittest.TestCase):
         ch.providers.append(cc.ConfigHolder.Provider('issues#5', 'https://www.google.co.jp/search?tbm=isch&q={}+アニメ美少女'))
         self._tested.validate(ch)
 
+    def test_sort_providers(self):
+        ch = cc.ConfigHolder()
+        ch.providers.append(cc.ConfigHolder.Provider('Google', 'https://www.google.com/search?tbm=isch&q={}'))
+        ch.providers.append(cc.ConfigHolder.Provider('Amazon', 'http://amazon.com/{}?direct_search_result=yes'))
+        ch.providers.append(cc.ConfigHolder.Provider('Facebook', 'https://www.facebook.com/{}'))
+        self._tested.sortProviders(ch)
+
+        self.assertEqual(ch.providers[0].name, 'Amazon')
+        self.assertEqual(ch.providers[1].name, 'Facebook')
 
 class ConfigControllerTester(unittest.TestCase):
 
