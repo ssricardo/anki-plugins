@@ -91,6 +91,30 @@ class ConfigServiceTester(unittest.TestCase):
         self.assertEqual(ch.providers[0].name, 'Amazon')
         self.assertEqual(ch.providers[1].name, 'Facebook')
 
+    def test_move_providerUp(self):
+        ch = cc.ConfigHolder()
+        ch.providers.append(cc.ConfigHolder.Provider('Google', 'https://www.google.com/search?tbm=isch&q={}'))
+        ch.providers.append(cc.ConfigHolder.Provider('Amazon', 'http://amazon.com/{}?direct_search_result=yes'))
+        ch.providers.append(cc.ConfigHolder.Provider('Facebook', 'https://www.facebook.com/{}'))
+
+        self._tested.moveProvider(ch, 0, True)      # do nothing
+        self.assertEqual(ch.providers[0].name, 'Google')
+
+        self._tested.moveProvider(ch, 2, True)      # do nothing
+        self.assertEqual(ch.providers[1].name, 'Facebook')
+
+    def test_move_providerDown(self):
+        ch = cc.ConfigHolder()
+        ch.providers.append(cc.ConfigHolder.Provider('Google', 'https://www.google.com/search?tbm=isch&q={}'))
+        ch.providers.append(cc.ConfigHolder.Provider('Amazon', 'http://amazon.com/{}?direct_search_result=yes'))
+        ch.providers.append(cc.ConfigHolder.Provider('Facebook', 'https://www.facebook.com/{}'))
+
+        self._tested.moveProvider(ch, 2, False)      # do nothing
+        self.assertEqual(ch.providers[2].name, 'Facebook')
+
+        self._tested.moveProvider(ch, 1, False)      # do nothing
+        self.assertEqual(ch.providers[1].name, 'Facebook')
+
 class ConfigControllerTester(unittest.TestCase):
 
     cc.currentLocation = os.path.dirname(os.path.realpath(__file__))

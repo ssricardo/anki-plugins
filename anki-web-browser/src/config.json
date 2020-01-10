@@ -29,5 +29,6 @@
             "name": "Your sentence",
             "url": "https://sentence.yourdictionary.com/{}"
         }
-    ]
+    ],
+    "filteredWords": []
 }

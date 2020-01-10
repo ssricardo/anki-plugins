@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\config_view.ui'
+# Form implementation generated from reading ui file 'src/config_view.ui'
 #
-# Created by: PyQt5 UI code generator 5.12.1
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
+
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -13,17 +14,21 @@ class Ui_ConfigView(object):
     def setupUi(self, ConfigView):
         ConfigView.setObjectName("ConfigView")
         ConfigView.setWindowModality(QtCore.Qt.ApplicationModal)
-        ConfigView.resize(441, 422)
-        ConfigView.setFixedSize(441, 422)
-        # ConfigView.setSizePolicy(sizePolicy)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(ConfigView.sizePolicy().hasHeightForWidth())
+        ConfigView.setSizePolicy(sizePolicy)
+        ConfigView.resize(510, 540)
+        ConfigView.setFixedSize(510, 540)
         # ConfigView.setMinimumSize(QtCore.QSize(0, 0))
         # ConfigView.setMaximumSize(QtCore.QSize(1000, 1000))
         ConfigView.setAutoFillBackground(True)
         ConfigView.setStyleSheet("")
         ConfigView.setSizeGripEnabled(False)
         self.verticalLayWidget = QtWidgets.QWidget(ConfigView)
-        self.verticalLayWidget.setGeometry(QtCore.QRect(0, 0, 445, 440))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayWidget.setGeometry(QtCore.QRect(0, 0, 510, 540))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.verticalLayWidget.sizePolicy().hasHeightForWidth())
@@ -31,10 +36,10 @@ class Ui_ConfigView(object):
         self.verticalLayWidget.setLocale(QtCore.QLocale(QtCore.QLocale.English, QtCore.QLocale.UnitedStates))
         self.verticalLayWidget.setObjectName("verticalLayWidget")
         self.verticalLayoutWidget = QtWidgets.QWidget(self.verticalLayWidget)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 441, 418))
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 475, 520))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
-        self.verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
         self.verticalLayout.setContentsMargins(10, 10, 10, 10)
         self.verticalLayout.setSpacing(7)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -61,8 +66,14 @@ class Ui_ConfigView(object):
         self.tbProviders.verticalHeader().setVisible(False)
         self.verticalLayout.addWidget(self.tbProviders)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setContentsMargins(200, 0, 0, 0)
+        self.horizontalLayout.setContentsMargins(100, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
+        self.btProviderUp = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.btProviderUp.setObjectName("btProviderUp")
+        self.horizontalLayout.addWidget(self.btProviderUp)
+        self.btProviderDown = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.btProviderDown.setObjectName("btProviderDown")
+        self.horizontalLayout.addWidget(self.btProviderDown)
         self.btSortProvider = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.btSortProvider.setObjectName("btSortProvider")
         self.horizontalLayout.addWidget(self.btSortProvider)
@@ -77,7 +88,9 @@ class Ui_ConfigView(object):
         self.cbSystemBrowser.setObjectName("cbSystemBrowser")
         self.verticalLayout.addWidget(self.cbSystemBrowser)
         self.browserInfo = QtWidgets.QLabel(self.verticalLayoutWidget)
-        self.browserInfo.setStyleSheet("QLabel  { color: rgb(255, 0, 0); }")
+        self.browserInfo.setStyleSheet("QLabel  {\n"
+"color: rgb(255, 0, 0);\n"
+"}")
         self.browserInfo.setObjectName("browserInfo")
         self.verticalLayout.addWidget(self.browserInfo)
         self.rbKeepOpened = QtWidgets.QCheckBox(self.verticalLayoutWidget)
@@ -92,6 +105,16 @@ class Ui_ConfigView(object):
 "}")
         self.bottomInfo.setObjectName("bottomInfo")
         self.verticalLayout.addWidget(self.bottomInfo)
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.lbWordFilter = QtWidgets.QLabel(self.verticalLayoutWidget)
+        self.lbWordFilter.setObjectName("lbWordFilter")
+        self.horizontalLayout_2.addWidget(self.lbWordFilter)
+        self.teWordFilter = QtWidgets.QLineEdit(self.verticalLayoutWidget)
+        self.teWordFilter.setMaximumSize(QtCore.QSize(300, 16777215))
+        self.teWordFilter.setObjectName("teWordFilter")
+        self.horizontalLayout_2.addWidget(self.teWordFilter)
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.line = QtWidgets.QFrame(self.verticalLayoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -140,7 +163,6 @@ class Ui_ConfigView(object):
         self.btCancel.setObjectName("btCancel")
         self.btActionsBox.addWidget(self.btCancel)
         self.verticalLayout.addLayout(self.btActionsBox)
-        self.verticalLayout.setStretch(1, 1)
 
         self.retranslateUi(ConfigView)
         QtCore.QMetaObject.connectSlotsByName(ConfigView)
@@ -153,6 +175,8 @@ class Ui_ConfigView(object):
         item.setText(_translate("ConfigView", "Name"))
         item = self.tbProviders.horizontalHeaderItem(1)
         item.setText(_translate("ConfigView", "URL"))
+        self.btProviderUp.setText(_translate("ConfigView", "Up"))
+        self.btProviderDown.setText(_translate("ConfigView", "Down"))
         self.btSortProvider.setText(_translate("ConfigView", "Sort"))
         self.btRemove.setText(_translate("ConfigView", "Remove"))
         self.btAdd.setText(_translate("ConfigView", "&Add"))
@@ -161,10 +185,9 @@ class Ui_ConfigView(object):
         self.rbKeepOpened.setText(_translate("ConfigView", "Keep browser opened (after current card is changed)"))
         self.rbOnTop.setText(_translate("ConfigView", "Keep always visible (on top)"))
         self.bottomInfo.setText(_translate("ConfigView", "It may be necessary to restart Anki to apply the changes"))
+        self.lbWordFilter.setText(_translate("ConfigView", "Filter following words: "))
         self.lbShortcut.setText(_translate("ConfigView", "Shortcuts"))
         self.lbShortMenu.setText(_translate("ConfigView", "Show Web Browser menu"))
         self.lbShortRepeat.setText(_translate("ConfigView", "Search again, repeating last provider"))
         self.btSave.setText(_translate("ConfigView", "&Save"))
         self.btCancel.setText(_translate("ConfigView", "&Cancel"))
-
-

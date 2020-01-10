@@ -37,3 +37,10 @@
   * Made possible to search with another provider within browser window
 * Improve error handling
 * Try to solve issues #22 and #25
+
+**2.1** | 12/01/20 **PLAN**
+
+* Added option to query without text selection
+* Added config to ignore (remove) set of words
+* Improve repeated options
+* Drag/drop???

@@ -27,13 +27,14 @@ class ConfigHolder:
     RP_SHORT = 'F10'
 
     def __init__(self, keepBrowserOpened = True, browserAlwaysOnTop = False, menuShortcut = SHORTCUT, \
-            providers = [], repeatShortcut = RP_SHORT, useSystemBrowser = False, **kargs):
+            providers = [], repeatShortcut = RP_SHORT, useSystemBrowser = False, ignoredOnQuery = [], **kargs):
         self.providers = [ConfigHolder.Provider(**p) for p in providers ] #providers
         self.keepBrowserOpened = keepBrowserOpened
         self.browserAlwaysOnTop = browserAlwaysOnTop
         self.useSystemBrowser = useSystemBrowser
         self.menuShortcut = menuShortcut
         self.repeatShortcut = repeatShortcut
+        self.filteredWords = ignoredOnQuery
 
     def toDict(self):
         res = dict({
@@ -42,7 +43,8 @@ class ConfigHolder:
             'useSystemBrowser': self.useSystemBrowser,
             'menuShortcut': self.menuShortcut,
             'repeatShortcut': self.repeatShortcut, 
-            'providers': [p for p in  map(lambda p: p.__dict__, self.providers)]
+            'providers': [p for p in  map(lambda p: p.__dict__, self.providers)],
+            'filteredWords': self.filteredWords
         })
         return res
 
@@ -169,12 +171,34 @@ class ConfigService:
                 raise ValueError('Some URL is invalid. Check the URL and if it contains {} that will be replaced by the text: %s' % url)
 
     
+    # ------------------------------------------------ Sorting -------------------------
     def sortProviders(self, config: ConfigHolder):
         """
             Re sorts providers based on its name
         """
 
         config.providers.sort(key=lambda i: i.name)
+
+    def moveProvider(self, config: ConfigHolder, index: int, up: bool):
+        """
+            Re sorts providers based on its name
+        """
+        pList = config.providers
+
+        if up:
+            if index == 0:                
+                return
+            item = pList[index]
+            prev = pList[index - 1]
+            pList[index - 1] = item
+            pList[index] = prev
+        else:
+            if index == (len(pList) - 1):
+                return
+            item = pList[index]
+            follow = pList[index + 1]
+            pList[index + 1] = item
+            pList[index] = follow
 
     
 # ------------------------------ View Controller --------------------------
@@ -204,12 +228,16 @@ class ConfigController:
 
         self._ui.btAdd.clicked.connect(lambda: self.onAddClick())
         self._ui.btRemove.clicked.connect(lambda: self.onRemoveClick())
-        self._ui.btSortProvider.clicked.connect(lambda: self.onSortProviders())
+        self._ui.btSortProvider.clicked.connect(self.onSortProviders)
+        self._ui.btProviderUp.clicked.connect(self.onProviderUp)
+        self._ui.btProviderDown.clicked.connect(self.onProviderDown)
         self._ui.tbProviders.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self._ui.cbSystemBrowser.stateChanged.connect(lambda: self.onUsedBrowserChange())
 
+
     def setupInitialState(self):
         self.onUsedBrowserChange()        
+
 
     def onUsedBrowserChange(self):
         useSystemBrowser = self._ui.cbSystemBrowser.isChecked()
@@ -227,6 +255,7 @@ class ConfigController:
         self._ui.cbSystemBrowser.setChecked(bool(self._tempCfg.useSystemBrowser))
         self._ui.teShortcutMenu.setText(self._tempCfg.menuShortcut)
         self._ui.teShortcutRepeat.setText(self._tempCfg.repeatShortcut)
+        self._ui.teWordFilter.setText(' '.join(self._tempCfg.filteredWords))
         self.setupDataTable()
         self._ui.window.show()
 
@@ -269,7 +298,6 @@ class ConfigController:
         rowIndex = tab.selectedIndexes()[0].row()
         tab.removeRow(rowIndex)
 
-
     def onCancelClick(self):
         self._tempCfg = None
         self._ui.window.close()
@@ -282,6 +310,7 @@ class ConfigController:
         _tempCfg.useSystemBrowser = self._ui.cbSystemBrowser.isChecked()
         _tempCfg.menuShortcut = self._ui.teShortcutMenu.text().strip()
         _tempCfg.repeatShortcut = self._ui.teShortcutRepeat.text().strip()
+        _tempCfg.filteredWords = self._ui.teWordFilter.text().strip().split(' ')
 
         tab = self._ui.tbProviders
         _tempCfg.providers = [None] * tab.rowCount()
@@ -293,13 +322,18 @@ class ConfigController:
         if res:
             self.onCancelClick()
 
+
     def onSelectItem(self):
         self._hasSelection = True
         self._ui.btRemove.setEnabled(True)
+        self._ui.btProviderUp.setEnabled(True)
+        self._ui.btProviderDown.setEnabled(True)
 
     def onUnSelectItem(self):
         self._hasSelection = False
         self._ui.btRemove.setEnabled(False)
+        self._ui.btProviderUp.setEnabled(False)
+        self._ui.btProviderDown.setEnabled(False)
     
     def onChangeItem(self):
         self._pendingChanges = True
@@ -309,6 +343,33 @@ class ConfigController:
         service.sortProviders(self._tempCfg)
         self.setupDataTable()
 
+    def onProviderUp(self):
+        tab = self._ui.tbProviders
+
+        if not tab.selectedIndexes():
+            Feedback.showInfo('Please select the item')
+            return
+        
+
+        rowIndex = tab.selectedIndexes()[0].row()
+        service.moveProvider(self._tempCfg, rowIndex, True)
+
+        self.setupDataTable()
+        tab.clearSelection()
+
+    def onProviderDown(self):
+        tab = self._ui.tbProviders
+
+        if not tab.selectedIndexes():
+            Feedback.showInfo('Please select the item')
+            return
+
+        rowIndex = tab.selectedIndexes()[0].row()
+        service.moveProvider(self._tempCfg, rowIndex, False)
+
+        self.setupDataTable()
+        tab.clearSelection()
+        
 # ----------------------------------------------------------------------------
 # Adjust on View
 
@@ -316,10 +377,9 @@ class ConfigViewAdapter(Ui_ConfigView):
 
     def __init__(self, myParent):
         self.window = QtWidgets.QDialog(parent=myParent)
-        # self._ui = ConfigView(myParent)
         self.setupUi(self.window)
 
-        self.verticalLayWidget.setFixedSize(480, 432)
+        # self.verticalLayWidget.setFixedSize(522, 520)
         self.verticalLayout.setContentsMargins(10, 10, 10, 10)
 
         self.browserInfo.setVisible(self.cbSystemBrowser.isChecked()) #keep
@@ -328,7 +388,12 @@ class ConfigViewAdapter(Ui_ConfigView):
         self.btAdd.setIcon(self.getIcon(QtWidgets.QStyle.SP_DirLinkIcon))
         self.btSave.setIcon(self.getIcon(QtWidgets.QStyle.SP_DialogApplyButton))
         self.btCancel.setIcon(self.getIcon(QtWidgets.QStyle.SP_DialogCancelButton))
-        self.btSortProvider.setIcon(self.getIcon(QtWidgets.QStyle.SP_ArrowDown))
+        self.btSortProvider.setIcon(self.getIcon(QtWidgets.QStyle.SP_BrowserReload))
+
+        self.btProviderUp.setIcon(self.getIcon(QtWidgets.QStyle.SP_ArrowUp))
+        self.btProviderUp.setText('')
+        self.btProviderDown.setIcon(self.getIcon(QtWidgets.QStyle.SP_ArrowDown))
+        self.btProviderDown.setText('')
 
     def getIcon(self, qtStyle):
         return QIcon(QtWidgets.QApplication.style().standardIcon(qtStyle))

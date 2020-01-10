@@ -200,8 +200,9 @@ class AwBrowser(QDialog):
         elif (event.type() == QEvent.MouseButtonPress):
             if QApplication.keyboardModifiers() == Qt.ControlModifier \
                     and event.button() == Qt.LeftButton:
+                Feedback.log('Browser dispatch Right event')
                 self._tryRepeat = True
-                newEvt = QMouseEvent(QEvent.MouseButtonRelease, event.pos(), 
+                newEvt = QMouseEvent(QEvent.MouseButtonPress, event.pos(), 
                     Qt.RightButton, Qt.MouseButton.NoButton, Qt.NoModifier)
                 QApplication.postEvent(source, newEvt)
 
@@ -348,7 +349,7 @@ class AwBrowser(QDialog):
             Shows and handle options (from field list), only if in edit mode.
         """
 
-        tryRepeat = self._tryRepeat
+        tryRepeat = False       # FIXME
         self._tryRepeat = False
         if not (self._fields and self._selectionHandler):
             return self.createInfoMenu(evt)
