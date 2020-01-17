@@ -59,7 +59,8 @@ WELCOME_PAGE = """
             </div>
             <p>
                 Its use is pretty simple.<br />
-                It is based on <i>text selecting</i> and <i>context menu</i> (or shortcut).
+                It is based on <i>text selecting</i> and <i>context menu</i> (or shortcut). 
+                Now it's also possible to use it without selecting a text.
             </p>
             <div>
                 Check more details on the <a href="https://github.com/ssricardo/anki-plugins/tree/master/anki-web-browser">documentation</a>

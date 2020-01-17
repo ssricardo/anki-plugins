@@ -15,7 +15,6 @@ from .exception_handler import exceptionHandler
 from .base_controller import BaseController
 
 import anki
-import json
 
 from aqt.reviewer import Reviewer
 from aqt.qt import QAction
@@ -42,6 +41,7 @@ def run():
     Feedback.showInfo = _ankiShowInfo
     Feedback.showError = _ankiShowError
     Feedback.showWarn = lambda args: tooltip('<b>Warning</b><br />' + args, 7500)
+    BaseController.openExternalLink = openLink    
         
     controllerInstance = ReviewController(mw)
     controllerInstance.setupBindings()

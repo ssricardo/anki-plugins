@@ -7,7 +7,7 @@
   * Look up selected word
   * Import images and text
 
-**1.1** | 21/02
+**1.1** | 21/02/19
 
 * Issues #5, #8 and #9
 * Option to use the system web browser
@@ -30,7 +30,7 @@
   * Related issue #20
 
 
-**2.0** | 13/08
+**2.0** | 13/08/19
 
 * Major changes on web browser window
   * Added common features: back, forward, stop, reload
@@ -38,9 +38,13 @@
 * Improve error handling
 * Try to solve issues #22 and #25
 
-**2.1** | 12/01/20 **PLAN**
+**3.0** | 20/01/20 **PLAN**
 
 * Added option to query without text selection
-* Added config to ignore (remove) set of words
+  * Type in terms or use value from Field
+  * Memorize option
+* On config window, added sorting for providers
+* Added configuration to filter/strip set of words from the search
 * Improve repeated options
-* Drag/drop???
+  * Added repeat when assigning a value to the same field
+* -Drag/drop???-

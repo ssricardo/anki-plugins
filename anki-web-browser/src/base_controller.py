@@ -9,10 +9,7 @@ from .browser import AwBrowser
 from .no_selection import NoSelectionController, NoSelectionResult
 from .provider_selection import ProviderSelectionController
 
-from aqt.editor import Editor
-from anki.hooks import addHook
-from aqt.utils import openLink
-import json
+from aqt.utils import openLink      # TODO remove
 
 class BaseController:
     "Concentrates common operations between both concrete controllers"
@@ -59,7 +56,8 @@ class BaseController:
 
         if cfg.getConfig().useSystemBrowser:
             target = self.browser.formatTargetURL(website, query)
-            openLink(target)
+            # openLink(target)
+            self.openExternalLink(target)
             return
         
         self.beforeOpenBrowser()
@@ -68,5 +66,8 @@ class BaseController:
         self.browser.open(website, query)
 
     def beforeOpenBrowser(self):
+        raise Exception('Must be overriden')
+
+    def openExternalLink(self, target):
         raise Exception('Must be overriden')
 

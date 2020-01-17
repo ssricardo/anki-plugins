@@ -355,7 +355,7 @@ class ConfigController:
         service.moveProvider(self._tempCfg, rowIndex, True)
 
         self.setupDataTable()
-        tab.clearSelection()
+        tab.selectRow(rowIndex - 1)
 
     def onProviderDown(self):
         tab = self._ui.tbProviders
@@ -368,7 +368,7 @@ class ConfigController:
         service.moveProvider(self._tempCfg, rowIndex, False)
 
         self.setupDataTable()
-        tab.clearSelection()
+        tab.selectRow(rowIndex + 1)
         
 # ----------------------------------------------------------------------------
 # Adjust on View
@@ -379,7 +379,8 @@ class ConfigViewAdapter(Ui_ConfigView):
         self.window = QtWidgets.QDialog(parent=myParent)
         self.setupUi(self.window)
 
-        # self.verticalLayWidget.setFixedSize(522, 520)
+        # self.verticalLayWidget.setFixedSize(510, 540)
+        self.window.setFixedSize(500, 540)
         self.verticalLayout.setContentsMargins(10, 10, 10, 10)
 
         self.browserInfo.setVisible(self.cbSystemBrowser.isChecked()) #keep
