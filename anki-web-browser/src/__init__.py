@@ -19,7 +19,7 @@ try:
     from .core import Feedback
     Feedback.log = logToConsole
 
-    from .controller import run
+    from .review_controller import run
     run()
 except ImportError as ie:
     print(""" [WARNING] Anki-web-browser ::: It wasn\'t possible to resolve imports. 

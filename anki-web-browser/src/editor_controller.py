@@ -1,4 +1,10 @@
-# ---------------------------------- ================ ---------------------------------
+# -*- coding: utf-8 -*-
+# Interface between Anki's Editor and this addon's components
+
+# This files is part of anki-web-browser addon
+# @author ricardo saturnino
+# ------------------------------------------------
+
 # ---------------------------------- Editor Control -----------------------------------
 # ---------------------------------- ================ ---------------------------------
 
@@ -7,26 +13,23 @@ from .core import Feedback
 from .browser import AwBrowser
 from .no_selection import NoSelectionController, NoSelectionResult
 from .provider_selection import ProviderSelectionController
+from .base_controller import BaseController
 
 from aqt.editor import Editor
 from anki.hooks import addHook
 from aqt.utils import openLink
 import json
 
-class EditorController:
-    _browser = None
+class EditorController(BaseController):
+    # browser = None
     _editorReference = None
-    _currentNote = None
-    _ankiMw = None
+    # _currentNote = None
     _lastProvider = None
-    _noSelectionHandler = None
 
     def __init__(self, ankiMw):
-        self._browser = AwBrowser.singleton(ankiMw)
-        self._browser.setSelectionHandler(self.handleSelection)
-        self._ankiMw = ankiMw
-        self._noSelectionHandler = NoSelectionController(ankiMw)
-        self._providerSelection = ProviderSelectionController()
+        super(EditorController, self).__init__(ankiMw)
+        # self.browser = AwBrowser.singleton(ankiMw)
+        self.browser.setSelectionHandler(self.handleSelection)
         self.setupBindings()
 
 # ------------------------ Anki interface ------------------
@@ -45,22 +48,25 @@ class EditorController:
 
         ref = self
         def wrapped(self, focusTo=None):
-
+            originalResult = None
+            
             if focusTo:
-                originalFunction(self, focusTo)
+                originalResult = originalFunction(self, focusTo)
             else:
-                originalFunction(self)
+                originalResult = originalFunction(self)
 
-            if not ref._browser:
+            if not ref.browser:
                 return
 
             if ref._currentNote == ref._editorReference.note:
                 return
             
             ref._currentNote = ref._editorReference.note
-            ref._browser.unload()
+            ref.browser.unload()
             if not cfg.getConfig().keepBrowserOpened:
-                ref._browser.close()
+                ref.browser.close()
+
+            return originalResult
 
         return wrapped
 
@@ -88,16 +94,12 @@ class EditorController:
 
         self.createEditorMenu(parent.web, self.handleProviderSelection)
 
-
     def _repeatProviderOrShowMenu(self):
         webView = self._editorReference.web
         if not self._lastProvider:
             return self.createEditorMenu(webView, self.handleProviderSelection)
 
-        query = self._getQueryValue(webView)
-        if not query:
-            return
-        self.openInBrowser(query)
+        super()._repeatProviderOrShowMenu(webView)
 
     
     def createEditorMenu(self, parent, menuFn):
@@ -120,21 +122,21 @@ class EditorController:
 
     def _getQueryValue(self, webview):
         if webview.hasSelection():
-            return webview.selectedText()
+            return self._filterQueryValue(webview.selectedText())
 
         if self._noSelectionHandler.isRepeatOption():
             noSelectionResult = self._noSelectionHandler.getValue()
             if noSelectionResult.resultType == NoSelectionResult.USE_FIELD:
                 self._editorReference.currentField = noSelectionResult.value
+                if noSelectionResult.value < len(self._currentNote.fields):
+                    Feedback.log('USE_FIELD {}: {}'.format(noSelectionResult.value, self._currentNote.fields[noSelectionResult.value]))
+                    return self._filterQueryValue(self._currentNote.fields[noSelectionResult.value])
 
-                Feedback.log('USE_FIELD {}: {}'.format(noSelectionResult.value, self._currentNote.fields[result]))
-                return self._currentNote.fields[noSelectionResult.value]
-        else:
-            note = webview.editor.note
-            fieldList = note.model()['flds']
-            fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
-            self._noSelectionHandler.setFields(fieldsNames)
-            self._noSelectionHandler.handle(self.handleNoSelectionResult)
+        note = webview.editor.note
+        fieldList = note.model()['flds']
+        fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
+        self._noSelectionHandler.setFields(fieldsNames)
+        self._noSelectionHandler.handle(self.handleNoSelectionResult)
 
         return None
 
@@ -147,31 +149,39 @@ class EditorController:
         if resultValue.resultType == NoSelectionResult.USE_FIELD:
             self._editorReference.currentField = resultValue.value    # fieldIndex
             value = self._currentNote.fields[resultValue.value]
+            value = self._filterQueryValue(value)
             Feedback.log('USE_FIELD {}: {}'.format(resultValue.value, value))
 
         return self.openInBrowser(value)
 
 # ---------------------------------- --------------- ---------------------------------
-    def openInBrowser(self, query):
-        """
-            Setup enviroment for web browser and invoke it
-        """
+    # def openInBrowser(self, query):
+    #     """
+    #         Setup enviroment for web browser and invoke it
+    #     """
 
-        website = self._lastProvider
+    #     website = self._lastProvider
+    #     note = self._currentNote
+        
+    #     Feedback.log('OpenInBrowser: %s < %s' % (query, website))
+
+    #     if cfg.getConfig().useSystemBrowser:
+    #         target = self.browser.formatTargetURL(website, query)
+    #         openLink(target)
+    #         return
+        
+    #     fieldList = note.model()['flds']
+    #     fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
+    #     self.browser.infoList = ['No action available', 'Required: Text selected or link to image']
+    #     self.browser.setFields(fieldsNames)
+    #     self.browser.open(website, query)
+
+    def beforeOpenBrowser(self):
         note = self._currentNote
-        
-        Feedback.log('OpenInBrowser: %s < %s' % (query, website))
-
-        if cfg.getConfig().useSystemBrowser:
-            target = self._browser.formatTargetURL(website, query)
-            openLink(target)
-            return
-        
         fieldList = note.model()['flds']
         fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
-        self._browser.infoList = ['No action available', 'Required: Text selected or link to image']
-        self._browser.setFields(fieldsNames)
-        self._browser.open(website, query)
+        self.browser.infoList = ['No action available', 'Required: Text selected or link to image']
+        self.browser.setFields(fieldsNames)
 
 
     def handleSelection(self, fieldIndex, value, isUrl = False):

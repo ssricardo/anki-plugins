@@ -9,8 +9,10 @@ from .config import service as cfg
 from .core import Feedback
 from .browser import AwBrowser
 from .editor_controller import EditorController
+from .no_selection import NoSelectionController, NoSelectionResult
 from .provider_selection import ProviderSelectionController
 from .exception_handler import exceptionHandler
+from .base_controller import BaseController
 
 import anki
 import json
@@ -41,7 +43,7 @@ def run():
     Feedback.showError = _ankiShowError
     Feedback.showWarn = lambda args: tooltip('<b>Warning</b><br />' + args, 7500)
         
-    controllerInstance = Controller(mw)
+    controllerInstance = ReviewController(mw)
     controllerInstance.setupBindings()
 
     editorCtrl = EditorController(mw)
@@ -51,21 +53,19 @@ def run():
 
 # ----------------------------------------------------------------------------------
 
-class Controller:
+class ReviewController(BaseController):
     """
         The mediator/adapter between Anki with its components and this addon specific API
     """
 
     browser = None
-    _currentNote = None
-    _ankiMw = None
+    # _currentNote = None       FIXME
     _lastProvider = None
 
     def __init__(self, ankiMw):
+        super(ReviewController, self).__init__(ankiMw)
         self.browser = AwBrowser.singleton(ankiMw)
         self.browser.setSelectionHandler(None)
-        self._ankiMw = ankiMw
-        self._providerSelection = ProviderSelectionController()
 
 
     def setupBindings(self):
@@ -93,11 +93,13 @@ class Controller:
 
         ref = self
         def wrapped(self, focusTo=None):
+            Feedback.log('Browser - CardShift')
 
+            originalResult = None
             if focusTo:
-                originalFunction(self, focusTo)
+                originalResult = originalFunction(self, focusTo)
             else:
-                originalFunction(self)
+                originalResult = originalFunction(self)
 
             if not ref.browser:
                 return
@@ -107,7 +109,9 @@ class Controller:
                 ref.browser.close()
 
             if (ref._ankiMw.reviewer and ref._ankiMw.reviewer.card):
-                self._currentNote = ref._ankiMw.reviewer.card.note()
+                ref._currentNote = ref._ankiMw.reviewer.card.note()
+
+            return originalResult
 
         return wrapped
 
@@ -119,37 +123,72 @@ class Controller:
             sList = fn(self)
             sList.append( (cfg.getConfig().menuShortcut, \
                 lambda: ref.createReviewerMenu(
-                    ref._ankiMw.web, ref._ankiMw.web, ref.openInBrowser)) )
+                    ref._ankiMw.web, ref._ankiMw.web)) )
 
             sList.append( (cfg.getConfig().repeatShortcut, ref._repeatProviderOrShowMenu ) )
             return sList
 
         return customShortcut
 
+# --------------------------------------------------------------------------
+
     @exceptionHandler
     def _repeatProviderOrShowMenu(self):
         if not self._lastProvider:
-            return self.createReviewerMenu(self._ankiMw.web, self._ankiMw.web, self.openInBrowser)
+            return self.createReviewerMenu(self._ankiMw.web, self._ankiMw.web)
 
         webView = self._ankiMw.web
-        if not webView.hasSelection():
-            return
-        query = webView.selectedText()
-        self.openInBrowser(self._lastProvider, query)
+        super()._repeatProviderOrShowMenu(webView)
 
-    @exceptionHandler
-    def createReviewerMenu(self, webView, menu, menuFn):
-        'Handles context menu event on Reviewer'
-
-        note = self._currentNote
-        if not webView.hasSelection():
-            return
-        query = webView.selectedText()
-
+    def handleProviderSelection(self, result):
+        Feedback.log('Handle provider selection')
+        webview = self._ankiMw.web
+        query = self._getQueryValue(webview)
+        self._lastProvider = result
         if not query:
             return
+        Feedback.log('Query: %s' % query)        
+        self.openInBrowser(query)
 
-        self._providerSelection.showCustomMenu(menu)
+    @exceptionHandler
+    def createReviewerMenu(self, webView, menu):
+        'Handles context menu event on Reviewer'
+
+        self._providerSelection.showCustomMenu(menu, self.handleProviderSelection)
+
+    # TODO: move to superclass / adapt
+    def _getQueryValue(self, webview):
+        Feedback.log('getQueryValue', webview, self._currentNote)
+        if webview.hasSelection():
+            return self._filterQueryValue(webview.selectedText())
+
+        if self._noSelectionHandler.isRepeatOption():
+            noSelectionResult = self._noSelectionHandler.getValue()
+            if noSelectionResult.resultType == NoSelectionResult.USE_FIELD:
+                if noSelectionResult.value < len(self._currentNote.fields):
+                    Feedback.log('USE_FIELD {}: {}'.format(noSelectionResult.value, self._currentNote.fields[noSelectionResult.value]))
+                    return self._filterQueryValue(self._currentNote.fields[noSelectionResult.value])
+
+        note = self._currentNote
+        fieldList = note.model()['flds']
+        fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
+        self._noSelectionHandler.setFields(fieldsNames)
+        self._noSelectionHandler.handle(self.handleNoSelectionResult)
+
+        return None
+
+    def handleNoSelectionResult(self, resultValue: NoSelectionResult):
+        if not resultValue or \
+                resultValue.resultType in (NoSelectionResult.NO_RESULT, NoSelectionResult.SELECTION_NEEDED):
+            Feedback.showInfo('No value selected')
+            return
+        value = resultValue.value
+        if resultValue.resultType == NoSelectionResult.USE_FIELD:
+            value = self._currentNote.fields[resultValue.value]
+            value = self._filterQueryValue(value)
+            Feedback.log('USE_FIELD {}: {}'.format(resultValue.value, value))
+
+        return self.openInBrowser(value)
     
 
 # ---------------------------------- Events listeners ---------------------------------
@@ -157,27 +196,13 @@ class Controller:
     def onReviewerHandle(self, webView, menu):
         """
             Wrapper to the real context menu handler on the reviewer;
-            Cleans up editor reference
         """
 
         if self._ankiMw.reviewer and self._ankiMw.reviewer.card:
             note = self._ankiMw.reviewer.card.note()
-            self.createReviewerMenu(webView, menu, self.openInBrowser)
+            self.createReviewerMenu(webView, menu)
 
 
-    def openInBrowser(self, website, query):
-        """
-            Setup enviroment for web browser and invoke it
-        """
-
-        Feedback.log('OpenInBrowser: {}'.format(self._currentNote))
-        self._lastProvider = website
-
-        if cfg.getConfig().useSystemBrowser:
-            target = self.browser.formatTargetURL(website, query)
-            openLink(target)
-            return
-        
+    def beforeOpenBrowser(self):
         self.browser.setFields(None)   # clear fields
         self.browser.infoList = ['No action available on Reviewer mode']
-        self.browser.open(website, query)

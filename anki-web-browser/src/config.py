@@ -27,14 +27,14 @@ class ConfigHolder:
     RP_SHORT = 'F10'
 
     def __init__(self, keepBrowserOpened = True, browserAlwaysOnTop = False, menuShortcut = SHORTCUT, \
-            providers = [], repeatShortcut = RP_SHORT, useSystemBrowser = False, ignoredOnQuery = [], **kargs):
+            providers = [], repeatShortcut = RP_SHORT, useSystemBrowser = False, filteredWords = [], **kargs):
         self.providers = [ConfigHolder.Provider(**p) for p in providers ] #providers
         self.keepBrowserOpened = keepBrowserOpened
         self.browserAlwaysOnTop = browserAlwaysOnTop
         self.useSystemBrowser = useSystemBrowser
         self.menuShortcut = menuShortcut
         self.repeatShortcut = repeatShortcut
-        self.filteredWords = ignoredOnQuery
+        self.filteredWords = filteredWords
 
     def toDict(self):
         res = dict({
@@ -347,7 +347,7 @@ class ConfigController:
         tab = self._ui.tbProviders
 
         if not tab.selectedIndexes():
-            Feedback.showInfo('Please select the item')
+            Feedback.showInfo('Please select an item')
             return
         
 
@@ -361,7 +361,7 @@ class ConfigController:
         tab = self._ui.tbProviders
 
         if not tab.selectedIndexes():
-            Feedback.showInfo('Please select the item')
+            Feedback.showInfo('Please select an item')
             return
 
         rowIndex = tab.selectedIndexes()[0].row()

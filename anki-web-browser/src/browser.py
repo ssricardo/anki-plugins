@@ -5,6 +5,7 @@
 # ---------------------------------------
 
 import urllib.parse
+from datetime import datetime
 from textwrap import shorten
 from .config import service as cfg
 from .core import Label, Feedback, Style
@@ -79,10 +80,8 @@ class AwBrowser(QDialog):
     _fields = []
     _selectionHandler = None
     _web = None
-    # _urlInfo = None
     _context = None
     _lastAssignedField = None
-    _tryRepeat = False
     infoList = []
     providerList = []
     
@@ -190,23 +189,6 @@ class AwBrowser(QDialog):
         if cfg.getConfig().browserAlwaysOnTop:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
-        self._web.installEventFilter(self)
-
-
-    def eventFilter(self, source, event):
-        if (event.type() == QEvent.ChildAdded and            
-            event.child().isWidgetType()):
-            event.child().installEventFilter(self)
-        elif (event.type() == QEvent.MouseButtonPress):
-            if QApplication.keyboardModifiers() == Qt.ControlModifier \
-                    and event.button() == Qt.LeftButton:
-                Feedback.log('Browser dispatch Right event')
-                self._tryRepeat = True
-                newEvt = QMouseEvent(QEvent.MouseButtonPress, event.pos(), 
-                    Qt.RightButton, Qt.MouseButton.NoButton, Qt.NoModifier)
-                QApplication.postEvent(source, newEvt)
-
-        return super().eventFilter(source, event)
 
     # def dragEnterEvent(self, e):
     #     print('Enter: ')
@@ -349,8 +331,6 @@ class AwBrowser(QDialog):
             Shows and handle options (from field list), only if in edit mode.
         """
 
-        tryRepeat = False       # FIXME
-        self._tryRepeat = False
         if not (self._fields and self._selectionHandler):
             return self.createInfoMenu(evt)
 
@@ -374,11 +354,13 @@ class AwBrowser(QDialog):
             Feedback.log('No value')
             return self.createInfoMenu(evt)
 
-        if tryRepeat:
+
+        if QApplication.keyboardModifiers() == Qt.ControlModifier:
             if self._assignToLastField(value, isLink):
                 return
 
         self.createCtxMenu(value, isLink, evt)
+
 
     def _checkSuffix(self, value):
         if value and not value.toString().endswith(("jpg", "jpeg", "png", "gif")):
@@ -416,7 +398,6 @@ Try it anyway? """ % msgLink, QMessageBox.Yes|QMessageBox.No)
 
         # m.addMenu(sub)
         action = m.exec_(self.mapToGlobal(evt.pos()))
-
 
     def createInfoMenu(self, evt):
         'Creates and configures a menu with only some information'
