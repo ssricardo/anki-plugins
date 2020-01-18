@@ -9,8 +9,6 @@ from .browser import AwBrowser
 from .no_selection import NoSelectionController, NoSelectionResult
 from .provider_selection import ProviderSelectionController
 
-from aqt.utils import openLink      # TODO remove
-
 class BaseController:
     "Concentrates common operations between both concrete controllers"
 
@@ -56,18 +54,16 @@ class BaseController:
 
         if cfg.getConfig().useSystemBrowser:
             target = self.browser.formatTargetURL(website, query)
-            # openLink(target)
-            self.openExternalLink(target)
+            BaseController.openExternalLink(target)
             return
         
         self.beforeOpenBrowser()
-        # self.browser.setFields(None)   # clear fields
-        # self.browser.infoList = ['No action available on Reviewer mode']
         self.browser.open(website, query)
 
     def beforeOpenBrowser(self):
         raise Exception('Must be overriden')
 
-    def openExternalLink(self, target):
+    @staticmethod
+    def openExternalLink(target):
         raise Exception('Must be overriden')
 

@@ -191,42 +191,11 @@ class AwBrowser(QDialog):
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
 
-    # def dragEnterEvent(self, e):
-    #     print('Enter: ')
-    #     print(e.mimeData().formats())
-    #     print(e.mimeData().text())
-    #     print(e.mimeData().urls())
-    #     QApplication.clipboard().setMimeData(e.mimeData())
-
-        # e.mimeData().clear()
-
-        # if (e.mimeData().urls()):
-        #     url = e.mimeData().urls()[0]
-        #     if self._checkSuffix(url):
-        #         data = url.toEncoded()
-        #         e.mimeData().clear()
-        #         e.mimeData().setData('application/octet-stream', data)
-        #         # e.mimeData().setImageData(QImage(url.toString(), 'image/png'))
-        #         # e.mimeData().setUrls([])
-        #         # e.mimeData().setHtml(None)
-        #         # e.mimeData().setText(None)
-
-        # print(e.mimeData().formats())
-
-        # e.accept()
-
-        # if e.mimeData().hasText() or e.mimeData().hasHtml() or e.mimeData().hasImage():
-        #     e.accept()
-        #     print('accepted')
-        # else:
-        #     e.ignore()
-        #     print('ignored')
-
     @classmethod
-    def singleton(clz, parent):
-        if not clz.SINGLETON:
-            clz.SINGLETON = AwBrowser(parent)
-        return clz.SINGLETON
+    def singleton(cls, parent):
+        if not cls.SINGLETON:
+            cls.SINGLETON = AwBrowser(parent)
+        return cls.SINGLETON
 
     def formatTargetURL(self, website: str, query: str = ''):
         return website.format(urllib.parse.quote(query, encoding='utf8'))

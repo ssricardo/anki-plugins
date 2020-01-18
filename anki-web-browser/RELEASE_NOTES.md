@@ -38,13 +38,15 @@
 * Improve error handling
 * Try to solve issues #22 and #25
 
-**3.0** | 20/01/20 **PLAN**
+**3.0** | 18/01/20
 
 * Added option to query without text selection
   * Type in terms or use value from Field
   * Memorize option
 * On config window, added sorting for providers
+  * Issues #28 and #40
 * Added configuration to filter/strip set of words from the search
+  * Issue #35
 * Improve repeated options
-  * Added repeat when assigning a value to the same field
-* -Drag/drop???-
+  * Added *repeat operation* when assigning a value to the same field
+  * Issue #37

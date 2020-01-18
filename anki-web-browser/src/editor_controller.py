@@ -21,14 +21,11 @@ from aqt.utils import openLink
 import json
 
 class EditorController(BaseController):
-    # browser = None
     _editorReference = None
-    # _currentNote = None
     _lastProvider = None
 
     def __init__(self, ankiMw):
         super(EditorController, self).__init__(ankiMw)
-        # self.browser = AwBrowser.singleton(ankiMw)
         self.browser.setSelectionHandler(self.handleSelection)
         self.setupBindings()
 
@@ -155,27 +152,6 @@ class EditorController(BaseController):
         return self.openInBrowser(value)
 
 # ---------------------------------- --------------- ---------------------------------
-    # def openInBrowser(self, query):
-    #     """
-    #         Setup enviroment for web browser and invoke it
-    #     """
-
-    #     website = self._lastProvider
-    #     note = self._currentNote
-        
-    #     Feedback.log('OpenInBrowser: %s < %s' % (query, website))
-
-    #     if cfg.getConfig().useSystemBrowser:
-    #         target = self.browser.formatTargetURL(website, query)
-    #         openLink(target)
-    #         return
-        
-    #     fieldList = note.model()['flds']
-    #     fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
-    #     self.browser.infoList = ['No action available', 'Required: Text selected or link to image']
-    #     self.browser.setFields(fieldsNames)
-    #     self.browser.open(website, query)
-
     def beforeOpenBrowser(self):
         note = self._currentNote
         fieldList = note.model()['flds']

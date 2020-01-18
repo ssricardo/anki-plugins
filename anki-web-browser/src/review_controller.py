@@ -59,7 +59,6 @@ class ReviewController(BaseController):
     """
 
     browser = None
-    # _currentNote = None       FIXME
     _lastProvider = None
 
     def __init__(self, ankiMw):
@@ -156,7 +155,7 @@ class ReviewController(BaseController):
 
         self._providerSelection.showCustomMenu(menu, self.handleProviderSelection)
 
-    # TODO: move to superclass / adapt
+    # TODO: move parts to superclass / adapt
     def _getQueryValue(self, webview):
         Feedback.log('getQueryValue', webview, self._currentNote)
         if webview.hasSelection():

@@ -380,8 +380,8 @@ class ConfigViewAdapter(Ui_ConfigView):
         self.setupUi(self.window)
 
         # self.verticalLayWidget.setFixedSize(510, 540)
-        self.window.setFixedSize(500, 540)
-        self.verticalLayout.setContentsMargins(10, 10, 10, 10)
+        # self.window.setFixedSize(500, 540)
+        # self.verticalLayout.setContentsMargins(10, 10, 10, 10)
 
         self.browserInfo.setVisible(self.cbSystemBrowser.isChecked()) #keep
 

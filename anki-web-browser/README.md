@@ -114,6 +114,8 @@ This addon uses Anki engine to perform that action, and Anki imposes that restri
 
 ## Bugs / Suggestions / more...
 
-Please, feel free to make suggestions and open issues for possible bugs found. 
+Please, feel free to ~~make suggestions and~~ open issues for possible bugs found.  
+
+> Unfortunately I won't have time to implement new features for a while
 
 Some pages aren't opening in this browser and for other ones sometimes the user needs to reload it. This is a known bug but there is no fix planned yet.

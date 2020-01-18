@@ -24,10 +24,6 @@
         {
             "name": "Pixabay",
             "url": "https://pixabay.com/en/photos/?q={}&image_type=all"
-        },
-        {
-            "name": "Your sentence",
-            "url": "https://sentence.yourdictionary.com/{}"
         }
     ],
     "filteredWords": []
