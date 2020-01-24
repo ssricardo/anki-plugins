@@ -22,6 +22,8 @@ class TypeClozeHander:
     style="font-family: '%s'; font-size: %spx;">
     </center>
     """
+
+    RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*)?\}\}")
         
     def setupBindings(self, reviewer, addHook):
         self.reviewer = reviewer
@@ -84,6 +86,8 @@ class TypeClozeHander:
             return result
             
 
+    reRemainingText = re.compile(r"\{\{c\d\d?::(.+?)(::.*)?\}\}")
+
     def _customContentForCloze(self, txt, idx):
         reCloze = re.compile(r"\{\{c%s::(.+?)\}\}"%idx, re.DOTALL)
         matches = re.findall(reCloze, txt)
@@ -95,7 +99,8 @@ class TypeClozeHander:
         txt = re.sub(reCloze, "[...]", txt)
 
         # Replace other cloze (not current id)
-        txt = re.sub(r"\{\{c\d::(.+?)\}\}", r'\1', txt, re.DOTALL)
+        # txt = re.sub(r"\{\{c\d\d?::(.+?)(::.*)?\}\}", r'\1', txt, re.DOTALL)    # TODO: pre compile
+        txt = TypeClozeHander.RE_REMAINING_TEXT.sub(r'\1', txt, re.DOTALL)    # TODO: pre compile
 
         return (txt, words)
 
