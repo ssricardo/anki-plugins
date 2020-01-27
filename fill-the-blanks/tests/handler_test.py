@@ -123,6 +123,37 @@ class HandlerTest(unittest.TestCase):
         self.assertTrue('mit::mi...' not in res)
         self.assertTrue('mit' in res)
 
+    # Issue 34
+    def test_issue_34(self):
+        self.reviewer.card.note()['Text'] = \
+        'Testing my field {{c1::repeated}} using cloze and type'
+
+        res = self.reviewer.typeAnsQuestionFilter("""
+            <div style='font-family: Microsoft YaHei; font-size: 14px;color: blue'>《{{《》}}》</div><br>
+            <div style='font-family: Microsoft YaHei; font-size: 20px;'>[[cloze:question]]</div></dir><br>
+            <div style='font-family: Microsoft YaHei; font-size: 20px;'>[[type:cloze:Text]]</div></dir><br>
+        """)
+
+        print(res)
+        self.assertTrue('typeans0' in res)
+
+    # Issue 45
+    def test_issue_45(self):
+        self.reviewer.card.note()['Text'] = """
+        Testing my field {{c1::repeated}} using cloze and type
+        [sound:rec1579903595.mp3] more content"""
+
+        res = self.reviewer.typeAnsQuestionFilter("""            
+            <span class="content">
+            [[type:cloze:Text]]
+            </span>
+        """)
+
+        print(res)
+        self.assertTrue('typeans0' in res)
+        self.assertTrue('more content' in res)
+        self.assertTrue('more [sound:rec1579903595.mp3]' not in res)
+
     
     def test_issue_14(self):
         self.reviewer.card.note()['Text'] = """

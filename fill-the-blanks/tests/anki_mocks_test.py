@@ -2,6 +2,9 @@
 # Contains a few classes that mocks anki ones
 # Only for testing
 
+def _(input):
+    return input
+
 
 class TestNote:
     _tag = None
@@ -41,6 +44,7 @@ class TestReviewer:
     # Type in the answer
     ##########################################################################
 
+    typeCorrect = None
     typeAnsPat = r"\[\[type:(.+?)\]\]"
 
     def typeAnsFilter(self, buf):

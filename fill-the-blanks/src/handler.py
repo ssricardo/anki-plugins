@@ -86,8 +86,6 @@ class TypeClozeHander:
             return result
             
 
-    reRemainingText = re.compile(r"\{\{c\d\d?::(.+?)(::.*)?\}\}")
-
     def _customContentForCloze(self, txt, idx):
         reCloze = re.compile(r"\{\{c%s::(.+?)\}\}"%idx, re.DOTALL)
         matches = re.findall(reCloze, txt)
@@ -99,8 +97,9 @@ class TypeClozeHander:
         txt = re.sub(reCloze, "[...]", txt)
 
         # Replace other cloze (not current id)
-        # txt = re.sub(r"\{\{c\d\d?::(.+?)(::.*)?\}\}", r'\1', txt, re.DOTALL)    # TODO: pre compile
-        txt = TypeClozeHander.RE_REMAINING_TEXT.sub(r'\1', txt, re.DOTALL)    # TODO: pre compile
+        txt = TypeClozeHander.RE_REMAINING_TEXT.sub(r'\1', txt, re.DOTALL)
+        if '[sound:' in txt:
+            txt = re.sub(r'\[sound:(\w|\d|\.)+?\]', '', txt, re.DOTALL)
 
         return (txt, words)
 
