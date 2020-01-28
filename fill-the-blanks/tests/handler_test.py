@@ -110,7 +110,7 @@ class HandlerTest(unittest.TestCase):
     # Issue 31
     def test_multiple_with_hint(self):
         self.reviewer.card.note()['Text'] = \
-        'Probleme mit der Sprache ->> {{c1::Probleme::Pro...}} {{c2::mit::mi...}} {{c1::der::de...}} {{c2::Sprache::Spr...}}'
+        'Probleme mit der Sprache ->> {{c1::Probleme::Pro...}} {{c2::mit::mi...}} {{c1::der::de...}} {{c2::Sprache::Spr...}} After'
 
         res = self.reviewer.typeAnsQuestionFilter("""
             <span class="content">
