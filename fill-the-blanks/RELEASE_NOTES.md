@@ -30,4 +30,7 @@
 * Solve issues:  
   *  #31 - Support cloze with hints
   *  #42 - More then 9 type:cloze on a card
-  *  #45 - Avoid printing sound tags 
+
+**1.6** | 30/01/2020
+
+* Solve issue #45 - Avoid printing sound tags 
