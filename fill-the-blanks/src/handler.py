@@ -99,7 +99,7 @@ class TypeClozeHander:
         # Replace other cloze (not current id)
         txt = TypeClozeHander.RE_REMAINING_TEXT.sub(r'\1', txt, re.DOTALL)
         if '[sound:' in txt:
-            txt = re.sub(r'\[sound:(\w|\d|\.)+?\]', '', txt, re.DOTALL)
+            txt = re.sub(r'\[sound:(\w|\d|\.|\-|_)+?\]', '', txt, re.DOTALL)
 
         return (txt, words)
 

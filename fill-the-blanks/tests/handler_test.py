@@ -141,7 +141,7 @@ class HandlerTest(unittest.TestCase):
     def test_issue_45(self):
         self.reviewer.card.note()['Text'] = """
         Testing my field {{c1::repeated}} using cloze and type
-        [sound:rec1579903595.mp3] more content"""
+        [sound:rec1579903-59_5.mp3] more content"""
 
         res = self.reviewer.typeAnsQuestionFilter("""            
             <span class="content">
@@ -152,7 +152,7 @@ class HandlerTest(unittest.TestCase):
         print(res)
         self.assertTrue('typeans0' in res)
         self.assertTrue('more content' in res)
-        self.assertTrue('more [sound:rec1579903595.mp3]' not in res)
+        self.assertTrue('[sound:rec1579903-59_5.mp3]' not in res)
 
     
     def test_issue_14(self):
