@@ -23,7 +23,8 @@ class TypeClozeHander:
     </center>
     """
 
-    RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*)?\}\}")
+    RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*?)?\}\}")
+    # RE_REMAINING_TEXT = re.compile(r"\{\{c\d::(.+?)\}\}")
         
     def setupBindings(self, reviewer, addHook):
         self.reviewer = reviewer
