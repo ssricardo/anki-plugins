@@ -112,7 +112,7 @@ class TypeClozeHander:
             text = ''.join(content.findAll(text=True))
             return (text, hint)
         except UserWarning:
-            return input
+            return inputWithHint
 
 
     def _splitHint(self, txt):
