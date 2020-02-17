@@ -23,4 +23,14 @@
 
 **1.4** | 13/08/2019
 
-* Try to solve issue #27 (DEFAULT_ANKI_CLOZE is not defined)
+* Solve issue #27 (DEFAULT_ANKI_CLOZE is not defined)
+
+**1.5** | 28/01/2020
+
+* Solve issues:  
+  *  #31 - Support cloze with hints
+  *  #42 - More then 9 type:cloze on a card
+
+**1.6** | 30/01/2020
+
+* Solve issue #45 - Avoid printing sound tags 

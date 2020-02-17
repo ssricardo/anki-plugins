@@ -32,12 +32,12 @@ class HandlerTest(unittest.TestCase):
     def test_nocloze(self):
         res = self.reviewer.typeAnsQuestionFilter("""
             <span class="content">
-            Single valeu
+            Single value
             Multiline
             </span>
         """)
 
-        print(res)
+        self.assertTrue('Single value' in res)
 
     def test_cloze_notype(self):
         res = self.reviewer.typeAnsQuestionFilter("""
@@ -46,7 +46,8 @@ class HandlerTest(unittest.TestCase):
             </span>
         """)
 
-        print(res)
+        # print(res)
+        self.assertTrue('<span class=cloze>...</span>' in res)
 
     def test_single_clozeType(self):
         self.reviewer.card.note()['Text'] = 'Meu valor {{c1::Alterado}} usando cloze '
@@ -57,10 +58,12 @@ class HandlerTest(unittest.TestCase):
         """)
 
         print(res)
+        self.assertTrue('<input type="text"' in res)
+        self.assertTrue('typeans0' in res)
 
     def test_multiple_clozeType(self):
         self.reviewer.card.note()['Text'] = """A small {{c1::step}} for a man, 
-        a big {{c1::one}}...
+        a big {{c10::one}}...
             {{c2::plainText}}
         """
 
@@ -71,6 +74,10 @@ class HandlerTest(unittest.TestCase):
         """)
 
         print(res)
+        self.assertTrue('<input type="text"' in res)
+        self.assertTrue(' a big one...' in res)
+        self.assertTrue('typeans1' not in res)
+        self.assertTrue('c2::' not in res)
 
     def test_with_quotes(self):
         self.reviewer.card.note()['Text'] = """A small step for a man, 
@@ -97,7 +104,55 @@ class HandlerTest(unittest.TestCase):
             </span>
         """)
 
+        print(res)        
+
+    
+    # Issue 31
+    def test_multiple_with_hint(self):
+        self.reviewer.card.note()['Text'] = \
+        'Probleme mit der Sprache ->> {{c1::Probleme::Pro...}} {{c2::mit::mi...}} {{c1::der::de...}} {{c2::Sprache::Spr...}} After'
+
+        res = self.reviewer.typeAnsQuestionFilter("""
+            <span class="content">
+            [[type:cloze:Text]]
+            </span>
+        """)
+
         print(res)
+        self.assertTrue('typeans0' in res)
+        self.assertTrue('mit::mi...' not in res)
+        self.assertTrue('mit' in res)
+
+    # Issue 34
+    def test_issue_34(self):
+        self.reviewer.card.note()['Text'] = \
+        'Testing my field {{c1::repeated}} using cloze and type'
+
+        res = self.reviewer.typeAnsQuestionFilter("""
+            <div style='font-family: Microsoft YaHei; font-size: 14px;color: blue'>《{{《》}}》</div><br>
+            <div style='font-family: Microsoft YaHei; font-size: 20px;'>[[cloze:question]]</div></dir><br>
+            <div style='font-family: Microsoft YaHei; font-size: 20px;'>[[type:cloze:Text]]</div></dir><br>
+        """)
+
+        print(res)
+        self.assertTrue('typeans0' in res)
+
+    # Issue 45
+    def test_issue_45(self):
+        self.reviewer.card.note()['Text'] = """
+        Testing my field {{c1::repeated}} using cloze and type
+        [sound:rec1579903-59_5.mp3] more content"""
+
+        res = self.reviewer.typeAnsQuestionFilter("""            
+            <span class="content">
+            [[type:cloze:Text]]
+            </span>
+        """)
+
+        print(res)
+        self.assertTrue('typeans0' in res)
+        self.assertTrue('more content' in res)
+        self.assertTrue('[sound:rec1579903-59_5.mp3]' not in res)
 
     
     def test_issue_14(self):
