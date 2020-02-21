@@ -93,7 +93,7 @@ class TypeClozeHander:
         if not matches:
             return (txt, [])
 
-        matches = [self._noHint(txt) for txt in matches]
+        matches = [self._splitHint(txt) for txt in matches]
         words = map(self._extractTxt, matches)
         txt = re.sub(reCloze, "[...]", txt)
 
@@ -105,29 +105,30 @@ class TypeClozeHander:
         return (txt, words)
 
 
-    def _extractTxt(self, input:str): 
+    def _extractTxt(self, inputWithHint): 
         try:
+            (input, hint) = inputWithHint
             content = BeautifulSoup('<span/>' + input, 'html.parser')
             text = ''.join(content.findAll(text=True))
-            return text
+            return (text, hint)
         except UserWarning:
-            return input
+            return inputWithHint
 
 
-    def _noHint(self, txt):
+    def _splitHint(self, txt):
         if "::" in txt:
-            return txt.split("::")[0]
-        return txt
+            return tuple(txt.split("::", 1))
+        return (txt, "")
 
 
     def _formatTypeCloze(self, text, entries):
         res = text
 
-        for idx, val in enumerate(entries):
+        for idx, (val, hint) in enumerate(entries):
             item = """<input type="hidden" id="ansval%d" value="%s" />""" % (idx, val.replace('"', '&quot;'))
-            item = item + """<input type="text" id="typeans{0}" 
+            item = item + """<input type="text" id="typeans{0}" placeholder="{1}" 
      onkeyup="checkFieldValue($('#ansval{0}').val(), $('#typeans{0}'));"
-     class="ftb" style="width: {1}em" />""".format(idx, (len(val) * 0.62)) 
+     class="ftb" style="width: {2}em" />""".format(idx, hint, (max(len(val), len(hint)) * 0.62)) 
             res = res.replace('[...]', item, 1)
 
             if not self._currentFirst:
