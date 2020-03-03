@@ -27,10 +27,14 @@
 
 **1.5** | 28/01/2020
 
-* Solve issues:  
-  *  #31 - Support cloze with hints
-  *  #42 - More then 9 type:cloze on a card
+* Solve:  
+  * Issue #31 - Support cloze with hints (just making them hidden)
+  * Issue #42 - More then 9 type:cloze on a card
 
 **1.6** | 30/01/2020
 
 * Solve issue #45 - Avoid printing sound tags 
+
+**1.7** | 03/03/2020
+
+* Issue #31 - Support hints as placeholder (collaboration from Lai Yu-Hsuan / raincole)
