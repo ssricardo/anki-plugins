@@ -2,7 +2,7 @@
 <html>
     <head>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-       
+        <script src="../src/a-md.js"></script>
 
         <style type="text/css">
             body {
@@ -10,34 +10,48 @@
                 color: ghostwhite;
             }
         </style>
+
+        <script type="text/javascript">
+
+
+    </script>
     </head>
 
     <body>
         <h3>File used to test scripts</h3>
-        <p id="field" class="field" contenteditable="true" 
-        style="min-height: 400px; border: 1px solid #113388;">This is an editable paragraph.</p>
+        <div id="fields">
+            <h1>Test fields</h1>
+            <hr />
+
+            <div>
+                <label>State: </label>
+                <div id="typeans1" style="width: 300px; border: 1px solid;" class="field" contenteditable="true"></div>
+            </div>
+
+            <br />
+            <div>
+                <label>Land: </label>
+                <div id="typeans2" style="width: 100%; height: 40px; border: 1px solid;" class="field" contenteditable="true"></div>
+            </div>
+        </div>
 
         <script type="text/javascript">
-            function handleMdKey(evt) {
-                let currentField = $('#field');
-                if (evt.keyCode === 13 && ! evt.shiftKey) {
-                    evt.preventDefault();
+            setInterval(() => {
+                console.log('Content: ' + $('#field').html());
+            }, 3000);
 
-                    if (currentField) {
-                        console.log('currentField');
-                        // var e = $.Event("keypress");
-                        // e.keyCode = 13;
-                        // e.which = 13;
-                        // e.shiftKey = true;
-                        // currentField.trigger(e);
-                        document.execCommand("insertText", false, "\n\n");
-                    }
-                }
-            }
+            var currentField = null;
 
-            $('.field').wrap('<pre class=\"amd\"></pre>');
-            $('.field').keypress(handleMdKey);
+            $('.field').wrap('<p class=\"amd\"></p>');
+            $('#typeans2').focus(function () {
+                currentField = $('#typeans2');
+            });
+
+            handleNoteAsMD();
+
         </script>
+
+
     </body>
     
 </html>

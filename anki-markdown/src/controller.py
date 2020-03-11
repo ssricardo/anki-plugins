@@ -106,7 +106,11 @@ class Controller:
         """
         
         # Review
-        addHook("prepareQA", self.processField)
+        from aqt import gui_hooks
+        gui_hooks.card_will_show.append(self.processField)
+        # addHook("reviewQuestion", self.processField)
+
+        Feedback.log('Review Hook set')
 
         # Editing
         addHook("setupEditorButtons", self.setupButtons)
@@ -286,9 +290,10 @@ class Controller:
 
     # ------------------------------ Review ------------------------------------------
 
-    def processField(self, inpt, card, phase, *args):
-        if self._converter.isAmdAreaPresent(inpt):  
-            res = self._converter.convertAmdAreasToMD(inpt, isTypeMode = True)
+    def processField(self, inpt:str, card, kind: str) -> str:
+        Feedback.log('processField')
+        if self._converter.isAmdAreaPresent(inpt):
+            res = self._converter.convertAmdAreasToMD(inpt, isTypeMode=True)
 
             return Style.MARKDOWN + os.linesep + res            
         return inpt

@@ -72,6 +72,11 @@ pre.amd {
     border-left: 2px solid #7e08ed;
 }
 
+.amd textarea {
+    resize: none;
+    width:95%; 
+}
+
 .amd_edit_notice {
     float: right;
     color: orange;
@@ -86,8 +91,8 @@ class Feedback:
 
     @staticmethod
     def log(*args, **kargs):
-        pass
-        # print(args, kargs)
+        # pass
+        print(args, kargs)
 
     @staticmethod
     def showInfo(*args):

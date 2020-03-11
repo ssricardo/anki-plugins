@@ -23,18 +23,40 @@ function showMarkDownNotice() {
 }
 
 function handleMdKey(evt) {
-    if (evt.keyCode === 13 && ! evt.shiftKey) {
 
-        if (currentField) {
-            document.execCommand("insertHTML", false, "\n\n");
+//    if (evt.keyCode === 13 && ! evt.shiftKey) {
+//
+//
+//        if (currentField) {
+//            console.log('Handle key - cirrent');
+//            document.execCommand("insertHTML", false, "\n\n");
+//        }
+//        return false;
+//    }
+}
+
+function convertToTextArea(field) {
+    var attrs = { };
+
+    $(field).each(function() {
+      $.each(this.attributes, function() {
+        if (this.name != 'contenteditable') {
+            attrs[this.name] = this.value;
         }
-        return false;
-    }
+      });
+    });
+
+    field.replaceWith(function () {
+        return $("<textarea />", attrs).append($(this).contents());
+    });
 }
 
 function handleNoteAsMD() {
-    $('.field').wrap('<pre class=\"amd\"></pre>');
-    $('.field').keypress(handleMdKey);
+    $('.field').wrap('<span class=\"amd\"></span>');
+
+    $.each($(".field"), function() {
+        convertToTextArea($(this));
+    });
 }
 
 // ----------------------------- Editor Previewer---------------
