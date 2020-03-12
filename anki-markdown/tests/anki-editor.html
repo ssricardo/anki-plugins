@@ -3,13 +3,14 @@
     <head>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="../src/a-md.js"></script>
+        <link rel="stylesheet" type="text/css" href="../src/a-md.css" />
 
-        <style type="text/css">
+        <!--<style type="text/css">
             body {
                 background-color: #333;
                 color: ghostwhite;
             }
-        </style>
+        </style>-->
 
         <script type="text/javascript">
 
@@ -19,6 +20,10 @@
 
     <body>
         <h3>File used to test scripts</h3>
+        <div class="buttons" id="topbutsOuter">
+            <button onclick="handleNoteAsMD();">Handle as MD</button>
+            <button onclick="setPreviewUp();">Init Preview</button>
+        </div>
         <div id="fields">
             <h1>Test fields</h1>
             <hr />
@@ -31,7 +36,7 @@
             <br />
             <div>
                 <label>Land: </label>
-                <div id="typeans2" style="width: 100%; height: 40px; border: 1px solid;" class="field" contenteditable="true"></div>
+                <div id="typeans2" style="width: 100%; height: 40px; border: 1px solid;" class="field" contenteditable="true" oninput="auto_grow(this)"></div>
             </div>
         </div>
 
@@ -42,13 +47,14 @@
 
             var currentField = null;
 
-            $('.field').wrap('<p class=\"amd\"></p>');
             $('#typeans2').focus(function () {
                 currentField = $('#typeans2');
             });
 
-            handleNoteAsMD();
-
+            function auto_grow(element) {
+                element.style.height = "5px";
+                element.style.height = (element.scrollHeight)+"px";
+            }
         </script>
 
 

@@ -22,6 +22,8 @@ from aqt import mw
 from PyQt5.QtWidgets import QMenu, QAction, QApplication
 from aqt.utils import showInfo, tooltip, showWarning
 from anki.hooks import addHook
+from aqt import gui_hooks
+
 
 # Holds references so GC does kill them
 controllerInstance = None
@@ -36,6 +38,14 @@ EDITOR_STYLES = """
 
         $(prStyle).appendTo('body');
         """.format(Style.MARKDOWN)
+
+EDITOR_STYLE_APPENDER = """
+    <style type="text/css">
+        var prStyle = `{}`;
+
+        $(prStyle).appendTo('body');
+    </style>
+        """
 
 # ---------------------------- Injected functions -------------------
 @staticmethod
@@ -74,6 +84,7 @@ class Controller:
     """
 
     JS_LOCATION = CWD + '/a-md.js'
+    CSS_LOCATION = CWD + '/a-md.css'
 
     _converter = Converter()
     _batchService = BatchService(_converter)
@@ -82,6 +93,7 @@ class Controller:
     _shortcutButton = None
     _editAsMarkdownEnabled = False
     _jsContent = None
+    _cssContent = None
 
     def __init__(self):
         self._showButton = ConfigService.read(ConfigKey.SHOW_MARKDOWN_BUTTON, bool)
@@ -90,10 +102,13 @@ class Controller:
         self._enablePreview = ConfigService.read(ConfigKey.ENABLE_PREVIEW, bool)
 
         try:
-            f = open(self.JS_LOCATION, 'r')
-            self._jsContent = f.read()
-            f.close()
-        except e:
+            with open(Controller.JS_LOCATION, 'r') as f:
+                self._jsContent = f.read()
+
+            with open(Controller.CSS_LOCATION, 'r') as fCss:
+                self._cssContent = fCss.read()
+
+        except Exception as e:
             print(e)
             Feedback.showError('An error occoured on loading Markdown Preview. You may need to restart Anki.')
 
@@ -106,10 +121,8 @@ class Controller:
         """
         
         # Review
-        from aqt import gui_hooks
-        gui_hooks.card_will_show.append(self.processField)
-        # addHook("reviewQuestion", self.processField)
 
+        gui_hooks.card_will_show.append(self.processField)
         Feedback.log('Review Hook set')
 
         # Editing
@@ -131,7 +144,17 @@ class Controller:
         def wrapper(editor):
             fn(editor)
 
-            editor.web.eval(EDITOR_STYLES)
+            # editor.web.eval(EDITOR_STYLES)
+
+            print("""
+        var prStyle = `{}`;
+
+        $(prStyle).appendTo('body');
+        """.format(self._cssContent))
+
+            editor.web.eval();
+
+            editor.web.eval("console.log('After styles');")
 
             editor.web.eval("""
                 %s

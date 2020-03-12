@@ -22,20 +22,37 @@ function showMarkDownNotice() {
     }    
 }
 
-function handleMdKey(evt) {
+function convertToTextArea(field) {
+    var attrs = { };
 
-//    if (evt.keyCode === 13 && ! evt.shiftKey) {
-//
-//
-//        if (currentField) {
-//            console.log('Handle key - cirrent');
-//            document.execCommand("insertHTML", false, "\n\n");
-//        }
-//        return false;
-//    }
+    var name = field.attr('name');
+    var id = field.attr('id');
+    var text = field.text();
+    console.log('Field: ' + name + '  ' + id);
+
+    var attrs = { };
+
+    $(field).each(function() {
+      $.each(this.attributes, function() {
+        if (this.name != 'contenteditable' || this.name == 'id') {
+            attrs[this.name] = this.value;
+        }
+      });
+    });
+
+    $("<textarea />", attrs)
+        .attr('id', 'mirror--' + id)
+        .attr('name', 'mirror--' + (name) ? name : id)
+        .val(text)
+        .keyup( function() {
+            field.text($(this).val());
+        } )
+        .insertAfter('#' + id);
+
+    field.css('display', 'none');
 }
 
-function convertToTextArea(field) {
+/*function convertToTextArea(field) {
     var attrs = { };
 
     $(field).each(function() {
@@ -47,9 +64,10 @@ function convertToTextArea(field) {
     });
 
     field.replaceWith(function () {
-        return $("<textarea />", attrs).append($(this).contents());
+        return $("<textarea />", attrs)
+            .val($(this).text());
     });
-}
+}*/
 
 function handleNoteAsMD() {
     $('.field').wrap('<span class=\"amd\"></span>');
@@ -62,39 +80,6 @@ function handleNoteAsMD() {
 // ----------------------------- Editor Previewer---------------
 
 let previewInitialized = false;
-let previewerStyle = `<style type="text/css">
-#prev_layout {
-    border: 0;
-    width: 100%;
-}
-#preview {
-}
-#prev_toggler {        
-    background-color: #777;
-    width: 20px;
-    text-align: center;
-    line-height: 1.1;
-    cursor: pointer;
-    color: #FFF;
-    vertical-align: middle;
-    padding-top: 40px;
-}
-#fd_w_prev {
-    vertical-align: top;
-}
-#col_field {
-}
-
-#preview {
-    width: 40%;
-    padding-left: 10px;
-    overflow: auto;
-}
-
-#prev_layout .field {
-    overflow: auto;
-}
-</style>`;
 
 let showMarkdown = null;
 let hideMarkdown = null;
@@ -110,7 +95,6 @@ function setPreviewUp() {
             </td>
         </tr>
     </div>`).insertAfter('#topbutsOuter');
-    $(previewerStyle).appendTo('body');
     let originalFields = $('#fields').detach();
     $('#col_field').prepend(originalFields);    
     previewInitialized = true;
