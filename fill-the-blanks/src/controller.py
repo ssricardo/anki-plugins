@@ -96,6 +96,10 @@ class Controller:
 
             if ConfigService.read(ConfigKey.IGNORE_CASE, bool):
                 self._mw.reviewer.web.eval('ignoreCaseOnFeedback();')
+
+            if ConfigService.read(ConfigKey.IGNORE_ACCENTS, bool):
+                self._mw.reviewer.web.eval('ignoreAccentsOnFeedback();')
+
         return _initReviewerWeb
 
     

@@ -1,5 +1,6 @@
 let ifEnabled = true;
 let shouldIgnoreCase = false;
+let shouldIgnoreAccents = false;
 
 function checkFieldValue(reference, field) {
     if (window.event.keyCode === 13) {
@@ -31,6 +32,11 @@ function checkFieldValue(reference, field) {
         reference = reference.toLowerCase();
     }
 
+    if (shouldIgnoreAccents) {
+        current = current.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        reference = reference.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
     if (current == reference) {
         field.addClass('st-ok');
     } else {
@@ -55,6 +61,10 @@ function disableInstantFb() {
 
 function ignoreCaseOnFeedback() {
     shouldIgnoreCase = true;
+}
+
+function ignoreAccentsOnFeedback() {
+    shouldIgnoreAccents = true;
 }
 
 function focusOnFirst() {
