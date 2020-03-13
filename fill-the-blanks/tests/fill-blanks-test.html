@@ -1,5 +1,6 @@
 <html>
     <head>
+        <meta charset="UTF-8">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="../src/fill-blanks.js"></script>
 
@@ -24,14 +25,30 @@
         <div>
             <label>País: </label>
             <input type="text" id="typeans1" onkeyup="checkFieldValue('brazil', $('#typeans1'))"
-                style="width: 120px;" />
+                style="width: 120px;" /> (brazil)
         </div>
 
         <br />
         <div>
             <label>Land: </label>
-            <input type="text" id="typeans2" onkeyup="checkFieldValue('germany', $('#typeans2'))"
-                style="width: 120px;" />
+            <input type="text" id="typeans2" onkeyup="checkFieldValue('Germany', $('#typeans2'))"
+                style="width: 120px;" /> (Germany)
+        </div>
+        <div>
+            <label>With accent: </label>
+            <input type="text" id="typeans3" onkeyup="checkFieldValue('argélia', $('#typeans3'))"
+                style="width: 120px;" /> (argélia)
+        </div>
+        <div>
+            <label>Mit umlaute: </label>
+            <input type="text" id="typeans4" onkeyup="checkFieldValue('österreich', $('#typeans4'))"
+                style="width: 120px;" /> (österreich)
+        </div>
+
+        <div style="background-color: #F5F5F5; margin-top: 30px;">
+            <button onclick="disableInstantFb()">Disable Instant Feedback</button>
+            <button onclick="ignoreCaseOnFeedback()">Ignore case</button>
+            <button onclick="ignoreAccentsOnFeedback()">Ignore accents</button>
         </div>
         
     </body>

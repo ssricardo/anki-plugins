@@ -35,6 +35,7 @@
 
 * Solve issue #45 - Avoid printing sound tags 
 
-**1.7** | 03/03/2020
+**1.7** | 13/03/2020
 
 * Issue #31 - Support hints as placeholder (collaboration from Lai Yu-Hsuan / raincole)
+* Issue #48 - Add configuration to ignore accents on Feedback 

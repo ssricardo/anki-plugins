@@ -24,10 +24,13 @@ class ConfigKey:
 
     IGNORE_CASE = 'feedback-ignore-case'
 
+    IGNORE_ACCENTS = 'feedback-ignore-accents'
+
 # ------------------------------ Service class --------------------------
 DEFAULT_CONFIG = {
     ConfigKey.FEEDBACK_ENABLED: True,
-    ConfigKey.IGNORE_CASE: False
+    ConfigKey.IGNORE_CASE: False,
+    ConfigKey.IGNORE_ACCENTS: False
 }
 
 class ConfigService:

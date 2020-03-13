@@ -16,7 +16,7 @@ The current version of Anki doesn't work well with that combination (On cloze ca
 
 This addon solves this issue.  
 
-> Note from dev: At first, I'm using it for source code blocks. Soon, I think about using for cards with language (ex: German) phases as well
+> Note from dev: At first, I'm using it for source code blocks. Soon, I think about using for cards with language (ex: German) phrases as well
 
 ## How it works
 
@@ -24,7 +24,9 @@ This addon solves this issue.
 
 ![Card editor with cloze](doc/cloze-card.png)
 
-* On the note templates editor, instead of using *cloze:fieldName*, use *type:cloze:fieldName*
+* On the note templates editor, instead of using *cloze:fieldName*, use *type:cloze:[fieldName]* 
+
+> Example with a field named "Texto"
 
 ![The card template editor](doc/card-template.png)
 
@@ -32,13 +34,11 @@ This addon solves this issue.
 
 ![Modifying to use the addon](doc/from-cloze-to-input.gif)
 
-> Note: the images have a dark background because of the Night Mode addon (this behavior has nothing to do with the *Fill the blanks* addon)
+> Note: this addon does not create a new note type. You need to either edit or duplicate an existing. Look up "type:cloze" on Anki's manual. 
 
 ## Extra feature
 
 ### Instant feedback
-
-> Enable/disable it using the configuration *feedback-enabled*
 
 While the user types in the answer, the corresponding input field changes.  
 The background color changes according to the value:  
@@ -47,13 +47,17 @@ The background color changes according to the value:
 * correct: green
 * incorrect: red
 
-> It's possible to make it case INsensitive through configuration
-
 ![Feedback](doc/intant-feedback.gif)
 
 > Note from dev: In my own tests, this is really good. It makes me try harder to get the right answer.
 
-> Note 2: On the demonstration above, it's blue(or purple?) while typing in, but that was changed to yellow
+
+**Configurations:**  
+
+It's possible to enable/disable feedback, ignore case (upper/lower) and ignore accents through configurations.
+
+For details, refer to [Configuration](src/config.md)
+
 
 ## Bugs / Suggestions / more...
 

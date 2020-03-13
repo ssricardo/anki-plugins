@@ -6,9 +6,7 @@
 # -------------------------------------------------------
 
 import os
-import json
 import re
-import shutil
 from bs4 import BeautifulSoup
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
@@ -24,8 +22,7 @@ class TypeClozeHander:
     """
 
     RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*?)?\}\}")
-    # RE_REMAINING_TEXT = re.compile(r"\{\{c\d::(.+?)\}\}")
-        
+
     def setupBindings(self, reviewer, addHook):
         self.reviewer = reviewer
 
@@ -34,7 +31,7 @@ class TypeClozeHander:
         
         # reviewer.typeAnsAnswerFilter = self.typeAnsAnswerFilter
 
-    def typeAnsQuestionFilter(self, buf):
+    def typeAnsQuestionFilter(self, buf: str) -> str:
         self.typeCorrect = None
         clozeIdx = None
         self._currentFirst = None
