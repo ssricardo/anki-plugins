@@ -1,4 +1,5 @@
 {
     "feedback-enabled": true,
-    "feedback-ignore-case": false
+    "feedback-ignore-case": false,
+    "feedback-ignore-accents": false
 }
