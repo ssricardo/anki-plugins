@@ -45,3 +45,10 @@
 
 * Handle issue on timer for previewer
   * Related issue: #21
+  
+**3.0** | 15/03/2020
+
+* Make the addon work with >= Anki 2.1.20
+* Big change on the editor, improving plain text edition
+* Disable purple indicator
+  * Related issue: #24
