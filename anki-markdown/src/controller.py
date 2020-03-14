@@ -101,6 +101,7 @@ class Controller:
         self._shortcutMenu = ConfigService.read(ConfigKey.SHORTCUT, str)
         self._shortcutButton = ConfigService.read(ConfigKey.SHORTCUT_EDIT, str)
         self._enablePreview = ConfigService.read(ConfigKey.ENABLE_PREVIEW, bool)
+        self._disableMdDecoration = ConfigService.read(ConfigKey.DISABLE_MD_STYLE, bool)
 
         try:
             with open(Controller.JS_LOCATION, 'r') as f:
@@ -147,8 +148,6 @@ class Controller:
 
             # editor.web.eval(EDITOR_STYLES)
             editor.web.eval(EDITOR_STYLE_APPENDER.format(self._cssContent));
-
-            editor.web.eval("console.log('After styles');")
 
             editor.web.eval("""
                 %s
@@ -225,8 +224,12 @@ class Controller:
 
             # Prevent default Enter behavior if as Markdown enabled
             self.setEditAsMarkdownEnabled(self._editAsMarkdownEnabled)  # initialization
+            editor.web.eval("disableAmd();")
             editor.web.eval("showMarkDownNotice();")
             editor.web.eval("handleNoteAsMD();")
+
+            if self._disableMdDecoration:
+                editor.web.eval('removeMdDecoration()')
         else:
             editor.web.eval("disableAmd();")
 

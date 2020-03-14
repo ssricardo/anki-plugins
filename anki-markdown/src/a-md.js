@@ -110,10 +110,6 @@ $(function() {
         let cFocus = currentMirror[0];
 
         if (cFocus.selectionStart || cFocus.selectionStart == '0') {
-//            cFocus.value = cFocus.value.substring(0, cFocus.selectionStart) + front +
-//                cFocus.value.substring(cFocus.selectionStart, cFocus.selectionEnd) + back +
-//                cFocus.value.substring(cFocus.selectionEnd);
-
             let newTxt = front +
                 cFocus.value.substring(cFocus.selectionStart, cFocus.selectionEnd) + back;
 
@@ -124,6 +120,11 @@ $(function() {
     }
   }
 });
+
+function removeMdDecoration() {
+    $('.amd').
+        css('border-left', 'none');
+}
 
 // ----------------------------- Editor Previewer---------------
 

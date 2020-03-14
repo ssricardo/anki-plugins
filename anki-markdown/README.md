@@ -39,7 +39,7 @@ This is done through Card Type Configuration. Thus, it's applied to all cards of
 
 In the editor there is a button *Markdown* to activate/deactivate the **Markdown mode**.  
 When enabled this will *tell* Anki that the text being edited is pre-formatted and should not be *escaped*. Otherwise, Anki converts the text to HTML (For instance, line breaks become `<br>` tags).  
-The default **shorcut** is *Ctrl+Shift+K* (may be changed in Configurations).  
+The default **shortcut** is *Ctrl+Shift+K* (may be changed in Configurations).  
 
 This won't convert the Markdown to HTML yet!
 
@@ -112,6 +112,8 @@ The following customization are available:
     * Indicates whether the Markdown button should be shown or not
 * Enable preview
     * In the editor, should the preview be shown or not?
+* Disable Add-on Decoration
+    * Won't add decoration like purple border, indication where the add-on is working
 
 > further old configuration was dropped
 
