@@ -1,4 +1,5 @@
 let mdNotice = '<div class="amd_edit_notice" title="This addon tries to prevent Anki from formatting as HTML">Markdown ON</div>';
+let amdActive = false;
 
 function pasteAmdContent(inputValue) {
     let focused = $(':focus');
@@ -22,60 +23,107 @@ function showMarkDownNotice() {
     }    
 }
 
-function convertToTextArea(field) {
+function convertToTextArea(originalField) {
     var attrs = { };
 
-    var name = field.attr('name');
-    var id = field.attr('id');
-    var text = field.text();
-    console.log('Field: ' + name + '  ' + id);
-
-    var attrs = { };
-
-    $(field).each(function() {
-      $.each(this.attributes, function() {
-        if (this.name != 'contenteditable' || this.name == 'id') {
-            attrs[this.name] = this.value;
-        }
-      });
-    });
+    var name = originalField.attr('name');
+    var id = originalField.attr('id');
+    var text = originalField.text();
 
     $("<textarea />", attrs)
         .attr('id', 'mirror--' + id)
         .attr('name', 'mirror--' + (name) ? name : id)
+        .attr('data-origin', id)
         .val(text)
-        .keyup( function() {
-            field.text($(this).val());
+        .attr('class', 'field clearfix')
+        .on('input', function(evt) {
+            if (evt.which === 27) {
+                currentField.blur();
+                return;
+            }
+            originalField.text( $(this).val() );
+
+            dispatchInput(originalField[0]);
         } )
+        .focus(function() {
+            currentField = originalField[0];
+            pycmd("focus:" + currentFieldOrdinal());
+            enableButtons();
+        })
+        .blur(function() {
+            var event = new Event('blur', {
+                bubbles: true,
+                cancelable: true,
+            });
+
+            originalField[0].dispatchEvent(event);
+        })
         .insertAfter('#' + id);
 
-    field.css('display', 'none');
+    originalField.css('display', 'none');
 }
 
-/*function convertToTextArea(field) {
-    var attrs = { };
-
-    $(field).each(function() {
-      $.each(this.attributes, function() {
-        if (this.name != 'contenteditable') {
-            attrs[this.name] = this.value;
-        }
-      });
+function dispatchInput(originalField) {
+    var event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
     });
 
-    field.replaceWith(function () {
-        return $("<textarea />", attrs)
-            .val($(this).text());
-    });
-}*/
+    originalField.dispatchEvent(event);
+}
 
 function handleNoteAsMD() {
+    if (amdActive) {
+        console.log('amd is already active');
+        return;
+    }
     $('.field').wrap('<span class=\"amd\"></span>');
 
     $.each($(".field"), function() {
         convertToTextArea($(this));
     });
+    amdActive = true;
 }
+
+function disableAmd() {
+    amdActive = false;
+}
+
+$(function() {
+  if (wrapInternal) {
+    var originalWrapInternal = wrapInternal;
+    wrapInternal = function (front, back, plainText) {
+        if (! amdActive) {
+            return originalWrapInternal(front, back, plainText);
+        }
+
+        if (! currentField) {
+            return;
+        }
+
+        let currentMirror = $('#mirror--' + currentField.id);
+        if (! currentMirror) {
+            console.warn('Anki Markdown seems not correctly sync. No mirror for : ' + currentField.id);
+            return originalWrapInternal(front, back, plainText);
+        }
+
+        let cFocus = currentMirror[0];
+
+        if (cFocus.selectionStart || cFocus.selectionStart == '0') {
+//            cFocus.value = cFocus.value.substring(0, cFocus.selectionStart) + front +
+//                cFocus.value.substring(cFocus.selectionStart, cFocus.selectionEnd) + back +
+//                cFocus.value.substring(cFocus.selectionEnd);
+
+            let newTxt = front +
+                cFocus.value.substring(cFocus.selectionStart, cFocus.selectionEnd) + back;
+
+            document.execCommand('insertText', false, newTxt);
+        } else {
+            document.execCommand('insertText', false, front + back);
+        }
+    }
+  }
+});
 
 // ----------------------------- Editor Previewer---------------
 

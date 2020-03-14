@@ -40,11 +40,12 @@ EDITOR_STYLES = """
         """.format(Style.MARKDOWN)
 
 EDITOR_STYLE_APPENDER = """
-    <style type="text/css">
-        var prStyle = `{}`;
+        var prStyle = `
+        <style type="text/css">
+            {}
+        </style>`;
 
-        $(prStyle).appendTo('body');
-    </style>
+        $(prStyle).appendTo('body');    
         """
 
 # ---------------------------- Injected functions -------------------
@@ -145,14 +146,7 @@ class Controller:
             fn(editor)
 
             # editor.web.eval(EDITOR_STYLES)
-
-            print("""
-        var prStyle = `{}`;
-
-        $(prStyle).appendTo('body');
-        """.format(self._cssContent))
-
-            editor.web.eval();
+            editor.web.eval(EDITOR_STYLE_APPENDER.format(self._cssContent));
 
             editor.web.eval("console.log('After styles');")
 
@@ -233,6 +227,8 @@ class Controller:
             self.setEditAsMarkdownEnabled(self._editAsMarkdownEnabled)  # initialization
             editor.web.eval("showMarkDownNotice();")
             editor.web.eval("handleNoteAsMD();")
+        else:
+            editor.web.eval("disableAmd();")
 
         self._updatePreview()
 

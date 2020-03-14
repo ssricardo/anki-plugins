@@ -54,6 +54,7 @@ pre.amd {
     overflow: hidden;
     min-height: 50px;
     max-height: 500px;
+    width: 98%;
 }
 
 .amd_edit_notice {

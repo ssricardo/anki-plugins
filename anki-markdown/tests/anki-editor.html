@@ -12,10 +12,7 @@
             }
         </style>-->
 
-        <script type="text/javascript">
 
-
-    </script>
     </head>
 
     <body>
@@ -43,7 +40,7 @@
         <script type="text/javascript">
             setInterval(() => {
                 console.log('Content: ' + $('#field').html());
-            }, 3000);
+            }, 30000);
 
             var currentField = null;
 
@@ -55,8 +52,27 @@
                 element.style.height = "5px";
                 element.style.height = (element.scrollHeight)+"px";
             }
-        </script>
 
+            document.getElementById('typeans2').addEventListener('input', function() {
+                console.log('The value is now ' + $('#typeans2').text());
+            });
+
+            function pycmd(input) {
+                console.log('pycmd: ' + input);
+            }
+
+            function currentFieldOrdinal() {
+                return currentField.id.substring(1);
+            }
+
+            function enableButtons() {
+                console.log('Enabled buttons fake');
+            }
+
+            function wrapInternal(f, b, pl) {
+                console.log('Original wrapINternal: ' + f + ' ' + b);
+            }
+        </script>
 
     </body>
     
