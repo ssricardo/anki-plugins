@@ -32,8 +32,8 @@ class Feedback:
 
     @staticmethod
     def log(*args, **kargs):
-        # pass
-        print(args, kargs)
+        pass
+        # print(args, kargs)
 
     @staticmethod
     def showInfo(*args):
