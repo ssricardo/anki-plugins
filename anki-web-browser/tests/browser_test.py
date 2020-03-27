@@ -33,18 +33,20 @@ class FakeEvent:
 
 class Tester(unittest.TestCase):
 
+    winSize = (500, 300)
+
     @classmethod
     def setUpClass(clz):
         pass
 
     def test_open(self):
         global mw
-        b = AwBrowser(None)
+        b = AwBrowser(None, self.winSize)
         b.open('localhost/search?', 'ricardo')
 
     def test_unload(self):
         global mw
-        b = AwBrowser(None)
+        b = AwBrowser(None, self.winSize)
         b.unload()
 
     def customSelected(self):
@@ -52,7 +54,7 @@ class Tester(unittest.TestCase):
 
     def test_textSelection(self):
         return
-        b = AwBrowser(None)
+        b = AwBrowser(None, self.winSize)
         b.setFields([
             {'name': 'Test'},
             {'name': 'Item2'}
@@ -62,16 +64,16 @@ class Tester(unittest.TestCase):
         b.contextMenuEvent(FakeEvent())
 
     def test_setFields(self):
-        b = AwBrowser(None)
+        b = AwBrowser(None, self.winSize)
         b.setFields(TestNote().fields)
         self.assertTrue(b._fields)
 
     def test_onContextMenu(self):
-        b = AwBrowser(None)
+        b = AwBrowser(None, self.winSize)
         b.contextMenuEvent(FakeEvent())
 
     def test_repeatableAction(self):
-        b = AwBrowser(None)
+        b = AwBrowser(None, self.winSize)
         b.setFields([
             {'name': 'Test'},
             {'name': 'Item2'}
@@ -86,7 +88,7 @@ class Tester(unittest.TestCase):
 
 
     def test_close(self):
-        b = AwBrowser(None)
+        b = AwBrowser(None, self.winSize)
         b.onClose()
 
     def test_installPage(self):
@@ -96,7 +98,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)    
     if '-view' in sys.argv:        
         main = QMainWindow()
-        view = AwBrowser(main)
+        view = AwBrowser(None, (500, 200))
         view.setFields({0: 'Example', 1: 'Other'})
         view.infoList = ['No action available']
 

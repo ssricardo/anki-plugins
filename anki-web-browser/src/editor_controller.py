@@ -8,17 +8,17 @@
 # ---------------------------------- Editor Control -----------------------------------
 # ---------------------------------- ================ ---------------------------------
 
+import json
+
+from PyQt5.QtWidgets import QWidget
+from anki.hooks import addHook
+from aqt.editor import Editor
+
+from .base_controller import BaseController
 from .config import service as cfg
 from .core import Feedback
-from .browser import AwBrowser
-from .no_selection import NoSelectionController, NoSelectionResult
-from .provider_selection import ProviderSelectionController
-from .base_controller import BaseController
+from .no_selection import NoSelectionResult
 
-from aqt.editor import Editor
-from anki.hooks import addHook
-from aqt.utils import openLink
-import json
 
 class EditorController(BaseController):
     _editorReference = None
@@ -85,11 +85,16 @@ class EditorController(BaseController):
 
 # ------------------------ Addon operation -------------------------
 
-    def _showBrowserMenu(self, parent = None):
+    def _showBrowserMenu(self, parent=None):
         if not parent:
             parent = self._editorReference
+        if not isinstance(parent, QWidget):
+            if parent.web:
+                parent = parent.web
+            else:
+                parent = self._ankiMw.web
 
-        self.createEditorMenu(parent.web, self.handleProviderSelection)
+        self.createEditorMenu(parent, self.handleProviderSelection)
 
     def _repeatProviderOrShowMenu(self):
         webView = self._editorReference.web

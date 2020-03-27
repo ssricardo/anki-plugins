@@ -20,7 +20,7 @@ class BaseController:
     def __init__(self, ankiMw):
         super().__init__()
         self._ankiMw = ankiMw
-        self.browser = AwBrowser.singleton(ankiMw)
+        self.browser = AwBrowser.singleton(ankiMw, cfg.getInitialWindowSize())
         self._noSelectionHandler = NoSelectionController(ankiMw)
         self._providerSelection = ProviderSelectionController()
     
@@ -66,4 +66,3 @@ class BaseController:
     @staticmethod
     def openExternalLink(target):
         raise Exception('Must be overriden')
-

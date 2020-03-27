@@ -115,6 +115,20 @@ class ConfigServiceTester(unittest.TestCase):
         self._tested.moveProvider(ch, 1, False)      # do nothing
         self.assertEqual(ch.providers[1].name, 'Facebook')
 
+    def test_getInitialWindowSizeOk(self):
+        ch = cc.ConfigHolder(initialBrowserSize="5050x30")
+        self._tested._config = ch
+        result = self._tested.getInitialWindowSize()
+        self.assertEqual(5050, result[0])
+        self.assertEqual(30, result[1])
+
+    def test_getInitialWindowSizeInvalid(self):
+        ch = cc.ConfigHolder(initialBrowserSize="3030-30")
+        self._tested._config = ch
+        result = self._tested.getInitialWindowSize()
+        self.assertEqual(850, result[0])
+        self.assertEqual(500, result[1])
+
 class ConfigControllerTester(unittest.TestCase):
 
     cc.currentLocation = os.path.dirname(os.path.realpath(__file__))

@@ -5,22 +5,19 @@
 # @author ricardo saturnino
 # ------------------------------------------------
 
-from .config import service as cfg
-from .core import Feedback
-from .browser import AwBrowser
-from .editor_controller import EditorController
-from .no_selection import NoSelectionController, NoSelectionResult
-from .provider_selection import ProviderSelectionController
-from .exception_handler import exceptionHandler
-from .base_controller import BaseController
-
-import anki
-
-from aqt.reviewer import Reviewer
-from aqt.qt import QAction
-from aqt.utils import showInfo, tooltip, showWarning, openLink
 from anki.hooks import addHook
 from aqt import mw
+from aqt.qt import QAction
+from aqt.reviewer import Reviewer
+from aqt.utils import tooltip, showWarning, openLink
+
+from .base_controller import BaseController
+from .browser import AwBrowser
+from .config import service as cfg
+from .core import Feedback
+from .editor_controller import EditorController
+from .exception_handler import exceptionHandler
+from .no_selection import NoSelectionResult
 
 # Holds references so GC doesnt kill them
 controllerInstance = None
@@ -41,14 +38,15 @@ def run():
     Feedback.showInfo = _ankiShowInfo
     Feedback.showError = _ankiShowError
     Feedback.showWarn = lambda args: tooltip('<b>Warning</b><br />' + args, 7500)
-    BaseController.openExternalLink = openLink    
-        
+    BaseController.openExternalLink = openLink
+
+    cfg.getConfig()  # Load config
     controllerInstance = ReviewController(mw)
     controllerInstance.setupBindings()
 
     editorCtrl = EditorController(mw)
 
-    if cfg._firstTime:
+    if cfg.firstTime:
         controllerInstance.browser.welcome()
 
 # ----------------------------------------------------------------------------------
@@ -63,9 +61,8 @@ class ReviewController(BaseController):
 
     def __init__(self, ankiMw):
         super(ReviewController, self).__init__(ankiMw)
-        self.browser = AwBrowser.singleton(ankiMw)
+        self.browser = AwBrowser.singleton(ankiMw.web, cfg.getInitialWindowSize())
         self.browser.setSelectionHandler(None)
-
 
     def setupBindings(self):
         addHook('AnkiWebView.contextMenuEvent', self.onReviewerHandle)
@@ -78,12 +75,10 @@ class ReviewController(BaseController):
         action.triggered.connect(self.openConfig)
         self._ankiMw.form.menuTools.addAction(action)
 
-
     def openConfig(self):
         from .config import ConfigController
         cc = ConfigController(self._ankiMw)
         cc.open()
-
 
     def wrapOnCardShift(self, originalFunction):
         """
@@ -91,6 +86,7 @@ class ReviewController(BaseController):
         Send msg to browser to cleanup its state"""
 
         ref = self
+
         def wrapped(self, focusTo=None):
             Feedback.log('Browser - CardShift')
 
@@ -120,9 +116,9 @@ class ReviewController(BaseController):
 
         def customShortcut(self):
             sList = fn(self)
-            sList.append( (cfg.getConfig().menuShortcut, \
+            sList.append((cfg.getConfig().menuShortcut, \
                 lambda: ref.createReviewerMenu(
-                    ref._ankiMw.web, ref._ankiMw.web)) )
+                    ref._ankiMw.web, ref._ankiMw.web)))
 
             sList.append( (cfg.getConfig().repeatShortcut, ref._repeatProviderOrShowMenu ) )
             return sList

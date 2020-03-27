@@ -4,21 +4,18 @@
 # Main GUI component for this addon
 # ---------------------------------------
 
+import os
 import urllib.parse
-from datetime import datetime
-from textwrap import shorten
-from .config import service as cfg
-from .core import Label, Feedback, Style
-from .provider_selection import ProviderSelectionController
-from .exception_handler import exceptionHandler
 
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtGui import QImage, QMouseEvent
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QUrl, Qt, QSize, QEvent
+from PyQt5.QtCore import QUrl, Qt, QSize
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData
+from PyQt5.QtWidgets import *
 
-import os
+from .config import service as cfg
+from .core import Label, Feedback, Style
+from .exception_handler import exceptionHandler
+from .provider_selection import ProviderSelectionController
 
 CWD = os.path.dirname(os.path.realpath(__file__))
 
@@ -86,29 +83,29 @@ class AwBrowser(QDialog):
     infoList = []
     providerList = []
     
-    def __init__(self, myParent):
+    def __init__(self, myParent: QWidget, sizingConfig: tuple):
         QDialog.__init__(self, None)
         self._parent = myParent
-        self.setupUI()
+        self.setupUI(sizingConfig)
 
         if myParent:
             def wrapClose(fn):
                 def clozeBrowser(evt):                    
                     self.close()
-                    fn(evt)
+                    return fn(evt)
                 return clozeBrowser
             myParent.closeEvent = wrapClose(myParent.closeEvent)
         
-    def setupUI(self):
+    def setupUI(self, widthHeigh: tuple):
         self.setWindowTitle(AwBrowser.TITLE)
         self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        self.setGeometry(450, 200, 800, 450)        
-        self.setMinimumWidth (640)
+        self.setGeometry(400, 200, widthHeigh[0], widthHeigh[1])
+        self.setMinimumWidth(640)
         self.setMinimumHeight(450)
         self.setStyleSheet(Style.DARK_BG)
 
         mainLayout = QVBoxLayout()
-        mainLayout.setContentsMargins(0,0,0,0)
+        mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
         self.setLayout(mainLayout)
 
@@ -192,9 +189,9 @@ class AwBrowser(QDialog):
 
 
     @classmethod
-    def singleton(cls, parent):
+    def singleton(cls, parent, sizeConfig: tuple):
         if not cls.SINGLETON:
-            cls.SINGLETON = AwBrowser(parent)
+            cls.SINGLETON = AwBrowser(parent, sizeConfig)
         return cls.SINGLETON
 
     def formatTargetURL(self, website: str, query: str = ''):

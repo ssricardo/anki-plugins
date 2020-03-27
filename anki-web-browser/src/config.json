@@ -2,7 +2,8 @@
     "keepBrowserOpened": true,
     "browserAlwaysOnTop": false,
     "useSystemBrowser": false, 
-    "menuShortcut": "Ctrl+Shift+B", 
+    "menuShortcut": "Ctrl+Shift+B",
+    "initialBrowserSize": "800x450",
     "repeatShortcut": "F10", 
     "providers": [
         {

@@ -25,16 +25,19 @@ CONFIG_FILE = 'config.json'
 class ConfigHolder:
     SHORTCUT = 'Ctrl+Shift+B'
     RP_SHORT = 'F10'
+    INITIAL_SIZE = '850x500'
 
     def __init__(self, keepBrowserOpened = True, browserAlwaysOnTop = False, menuShortcut = SHORTCUT, \
-            providers = [], repeatShortcut = RP_SHORT, useSystemBrowser = False, filteredWords = [], **kargs):
-        self.providers = [ConfigHolder.Provider(**p) for p in providers ] #providers
+                 providers=[], initialBrowserSize = INITIAL_SIZE,
+                 repeatShortcut = RP_SHORT, useSystemBrowser = False, filteredWords = [], **kargs):
+        self.providers = [ConfigHolder.Provider(**p) for p in providers]
         self.keepBrowserOpened = keepBrowserOpened
         self.browserAlwaysOnTop = browserAlwaysOnTop
         self.useSystemBrowser = useSystemBrowser
         self.menuShortcut = menuShortcut
         self.repeatShortcut = repeatShortcut
         self.filteredWords = filteredWords
+        self.initialBrowserSize = initialBrowserSize
 
     def toDict(self):
         res = dict({
@@ -44,7 +47,8 @@ class ConfigHolder:
             'menuShortcut': self.menuShortcut,
             'repeatShortcut': self.repeatShortcut, 
             'providers': [p for p in  map(lambda p: p.__dict__, self.providers)],
-            'filteredWords': self.filteredWords
+            'filteredWords': self.filteredWords,
+            'initialBrowserSize': self.initialBrowserSize
         })
         return res
 
@@ -62,7 +66,7 @@ class ConfigService:
     """
     _config = None
     _validURL = re.compile('^((http|ftp){1}s{0,1}://)([\w._/?&=%#@]|-)+{}([\w._/?&=%#+]|-)*$')
-    _firstTime = None
+    firstTime = None
 
     def getConfig(self):
         if not self._config:
@@ -128,7 +132,7 @@ class ConfigService:
             ConfigHolder.Provider('Pixabay', 'https://pixabay.com/en/photos/?q={}&image_type=all')]
 
         self.__writeToFile(conf)
-        self._firstTime = True
+        self.firstTime = True
         return conf
 
 
@@ -159,7 +163,8 @@ class ConfigService:
             Checks types and the URL from the providers
         """
 
-        checkedTypes = [(config, ConfigHolder), (config.keepBrowserOpened, bool), (config.browserAlwaysOnTop, bool), (config.useSystemBrowser, bool), (config.providers, list)]
+        checkedTypes = [(config, ConfigHolder), (config.keepBrowserOpened, bool), (config.browserAlwaysOnTop, bool),
+                        (config.useSystemBrowser, bool), (config.providers, list)]
         for current, expected in checkedTypes:
             if not isinstance(current, expected):
                 raise ValueError('{} should be {}'.format(current, expected))
@@ -199,6 +204,15 @@ class ConfigService:
             follow = pList[index + 1]
             pList[index + 1] = item
             pList[index] = follow
+
+    reDimmentions = re.compile(r'\d+x\d+', re.DOTALL)
+
+    def getInitialWindowSize(self) -> tuple:
+        cValue = self._config.initialBrowserSize if hasattr(self._config, 'initialBrowserSize') else None
+        if cValue:
+            if self.reDimmentions.findall(cValue):
+                return tuple(map(lambda i: int(i), cValue.split('x')))
+        return tuple(map(lambda i: int(i), self._config.INITIAL_SIZE.split('x')))
 
     
 # ------------------------------ View Controller --------------------------
