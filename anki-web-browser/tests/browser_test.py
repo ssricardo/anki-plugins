@@ -44,10 +44,10 @@ class Tester(unittest.TestCase):
         b = AwBrowser(None, self.winSize)
         b.open('localhost/search?', 'ricardo')
 
-    def test_unload(self):
+    def test_clearContext(self):
         global mw
         b = AwBrowser(None, self.winSize)
-        b.unload()
+        b.clearContext()
 
     def customSelected(self):
         return 'Selecionado!'

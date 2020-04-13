@@ -99,7 +99,7 @@ class ReviewController(BaseController):
             if not ref.browser:
                 return
             
-            ref.browser.unload()
+            ref.browser.clearContext()
             if not cfg.getConfig().keepBrowserOpened:
                 ref.browser.close()
 
@@ -147,7 +147,7 @@ class ReviewController(BaseController):
 
     @exceptionHandler
     def createReviewerMenu(self, webView, menu):
-        'Handles context menu event on Reviewer'
+        """Handles context menu event on Reviewer"""
 
         self._providerSelection.showCustomMenu(menu, self.handleProviderSelection)
 
@@ -163,12 +163,6 @@ class ReviewController(BaseController):
                 if noSelectionResult.value < len(self._currentNote.fields):
                     Feedback.log('USE_FIELD {}: {}'.format(noSelectionResult.value, self._currentNote.fields[noSelectionResult.value]))
                     return self._filterQueryValue(self._currentNote.fields[noSelectionResult.value])
-
-        note = self._currentNote
-        fieldList = note.model()['flds']
-        fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
-        self._noSelectionHandler.setFields(fieldsNames)
-        self._noSelectionHandler.handle(self.handleNoSelectionResult)
 
         return None
 
@@ -194,9 +188,7 @@ class ReviewController(BaseController):
         """
 
         if self._ankiMw.reviewer and self._ankiMw.reviewer.card:
-            note = self._ankiMw.reviewer.card.note()
             self.createReviewerMenu(webView, menu)
-
 
     def beforeOpenBrowser(self):
         self.browser.setFields(None)   # clear fields

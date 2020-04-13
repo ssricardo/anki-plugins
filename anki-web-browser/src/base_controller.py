@@ -23,7 +23,7 @@ class BaseController:
         self.browser = AwBrowser.singleton(ankiMw, cfg.getInitialWindowSize())
         self._noSelectionHandler = NoSelectionController(ankiMw)
         self._providerSelection = ProviderSelectionController()
-    
+
     @exceptionHandler
     def _repeatProviderOrShowMenu(self, webView):
         query = self._getQueryValue(webView)
@@ -58,7 +58,7 @@ class BaseController:
             return
         
         self.beforeOpenBrowser()
-        self.browser.open(website, query)
+        self.browser.open(website, query, True)
 
     def beforeOpenBrowser(self):
         raise Exception('Must be overriden')

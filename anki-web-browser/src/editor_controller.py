@@ -26,7 +26,7 @@ class EditorController(BaseController):
 
     def __init__(self, ankiMw):
         super(EditorController, self).__init__(ankiMw)
-        self.browser.setSelectionHandler(self.handleSelection)
+
         self.setupBindings()
 
 # ------------------------ Anki interface ------------------
@@ -34,38 +34,25 @@ class EditorController(BaseController):
     def setupBindings(self):
         addHook('EditorWebView.contextMenuEvent', self.onEditorHandle)
         addHook("setupEditorShortcuts", self.setupShortcuts)
+        addHook("loadNote", self.newLoadNote)
 
-        Editor.loadNote = self.wrapOnLoadNote(Editor.loadNote)
+    def newLoadNote(self, editor: Editor):
+        """ Listens when the current showed card is changed.
+            Send msg to browser to cleanup its state"""
 
+        Feedback.log('loadNote')
 
-    def wrapOnLoadNote(self, originalFunction):
-        """
-        Listens when the current showed card is changed. 
-        Send msg to browser to cleanup its state"""
+        self._editorReference = editor
+        if not self.browser:
+            return
 
-        ref = self
-        def wrapped(self, focusTo=None):
-            originalResult = None
-            
-            if focusTo:
-                originalResult = originalFunction(self, focusTo)
-            else:
-                originalResult = originalFunction(self)
+        if self._currentNote == self._editorReference.note:
+            return
 
-            if not ref.browser:
-                return
-
-            if ref._currentNote == ref._editorReference.note:
-                return
-            
-            ref._currentNote = ref._editorReference.note
-            ref.browser.unload()
-            if not cfg.getConfig().keepBrowserOpened:
-                ref.browser.close()
-
-            return originalResult
-
-        return wrapped
+        self._currentNote = self._editorReference.note
+        self.browser.clearContext()
+        if not cfg.getConfig().keepBrowserOpened:
+            self.browser.close()
 
 
     def onEditorHandle(self, webView, menu):
@@ -121,7 +108,6 @@ class EditorController(BaseController):
         self._currentNote = self._editorReference.note
         self.openInBrowser(query)
 
-
     def _getQueryValue(self, webview):
         if webview.hasSelection():
             return self._filterQueryValue(webview.selectedText())
@@ -134,6 +120,7 @@ class EditorController(BaseController):
                     Feedback.log('USE_FIELD {}: {}'.format(noSelectionResult.value, self._currentNote.fields[noSelectionResult.value]))
                     return self._filterQueryValue(self._currentNote.fields[noSelectionResult.value])
 
+        self.browser.setSelectionHandler(self.handleSelection)
         note = webview.editor.note
         fieldList = note.model()['flds']
         fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
@@ -158,20 +145,20 @@ class EditorController(BaseController):
 
 # ---------------------------------- --------------- ---------------------------------
     def beforeOpenBrowser(self):
+        self.browser.setSelectionHandler(self.handleSelection)
         note = self._currentNote
         fieldList = note.model()['flds']
         fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
         self.browser.infoList = ['No action available', 'Required: Text selected or link to image']
         self.browser.setFields(fieldsNames)
 
-
-    def handleSelection(self, fieldIndex, value, isUrl = False):
+    def handleSelection(self, fieldIndex, value, isUrl=False):
         """
             Callback from the web browser. 
             Invoked when there is a selection coming from the browser. It needs to be delivered to a given field
         """
 
-        if self._currentNote != self._editorReference.note:
+        if self._editorReference and self._currentNote != self._editorReference.note:
             Feedback.showWarn("""Inconsistent state found. 
             The current note is not the same as the Web Browser reference. 
             Try closing and re-opening the browser""")
@@ -204,7 +191,7 @@ class EditorController(BaseController):
         self._editorReference.web.eval("setFormat('inserthtml', %s);" % json.dumps(imgReference))
 
     def handleTextSelection(self, fieldIndex, value):
-        'Adds the selected value to the given field of the current note'
+        """Adds the selected value to the given field of the current note"""
 
         newValue = self._currentNote.fields[fieldIndex] + '\n ' + value
         self._currentNote.fields[fieldIndex] = newValue

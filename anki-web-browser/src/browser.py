@@ -198,7 +198,7 @@ class AwBrowser(QDialog):
         return website.format(urllib.parse.quote(query, encoding='utf8'))
 
     @exceptionHandler
-    def open(self, website, query: str):
+    def open(self, website, query: str, bringUp=False):
         """
             Loads a given page with its replacing part with its query, and shows itself
         """
@@ -206,19 +206,28 @@ class AwBrowser(QDialog):
         self._context = query
         self._updateContextWidget()        
         target = self.formatTargetURL(website, query)
-        self._web.load(QUrl( target ))
-        self._itAddress.setText(target)
 
-        self.show()
-        self.raise_()
-        return self._web
+        self.openUrl(target)
 
-    def unload(self):
-        try:
-            self._web.setHtml(BLANK_PAGE)
-            self._itAddress.setText('about:blank')
-        except (RuntimeError) as err:
-            pass
+        if bringUp:
+            self.show()
+            self.raise_()
+
+    def openUrl(self, address: str, newTab=False):
+        if self._tabs.count() == 0 or newTab:
+            self.add_new_tab(QUrl(address), 'Loading...')
+        elif self._currentWeb:
+            self._currentWeb.setUrl(QUrl(address))
+
+    def clearContext(self):
+        numTabs = self._tabs.count()
+        if numTabs == 0:
+            return
+        for tb in range(numTabs, 0, -1):
+            self.close_current_tab(tb - 1)
+
+        self._context = None
+        self._updateContextWidget()
 
     def onClose(self):
         self._parent = None
@@ -274,6 +283,11 @@ class AwBrowser(QDialog):
 
     @exceptionHandler
     def reOpenSameQuery(self, website):
+        self.open(website, self._context)
+
+    @exceptionHandler
+    def reOpenQueryNewTab(self, website):
+        self.add_new_tab()
         self.open(website, self._context)
 
 
