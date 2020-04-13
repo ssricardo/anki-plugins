@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Some tests here</title>
+</head>
+<body>
+
+    <script type="text/javascript">
+         function createScript(fileName, userId) {
+                var script = document.createElement("script");
+                script.type = "text/javascript";
+                script.id = "nightlyScript";
+                script.src = "/home/ricardo/projects/ricardo/anki-plugins/anki-web-browser/src/resources/nightly.min.js";
+                document.getElementsByTagName("head")[0].appendChild(script);
+            }
+
+            console.log('created FN');
+            createScript();
+    </script>
+
+</body>
+</html>

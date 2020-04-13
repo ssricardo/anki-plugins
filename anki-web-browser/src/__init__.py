@@ -16,8 +16,8 @@ try:
     # if not '--test' in sys.argv:
 
     # Uncomment to produce more logs on console
-    # from .core import Feedback
-    # Feedback.log = logToConsole
+    from .core import Feedback
+    Feedback.log = logToConsole
 
     from .review_controller import run
     run()

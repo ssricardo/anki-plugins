@@ -9,13 +9,16 @@ import traceback
 from .core import Feedback
 
 CWD = os.path.dirname(os.path.realpath(__file__))
+RAISE_EXCEPTION = False     # Util on tests
 CONFIG_FILE = '/awb-exception.log'
 
 def exceptionHandler(fn):
     def handler(*args, **kargs):
         try:
             return fn(*args, **kargs)
-        except Exception:
+        except Exception as e:
+            exc_type, exc_value, _ = sys.exc_info()
+            Feedback.log(exc_value)
             infoCode = tryGettingInfo()
 
             fileInfo = ''
@@ -28,8 +31,10 @@ def exceptionHandler(fn):
             except:
                 pass
 
-            Feedback.showWarn("Unexpected event: it wasn't possible to complete the operation."
-                + fileInfo)
+            Feedback.showWarn("Unexpected event: it wasn't possible to complete the operation." + fileInfo)
+
+            if RAISE_EXCEPTION:
+                raise e
 
     return handler
 

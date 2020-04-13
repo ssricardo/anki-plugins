@@ -103,7 +103,7 @@ class ReviewController(BaseController):
             if not cfg.getConfig().keepBrowserOpened:
                 ref.browser.close()
 
-            if (ref._ankiMw.reviewer and ref._ankiMw.reviewer.card):
+            if ref._ankiMw.reviewer and ref._ankiMw.reviewer.card:
                 ref._currentNote = ref._ankiMw.reviewer.card.note()
 
             return originalResult
@@ -192,4 +192,5 @@ class ReviewController(BaseController):
 
     def beforeOpenBrowser(self):
         self.browser.setFields(None)   # clear fields
-        self.browser.infoList = ['No action available on Reviewer mode']
+        self.browser.setInfoList(['No action available on Reviewer mode'])
+

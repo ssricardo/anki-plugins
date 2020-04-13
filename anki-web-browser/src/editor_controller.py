@@ -149,7 +149,7 @@ class EditorController(BaseController):
         note = self._currentNote
         fieldList = note.model()['flds']
         fieldsNames = {ind: val for ind, val in enumerate(map(lambda i: i['name'], fieldList))}
-        self.browser.infoList = ['No action available', 'Required: Text selected or link to image']
+        self.browser.setInfoList(['No action available', 'Required: Text selected or link to image'])
         self.browser.setFields(fieldsNames)
 
     def handleSelection(self, fieldIndex, value, isUrl=False):

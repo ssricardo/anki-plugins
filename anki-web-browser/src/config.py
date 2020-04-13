@@ -79,7 +79,7 @@ class ConfigService:
         try:
             conf = self._readFileToObj()
         except:
-            conf = False        
+            conf = False
 
         if not conf and createIfNotExists:
             conf = self._createConfiguration()
@@ -87,6 +87,7 @@ class ConfigService:
         return conf
 
     def _readFileToObj(self):
+        cFile = currentLocation + '/' + CONFIG_FILE
         with open(currentLocation + '/' + CONFIG_FILE) as f:
             obj = json.load(f)
             Feedback.log(obj)

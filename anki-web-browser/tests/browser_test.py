@@ -13,6 +13,9 @@ from PyQt5.QtWidgets import QMenu, QApplication, QMainWindow
 from PyQt5.QtCore import QPoint
 from src.core import Feedback
 
+from src import exception_handler
+exception_handler.RAISE_EXCEPTION = True
+
 def testLog(*args, **vargs):
     print(args, vargs)
 
@@ -95,19 +98,22 @@ class Tester(unittest.TestCase):
         pass
 
 if __name__ == '__main__':
+    sys.argv.append("--disable-web-security")
+
     app = QApplication(sys.argv)    
     if '-view' in sys.argv:        
         main = QMainWindow()
-        view = AwBrowser(None, (500, 200))
+        view = AwBrowser(main, (800, 400))
         view.setFields({0: 'Example', 1: 'Other'})
-        view.infoList = ['No action available']
+        view.setInfoList(['No action available'])
 
         def handlerFn(f, v, l):
             print('Field: %s' % (f))
             print('Link/Value: %s / %s' % (l, v))
 
-        view._selectionHandler = handlerFn
-        view.open('https://www.google.com/search?tbm=isch&tbs=isz:i&q={}', 'calendar')
+        view.setSelectionHandler(handlerFn)
+        view.open('https://www.google.com/search?tbm=isch&tbs=isz:i&q={}', 'calendar', True)
+
         sys.exit(app.exec_())
     else:
         unittest.main()

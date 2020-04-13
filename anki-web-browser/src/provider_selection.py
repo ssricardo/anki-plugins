@@ -8,6 +8,7 @@ from .core import Label, Feedback, Style
 from .config import service as cfgService
 from PyQt5.QtWidgets import QMenu, QAction
 
+
 class ProviderSelectionController:
 
     _providerList = []

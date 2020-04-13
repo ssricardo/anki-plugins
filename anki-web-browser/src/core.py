@@ -6,6 +6,8 @@
 # @author ricardo saturnino
 # ------------------------------------------------
 
+import os
+CWD = os.path.dirname(os.path.realpath(__file__))
 
 class Label:
     CARD_MENU = 'Search on &Web'
@@ -45,6 +47,18 @@ class Style:
         }
         QLineEdit {
             color: #000;
+        }
+        QTabBar::tab {
+            background-color: #243756;
+            color: #FFF;
+            padding: 7px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            border: 1px solid lightgray;
+        }
+        QTabBar::tab:selected { 
+          background: #2c4268; 
+          margin-bottom: -1px; 
         }
     """
     

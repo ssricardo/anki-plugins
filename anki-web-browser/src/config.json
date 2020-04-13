@@ -25,6 +25,22 @@
         {
             "name": "Pixabay",
             "url": "https://pixabay.com/en/photos/?q={}&image_type=all"
+        },
+        {
+            "name": "SeekPng",
+            "url": "https://www.seekpng.com/search.html?color=&sizetype=s&type=&k={}"
+        },
+        {
+            "name": "Dict.cc",
+            "url": "https://www.dict.cc/?s={}"
+        },
+        {
+            "name": "Pons DE",
+            "url": "https://en.pons.com/translate/german-english/{}#examples"
+        },
+        {
+            "name": "Leo Dict",
+            "url": "https://dict.leo.org/englisch-deutsch/{}"
         }
     ],
     "filteredWords": []

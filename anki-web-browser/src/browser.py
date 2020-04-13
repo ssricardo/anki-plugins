@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
 
-# Web View, which creates an embedded web browser component
+# --------------------------------------------------------
+# Web browser main dialog
 # Main GUI component for this addon
-# ---------------------------------------
+# --------------------------------------------------------
 
 import os
 import urllib.parse
 
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import QUrl, Qt, QSize
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData
+from PyQt5.QtCore import QUrl, Qt, QSize, QObject
+from PyQt5.QtGui import QColor
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData, QWebEngineSettings, QWebEnginePage
 from PyQt5.QtWidgets import *
 
 from .config import service as cfg
-from .core import Label, Feedback, Style
+from .core import Label, Feedback, Style, CWD
 from .exception_handler import exceptionHandler
 from .provider_selection import ProviderSelectionController
 
-CWD = os.path.dirname(os.path.realpath(__file__))
+from .browser_context_menu import AwBrowserMenu, StandardMenuOption
+from .browser_engine import AwWebEngine
 
 BLANK_PAGE = """
     <html>
@@ -66,7 +69,9 @@ WELCOME_PAGE = """
     </html>
 """
 
-class AwBrowser(QDialog):
+
+# noinspection PyPep8Naming
+class AwBrowser(QMainWindow):
     """
         Customization and configuration of a web browser to run within Anki
     """
@@ -75,31 +80,43 @@ class AwBrowser(QDialog):
     TITLE = 'Anki :: Web Browser Addon'
 
     _parent = None
-    _fields = []
-    _selectionHandler = None
     _web = None
     _context = None
-    _lastAssignedField = None
-    infoList = []
+    _currentWeb = None
+
     providerList = []
-    
+
     def __init__(self, myParent: QWidget, sizingConfig: tuple):
         QDialog.__init__(self, None)
         self._parent = myParent
         self.setupUI(sizingConfig)
+        self._setupShortcuts()
+
+        self._menuDelegator = AwBrowserMenu([
+            StandardMenuOption('Open in new tab', lambda add: self.openUrl(add, True))
+        ])
 
         if myParent:
             def wrapClose(fn):
-                def clozeBrowser(evt):                    
+                def kloseBrowser(evt):
                     self.close()
+                    self.deleteLater()
                     return fn(evt)
-                return clozeBrowser
+                return kloseBrowser
             myParent.closeEvent = wrapClose(myParent.closeEvent)
-        
-    def setupUI(self, widthHeigh: tuple):
+
+    @classmethod
+    def singleton(cls, parent, sizeConfig: tuple):
+        if not cls.SINGLETON:
+            cls.SINGLETON = AwBrowser(parent, sizeConfig)
+        return cls.SINGLETON
+
+    # ======================================== View setup =======================================
+
+    def setupUI(self, widthHeight: tuple):
         self.setWindowTitle(AwBrowser.TITLE)
         self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        self.setGeometry(400, 200, widthHeigh[0], widthHeigh[1])
+        self.setGeometry(400, 200, widthHeight[0], widthHeight[1])
         self.setMinimumWidth(640)
         self.setMinimumHeight(450)
         self.setStyleSheet(Style.DARK_BG)
@@ -107,36 +124,33 @@ class AwBrowser(QDialog):
         mainLayout = QVBoxLayout()
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
-        self.setLayout(mainLayout)
-
-        self._web = QWebEngineView(self)
-        self._web.contextMenuEvent = self.contextMenuEvent
-        self._web.page().loadStarted.connect(self.onStartLoading)
-        self._web.page().loadFinished.connect(self.onLoadFinish)
-        self._web.page().loadProgress.connect(self.onProgress)
-        self._web.page().urlChanged.connect(self.onPageChange)
 
         # -------------------- Top / toolbar ----------------------
         navtbar = QToolBar("Navigation")
-        navtbar.setIconSize( QSize(16,16) )
+        navtbar.setIconSize(QSize(16, 16))
         mainLayout.addWidget(navtbar)
 
-        backBtn = QAction( QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-back.png')), "Back", self)
-        backBtn.setStatusTip("Back to previous page")
-        backBtn.triggered.connect( self._web.back )
-        navtbar.addAction(backBtn)        
+        self.backBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-back.png')), "Back", self)
+        self.backBtn.setStatusTip("Back to previous page")
+        navtbar.addAction(self.backBtn)
+        self.backBtn.triggered.connect(self._onBack)
 
-        self.forwardBtn = QAction( QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-forward.png')), "Forward", self)
+        self.forwardBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-forward.png')), "Forward", self)
         self.forwardBtn.setStatusTip("Next visited page")
-        self.forwardBtn.triggered.connect( self._web.forward )
         navtbar.addAction(self.forwardBtn)
+        self.forwardBtn.triggered.connect(self._onForward)
 
-        refreshBtn = QAction( QtGui.QIcon(os.path.join(CWD, 'assets', 'reload.png')), "Reload", self)
-        refreshBtn.setStatusTip("Reload")
-        refreshBtn.triggered.connect( self._web.reload )
-        navtbar.addAction(refreshBtn)
+        self.refreshBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'reload.png')), "Reload", self)
+        self.refreshBtn.setStatusTip("Reload")
+        navtbar.addAction(self.refreshBtn)
+        self.refreshBtn.triggered.connect(self._onReload)
 
         self.createProvidersMenu(navtbar)
+
+        self.newTabBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'plus-signal.png')), "New Tab", self)
+        self.newTabBtn.setStatusTip("New tab")
+        navtbar.addAction(self.newTabBtn)
+        self.newTabBtn.triggered.connect(lambda: self.add_new_tab())
 
         self._itAddress = QtWidgets.QLineEdit(self)
         self._itAddress.setObjectName("itSite")
@@ -144,26 +158,40 @@ class AwBrowser(QDialog):
         self._itAddress.returnPressed.connect(self._goToAddress)
         navtbar.addWidget(self._itAddress)
 
-        cbGo = QAction( QtGui.QIcon(os.path.join(CWD, 'assets','go-icon.png')), "Go", self)
+        cbGo = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'go-icon.png')), "Go", self)
         cbGo.setObjectName("cbGo")
         navtbar.addAction(cbGo)
         cbGo.triggered.connect(self._goToAddress)
 
-        self.stopBtn = QAction( QtGui.QIcon(os.path.join(CWD, 'assets','stop.png')), "Stop", self)
+        self.stopBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'stop.png')), "Stop", self)
         self.stopBtn.setStatusTip("Stop loading")
-        self.stopBtn.triggered.connect( self._web.stop )
+        self.stopBtn.triggered.connect(self._onStopPressed)
+
         navtbar.addAction(self.stopBtn)
+
+
         # -------------------- Center ----------------------
-        mainLayout.addWidget(self._web)
+        widget = QWidget()
+        widget.setLayout(mainLayout)
+
+        self.setCentralWidget(widget)
+
+        self._tabs = QTabWidget()
+        self._tabs.setDocumentMode(True)
+        self._tabs.currentChanged.connect(self.current_tab_changed)
+        self._tabs.setTabsClosable(True)
+        self._tabs.tabCloseRequested.connect(self.close_current_tab)
+
+        mainLayout.addWidget(self._tabs)
         # -------------------- Bottom bar ----------------------
-        
+
         bottomWidget = QtWidgets.QWidget(self)
         bottomWidget.setFixedHeight(30)
 
         bottomLayout = QtWidgets.QHBoxLayout(bottomWidget)
         bottomLayout.setObjectName("bottomLayout")
         bottomWidget.setStyleSheet('color: #FFF;')
-        
+
         lbSite = QtWidgets.QLabel(bottomWidget)
         lbSite.setObjectName("label")
         lbSite.setText("Context: ")
@@ -174,7 +202,7 @@ class AwBrowser(QDialog):
         self.ctxWidget = QtWidgets.QLabel(bottomWidget)
         self.ctxWidget.width = 300
         self.ctxWidget.setStyleSheet('text-align: left;')
-        bottomLayout.addWidget(self.ctxWidget)        
+        bottomLayout.addWidget(self.ctxWidget)
 
         self._loadingBar = QtWidgets.QProgressBar(bottomWidget)
         self._loadingBar.setFixedWidth(100)
@@ -187,12 +215,76 @@ class AwBrowser(QDialog):
         if cfg.getConfig().browserAlwaysOnTop:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
+    def _setupShortcuts(self):
+        newTabShort = QShortcut(QtGui.QKeySequence("Ctrl+t"), self)
+        newTabShort.activated.connect(self.add_new_tab)
+        closeTabShort = QShortcut(QtGui.QKeySequence("Ctrl+w"), self)
+        closeTabShort.activated.connect(lambda: self.close_current_tab(self._tabs.currentIndex()))
+        providersShort = QShortcut(QtGui.QKeySequence("Ctrl+p"), self)
+        providersShort.activated.connect(lambda: self.newProviderMenu())
+        providerNewTab = QShortcut(QtGui.QKeySequence("Ctrl+n"), self)
+        providerNewTab.activated.connect(lambda: self.newProviderMenu(True))
 
-    @classmethod
-    def singleton(cls, parent, sizeConfig: tuple):
-        if not cls.SINGLETON:
-            cls.SINGLETON = AwBrowser(parent, sizeConfig)
-        return cls.SINGLETON
+    # ======================================== Tabs =======================================
+
+    def add_new_tab(self, qurl=None, label="Blank"):
+
+        if qurl is None:
+            qurl = QUrl('')
+
+        browser = AwWebEngine(self)
+        browser.setUrl(qurl)
+        browser.contextMenuEvent = self._menuDelegator.contextMenuEvent
+        browser.page().loadStarted.connect(self.onStartLoading)
+        browser.page().loadFinished.connect(self.onLoadFinish)
+        browser.page().loadProgress.connect(self.onProgress)
+        browser.page().urlChanged.connect(self.onPageChange)
+
+        i = self._tabs.addTab(browser, label)
+        self._tabs.setCurrentIndex(i)
+        self._currentWeb = self._tabs.currentWidget()
+        self._menuDelegator.setCurrentWeb(self._currentWeb)
+
+        browser.urlChanged.connect(lambda qurl, browser=browser:
+                                   self.update_urlbar(qurl, browser))
+
+        browser.loadFinished.connect(self.updateTabTitle(i, browser))
+
+    def current_tab_changed(self, i):
+        self._currentWeb = self._tabs.currentWidget()
+        self._menuDelegator.setCurrentWeb(self._tabs.currentWidget())
+
+        if self._tabs.currentWidget():
+            qurl = self._tabs.currentWidget().url()
+            self.update_urlbar(qurl, self._tabs.currentWidget())
+
+        self._updateButtons()
+
+    def close_current_tab(self, i):
+        Feedback.log('Close current tab with index: %d' % i)
+        if self._tabs.count() < 2:
+            if self._currentWeb:
+                self._currentWeb.setUrl(QUrl('about:blank'))
+            return
+
+        self._tabs.currentWidget().deleteLater()
+        self._tabs.setCurrentWidget(None)
+        self._tabs.removeTab(i)
+
+    def update_urlbar(self, q, browser=None):
+        if browser != self._tabs.currentWidget():
+            return
+
+        self._itAddress.setText(q.toString())
+        self._itAddress.setCursorPosition(0)
+
+    def updateTabTitle(self, index: int, browser: QWebEngineView):
+        def fn():
+            title = browser.page().title() if len(browser.page().title()) < 18 else (browser.page().title()[:15] + '...')
+            self._tabs.setTabText(index, title)
+        return fn
+
+    # =================================== General control ======================
 
     def formatTargetURL(self, website: str, query: str = ''):
         return website.format(urllib.parse.quote(query, encoding='utf8'))
@@ -204,7 +296,7 @@ class AwBrowser(QDialog):
         """
 
         self._context = query
-        self._updateContextWidget()        
+        self._updateContextWidget()
         target = self.formatTargetURL(website, query)
 
         self.openUrl(target)
@@ -230,38 +322,54 @@ class AwBrowser(QDialog):
         self._updateContextWidget()
 
     def onClose(self):
-        self._parent = None
-        self._web.close()
-        self.close()
+        self._currentWeb.setUrl(QUrl('about:blank'))
+        self._currentWeb = None
+        for c in self._tabs.count():
+            c.close()
+        super().close()
 
     def onStartLoading(self):
         self.stopBtn.setEnabled(True)
         self._loadingBar.setProperty("value", 1)
 
-    def onProgress(self, prog):
-        self._loadingBar.setProperty("value", prog)
+    def onProgress(self, progress: int):
+        self._loadingBar.setProperty("value", progress)
 
     def onLoadFinish(self, result):
-        self.stopBtn.setDisabled(True)    
+        self.stopBtn.setDisabled(True)
         self._loadingBar.setProperty("value", 100)
 
-        if not result:
-            Feedback.log('No result on loading page! ')
+    def _updateButtons(self):
+        isLoading: bool = self._currentWeb and self._currentWeb.isLoading
+        self.stopBtn.setEnabled(isLoading)
+        self.forwardBtn.setEnabled(self._currentWeb and self._currentWeb.history().canGoForward())
 
     def _goToAddress(self):
-        q = QUrl( self._itAddress.text() )
+        q = QUrl(self._itAddress.text())
         if q.scheme() == "":
             q.setScheme("http")
 
-        self._web.load(q)
-        self._web.show()
-    
+        self._currentWeb.load(q)
+        self._currentWeb.show()
+
     def onPageChange(self, url):
         if url and url.toString().startswith('http'):
             self._itAddress.setText(url.toString())
-        self.forwardBtn.setEnabled( self._web.history().canGoForward() ) 
+        self.forwardBtn.setEnabled(self._currentWeb.history().canGoForward())
 
-    def welcome(self):        
+    def _onBack(self, *args):
+        self._currentWeb.back()
+
+    def _onForward(self, *args):
+        self._currentWeb.forward()
+
+    def _onReload(self, *args):
+        self._currentWeb.reload()
+
+    def _onStopPressed(self):
+        self._currentWeb.stop()
+
+    def welcome(self):
         self._web.setHtml(WELCOME_PAGE)
         self._itAddress.setText('about:blank')
         self.show()
@@ -270,16 +378,22 @@ class AwBrowser(QDialog):
     def _updateContextWidget(self):
         self.ctxWidget.setText(self._context)
 
-# ---------------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------------
     def createProvidersMenu(self, parentWidget):
-        providerBtn = QAction( QtGui.QIcon(os.path.join(CWD, 'assets', 'gear-icon.png')), "Providers", parentWidget)
+        providerBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'gear-icon.png')), "Providers", parentWidget)
         providerBtn.setStatusTip("Search with Provider")
-        providerBtn.triggered.connect( lambda: self.newProviderMenu(providerBtn) )
+        providerBtn.triggered.connect(lambda: self.newProviderMenu())
         parentWidget.addAction(providerBtn)
 
-    def newProviderMenu(self, parentBtn):
+        multiBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'multi-cogs.png')), "Providers in New tab", parentWidget)
+        multiBtn.setStatusTip("Open providers in new tab")
+        multiBtn.triggered.connect(lambda: self.newProviderMenu(True))
+        parentWidget.addAction(multiBtn)
+
+    def newProviderMenu(self, newTab=False):
         ctx = ProviderSelectionController()
-        ctx.showCustomMenu(parentBtn.parentWidget(), self.reOpenSameQuery)
+        callBack = self.reOpenQueryNewTab if newTab else self.reOpenSameQuery
+        ctx.showCustomMenu(self._itAddress, callBack)
 
     @exceptionHandler
     def reOpenSameQuery(self, website):
@@ -290,132 +404,19 @@ class AwBrowser(QDialog):
         self.add_new_tab()
         self.open(website, self._context)
 
-
-# ------------------------------------ Menu ---------------------------------------
-
-    def _makeMenuAction(self, field, value, isLink):
-        """
-            Creates correct operations for the context menu selection.
-            Only with lambda, it would repeat only the last element
-        """
-
-        def _processMenuSelection():
-            self._lastAssignedField = field
-            self._selectionHandler(field, value, isLink)
-
-        return _processMenuSelection
-
-
-    def contextMenuEvent(self, evt):
-        """
-            Handles the context menu in the web view. 
-            Shows and handle options (from field list), only if in edit mode.
-        """
-
-        if not (self._fields and self._selectionHandler):
-            return self.createInfoMenu(evt)
-
-        isLink = False
-        value = None
-        if self._web.selectedText():
-            isLink = False
-            value = self._web.selectedText()
-        else:
-            if (self._web.page().contextMenuData().mediaType() == QWebEngineContextMenuData.MediaTypeImage
-                    and self._web.page().contextMenuData().mediaUrl()):
-                isLink = True
-                value = self._web.page().contextMenuData().mediaUrl()
-                Feedback.log('Link: '+ value.toString())
-                Feedback.log('toLocal: ' + value.toLocalFile())             
-
-                if not self._checkSuffix(value):
-                    return
-
-        if not value:
-            Feedback.log('No value')
-            return self.createInfoMenu(evt)
-
-
-        if QApplication.keyboardModifiers() == Qt.ControlModifier:
-            if self._assignToLastField(value, isLink):
-                return
-
-        self.createCtxMenu(value, isLink, evt)
-
-
-    def _checkSuffix(self, value):
-        if value and not value.toString().endswith(("jpg", "jpeg", "png", "gif")):
-            msgLink = value.toString()
-            if len(value.toString()) < 80:
-                msgLink = msgLink[:50] + '...' + msgLink[50:]
-            answ = QMessageBox.question(self, 'Anki support', 
-                """This link may not be accepted by Anki: \n\n "%s" \n
-Usually the suffix should be one of 
-(jpg, jpeg, png, gif).
-Try it anyway? """ % msgLink, QMessageBox.Yes|QMessageBox.No)
-
-            if answ != QMessageBox.Yes:
-                return False
-
-        return True
-
-    def createCtxMenu(self, value, isLink, evt):
-        'Creates and configures the menu itself'
-        
-        m = QMenu(self)
-        m.addAction(QAction('Copy',  m, 
-            triggered=lambda: self._copy(value)))
-        m.addSeparator()
-
-        labelAct = QAction(Label.BROWSER_ASSIGN_TO, m)
-        labelAct.setDisabled(True)
-        m.addAction(labelAct)
-        # sub = QMenu(Label.BROWSER_ASSIGN_TO, m)
-        m.setTitle(Label.BROWSER_ASSIGN_TO)
-        for index, label in self._fields.items():
-            act = QAction(label, m, 
-                triggered=self._makeMenuAction(index, value, isLink))
-            m.addAction(act)
-
-        # m.addMenu(sub)
-        action = m.exec_(self.mapToGlobal(evt.pos()))
-
-    def createInfoMenu(self, evt):
-        'Creates and configures a menu with only some information'
-        m = QMenu(self)
-        for item in self.infoList:
-            act = QAction(item)
-            act.setEnabled(False)
-            m.addAction(act)
-        action = m.exec_(self.mapToGlobal(evt.pos()))
-
-
-    def _assignToLastField(self, value, isLink):
-        'Tries to set the new value to the same field used before, if set...'
-
-        if self._lastAssignedField:
-            if self._lastAssignedField in self._fields:
-                self._selectionHandler(self._lastAssignedField, value, isLink)
-                return True
-            else:
-                self._lastAssignedField = None
-        return False
-
-    
-    def _copy(self, value):
-        if not value:
-            return
-        clip = QApplication.clipboard()        
-        clip.setText(value if isinstance(value, str) else value.toString())
-
+    # ------------------------------------ Menu ---------------------------------------
 
     def load(self, qUrl):
         self._web.load(qUrl)
 
-#   ----------------- getter / setter  -------------------
+    #   ----------------- getter / setter  -------------------
 
     def setFields(self, fList):
-        self._fields = fList
+        self._menuDelegator._fields = fList
 
     def setSelectionHandler(self, value):
-        self._selectionHandler = value
+        Feedback.log('Set selectionHandler % s' % str(value))
+        self._menuDelegator._selectionHandler = value
+
+    def setInfoList(self, data: list):
+        self._menuDelegator.infoList = tuple(data)
