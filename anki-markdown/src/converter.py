@@ -112,7 +112,7 @@ class Converter:
                 .replace('|/eCom/|', '&amp;')
         matcher = self._reContent.search(value)
         if matcher:
-            print(matcher.groups())
+            # print(matcher.groups())
             content = matcher.group(1)
             content = content \
                 .replace('<', '&lt;').replace('>', '&gt;') \

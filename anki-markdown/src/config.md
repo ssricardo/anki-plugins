@@ -15,3 +15,7 @@ It possible to configure how to add (enable) the markdown to the selected text:
 * enable-preview:
 	* On the editor, should it show the preview result from Markdown conversion
 	* values: true (default) | false
+* disable-md-decorator
+    * Disable Add-on Decoration
+    * Won't add decoration like purple border, indication where the add-on is working
+    * values: true | false (default)

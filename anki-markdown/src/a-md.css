@@ -1,0 +1,101 @@
+h1, h2, h3, h4 {
+    font-weight: 400;
+}
+h1, h2, h3, h4, h5, p {
+    margin-bottom: 10px;
+    padding: 0;
+}
+h1 {
+    font-size: 42px;
+}
+h2 {
+    font-size: 32px;
+    margin: 24px 0 6px;
+}
+h3 {
+    font-size: 22px;
+}
+h4 {
+    font-size: 20px;
+}
+h5 {
+    font-size: 18px;
+}
+
+blockquote {
+    margin: 3px;
+    border-left: 1px solid red;
+    padding-left: 5px;
+}
+
+code {
+    font-family: Consolas, Monaco, Andale Mono, monospace;
+    line-height: 1.2;
+    font-size: 13px;
+}
+amd, .amd {
+    border-left: 2px solid #7e08ed;
+    padding-left: 5px;
+    display: block;
+}
+
+pre.amd {
+    margin: 0px;
+    padding: 0;
+    border-left: 2px solid #7e08ed;
+
+    padding: 2px 10px;
+    white-space: pre-wrap;
+}
+
+.amd textarea {
+    resize: vertical;
+    overflow: hidden;
+    min-height: 50px;
+    height: 80px;
+    max-height: 500px;
+    width: 98%;
+}
+
+.amd_edit_notice {
+    float: right;
+    color: orange;
+}
+
+/* Preview */
+#prev_layout {
+    border: 0;
+    width: 100%;
+    table-layout: fixed;
+}
+
+#preview {
+}
+
+#prev_toggler {
+    background-color: #777;
+    width: 20px;
+    text-align: center;
+    line-height: 1.1;
+    cursor: pointer;
+    color: #FFF;
+    vertical-align: middle;
+    padding-top: 40px;
+}
+
+#fd_w_prev {
+    vertical-align: top;
+}
+
+#col_field {
+}
+
+#preview {
+    width: 40%;
+    padding-left: 10px;
+    overflow: auto;
+}
+
+#prev_layout .field {
+    overflow: auto;
+}

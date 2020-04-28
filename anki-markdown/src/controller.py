@@ -22,6 +22,8 @@ from aqt import mw
 from PyQt5.QtWidgets import QMenu, QAction, QApplication
 from aqt.utils import showInfo, tooltip, showWarning
 from anki.hooks import addHook
+from aqt import gui_hooks
+
 
 # Holds references so GC does kill them
 controllerInstance = None
@@ -36,6 +38,15 @@ EDITOR_STYLES = """
 
         $(prStyle).appendTo('body');
         """.format(Style.MARKDOWN)
+
+EDITOR_STYLE_APPENDER = """
+        var prStyle = `
+        <style type="text/css">
+            {}
+        </style>`;
+
+        $(prStyle).appendTo('body');    
+        """
 
 # ---------------------------- Injected functions -------------------
 @staticmethod
@@ -74,6 +85,7 @@ class Controller:
     """
 
     JS_LOCATION = CWD + '/a-md.js'
+    CSS_LOCATION = CWD + '/a-md.css'
 
     _converter = Converter()
     _batchService = BatchService(_converter)
@@ -82,18 +94,23 @@ class Controller:
     _shortcutButton = None
     _editAsMarkdownEnabled = False
     _jsContent = None
+    _cssContent = None
 
     def __init__(self):
         self._showButton = ConfigService.read(ConfigKey.SHOW_MARKDOWN_BUTTON, bool)
         self._shortcutMenu = ConfigService.read(ConfigKey.SHORTCUT, str)
         self._shortcutButton = ConfigService.read(ConfigKey.SHORTCUT_EDIT, str)
         self._enablePreview = ConfigService.read(ConfigKey.ENABLE_PREVIEW, bool)
+        self._disableMdDecoration = ConfigService.read(ConfigKey.DISABLE_MD_STYLE, bool)
 
         try:
-            f = open(self.JS_LOCATION, 'r')
-            self._jsContent = f.read()
-            f.close()
-        except e:
+            with open(Controller.JS_LOCATION, 'r') as f:
+                self._jsContent = f.read()
+
+            with open(Controller.CSS_LOCATION, 'r') as fCss:
+                self._cssContent = fCss.read()
+
+        except Exception as e:
             print(e)
             Feedback.showError('An error occoured on loading Markdown Preview. You may need to restart Anki.')
 
@@ -106,7 +123,9 @@ class Controller:
         """
         
         # Review
-        addHook("prepareQA", self.processField)
+
+        gui_hooks.card_will_show.append(self.processField)
+        Feedback.log('Review Hook set')
 
         # Editing
         addHook("setupEditorButtons", self.setupButtons)
@@ -117,17 +136,18 @@ class Controller:
         addHook('editTimer', lambda n: self._updatePreview())
 
         Editor.setupWeb = self._wrapEditorSetupWeb(Editor.setupWeb)
+        Editor.toggleBold = self.wrapEditorToggleBold(Editor.toggleBold)
+        Editor.toggleItalic = self.wrapEditorToggleItalic(Editor.toggleItalic)
         try:
             EditorWebView._onPaste = self._wrapOnPaste(EditorWebView._onPaste)
         except:
-            Feedback.log('Markdown: Handling "Paste" is disabled duo to an error')
+            Feedback.log('Markdown: Handling "Paste" is disabled due to an error')
         
 
     def _wrapEditorSetupWeb(self, fn):
         def wrapper(editor):
             fn(editor)
-
-            editor.web.eval(EDITOR_STYLES)
+            editor.web.eval(EDITOR_STYLE_APPENDER.format(self._cssContent));
 
             editor.web.eval("""
                 %s
@@ -196,7 +216,6 @@ class Controller:
             submenu.popup(parent.mapToGlobal( parent.pos() ))
         return submenu
 
-
     def onLoadNote(self, editor):
         note = editor.note
 
@@ -204,11 +223,17 @@ class Controller:
 
             # Prevent default Enter behavior if as Markdown enabled
             self.setEditAsMarkdownEnabled(self._editAsMarkdownEnabled)  # initialization
+            # editor.web.eval("disableAmd();")
             editor.web.eval("showMarkDownNotice();")
             editor.web.eval("handleNoteAsMD();")
 
-        self._updatePreview()
+            if self._disableMdDecoration:
+                editor.web.eval('removeMdDecoration()')
+        else:
+            # editor.web.eval("disableAmd();")
+            pass
 
+        self._updatePreview()
 
     def setupButtons(self, buttons, editor):
         """Add buttons to editor"""        
@@ -223,15 +248,33 @@ class Controller:
             editor._addButton(
             CWD + '/' + ICON_FILE,
             "amd-menu",  "Edit as Markdown? ({})".format(self._shortcutButton), 
-            toggleable = True, id='bt_tg_md')]
-
+            toggleable=True, id='bt_tg_md')]
 
     def setupShortcuts(self, scuts:list, editor):
         scuts.append((self._shortcutButton, self.toggleMarkdown))
         scuts.append((self._shortcutMenu, self._showCustomMenu))
 
+    def wrapEditorToggleBold(self, originalFn):
+        def onBold(*args):
+            if not self._editAsMarkdownEnabled:
+                return originalFn()
+            else:
+                self._editorReference.web.eval("wrap('**', '**');")
+                return
 
-    def _clearHTML(self, editor = None):
+        return onBold
+
+    def wrapEditorToggleItalic(self, originalFn):
+        def onItalic(*args):
+            if not self._editAsMarkdownEnabled:
+                return originalFn()
+            else:
+                self._editorReference.web.eval("wrap('_', '_');")
+                return
+
+        return onItalic
+
+    def _clearHTML(self, editor=None):
         """
             Convert to Text (MD)
         """
@@ -286,9 +329,10 @@ class Controller:
 
     # ------------------------------ Review ------------------------------------------
 
-    def processField(self, inpt, card, phase, *args):
-        if self._converter.isAmdAreaPresent(inpt):  
-            res = self._converter.convertAmdAreasToMD(inpt, isTypeMode = True)
+    def processField(self, inpt:str, card, kind: str) -> str:
+        Feedback.log('processField')
+        if self._converter.isAmdAreaPresent(inpt):
+            res = self._converter.convertAmdAreasToMD(inpt, isTypeMode=True)
 
             return Style.MARKDOWN + os.linesep + res            
         return inpt

@@ -22,57 +22,110 @@ function showMarkDownNotice() {
     }    
 }
 
-function handleMdKey(evt) {
-    if (evt.keyCode === 13 && ! evt.shiftKey) {
+function convertToTextArea(originalField) {
+    var attrs = { };
 
-        if (currentField) {
-            document.execCommand("insertHTML", false, "\n\n");
-        }
-        return false;
-    }
+    var name = originalField.attr('name');
+    var id = originalField.attr('id');
+    var text = originalField.text();
+
+    $("<textarea />", attrs)
+        .attr('id', 'mirror--' + id)
+        .attr('name', 'mirror--' + (name) ? name : id)
+        .attr('data-origin', id)
+        .val(text)
+        .attr('class', 'field clearfix')
+        .on('input', function(evt) {
+            if (evt.which === 27) {
+                currentField.blur();
+                return;
+            }
+            originalField.text( $(this).val() );
+
+            dispatchInput(originalField[0]);
+        } )
+        .focus(function() {
+            currentField = originalField[0];
+            pycmd("focus:" + currentFieldOrdinal());
+            enableButtons();
+        })
+        .blur(function() {
+            var event = new Event('blur', {
+                bubbles: true,
+                cancelable: true,
+            });
+
+            originalField[0].dispatchEvent(event);
+        })
+        .insertAfter('#' + id);
+
+    originalField.css('display', 'none');
+}
+
+function dispatchInput(originalField) {
+    var event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+    });
+
+    originalField.dispatchEvent(event);
 }
 
 function handleNoteAsMD() {
-    $('.field').wrap('<pre class=\"amd\"></pre>');
-    $('.field').keypress(handleMdKey);
+    if (isAmdActive()) {
+        return;
+    }
+    $('.field').wrap('<span class=\"amd amd-active\"></span>');
+
+    $.each($(".field"), function() {
+        convertToTextArea($(this));
+    });
+}
+
+function isAmdActive() {
+    return ($('.amd-active').length);
+}
+
+$(function() {
+  if (wrapInternal) {
+    var originalWrapInternal = wrapInternal;
+    wrapInternal = function (front, back, plainText) {
+        if (! isAmdActive()) {
+            return originalWrapInternal(front, back, plainText);
+        }
+
+        if (! currentField) {
+            return;
+        }
+
+        let currentMirror = $('#mirror--' + currentField.id);
+        if (! currentMirror) {
+            console.warn('Anki Markdown seems not correctly sync. No mirror for : ' + currentField.id);
+            return originalWrapInternal(front, back, plainText);
+        }
+
+        let cFocus = currentMirror[0];
+
+        if (cFocus.selectionStart || cFocus.selectionStart == '0') {
+            let newTxt = front +
+                cFocus.value.substring(cFocus.selectionStart, cFocus.selectionEnd) + back;
+
+            document.execCommand('insertText', false, newTxt);
+        } else {
+            document.execCommand('insertText', false, front + back);
+        }
+    }
+  }
+});
+
+function removeMdDecoration() {
+    $('.amd').
+        css('border-left', 'none');
 }
 
 // ----------------------------- Editor Previewer---------------
 
 let previewInitialized = false;
-let previewerStyle = `<style type="text/css">
-#prev_layout {
-    border: 0;
-    width: 100%;
-}
-#preview {
-}
-#prev_toggler {        
-    background-color: #777;
-    width: 20px;
-    text-align: center;
-    line-height: 1.1;
-    cursor: pointer;
-    color: #FFF;
-    vertical-align: middle;
-    padding-top: 40px;
-}
-#fd_w_prev {
-    vertical-align: top;
-}
-#col_field {
-}
-
-#preview {
-    width: 40%;
-    padding-left: 10px;
-    overflow: auto;
-}
-
-#prev_layout .field {
-    overflow: auto;
-}
-</style>`;
 
 let showMarkdown = null;
 let hideMarkdown = null;
@@ -88,7 +141,6 @@ function setPreviewUp() {
             </td>
         </tr>
     </div>`).insertAfter('#topbutsOuter');
-    $(previewerStyle).appendTo('body');
     let originalFields = $('#fields').detach();
     $('#col_field').prepend(originalFields);    
     previewInitialized = true;
