@@ -1,5 +1,4 @@
 let mdNotice = '<div class="amd_edit_notice" title="This addon tries to prevent Anki from formatting as HTML">Markdown ON</div>';
-let amdActive = false;
 
 function pasteAmdContent(inputValue) {
     let focused = $(':focus');
@@ -73,27 +72,25 @@ function dispatchInput(originalField) {
 }
 
 function handleNoteAsMD() {
-    if (amdActive) {
-        console.log('amd is already active');
+    if (isAmdActive()) {
         return;
     }
-    $('.field').wrap('<span class=\"amd\"></span>');
+    $('.field').wrap('<span class=\"amd amd-active\"></span>');
 
     $.each($(".field"), function() {
         convertToTextArea($(this));
     });
-    amdActive = true;
 }
 
-function disableAmd() {
-    amdActive = false;
+function isAmdActive() {
+    return ($('.amd-active').length);
 }
 
 $(function() {
   if (wrapInternal) {
     var originalWrapInternal = wrapInternal;
     wrapInternal = function (front, back, plainText) {
-        if (! amdActive) {
+        if (! isAmdActive()) {
             return originalWrapInternal(front, back, plainText);
         }
 

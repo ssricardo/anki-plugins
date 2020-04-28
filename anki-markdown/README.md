@@ -38,7 +38,7 @@ This is done through Card Type Configuration. Thus, it's applied to all cards of
 ### Card Edition
 
 In the editor there is a button *Markdown* to activate/deactivate the **Markdown mode**.  
-When enabled this will *tell* Anki that the text being edited is pre-formatted and should not be *escaped*. Otherwise, Anki converts the text to HTML (For instance, line breaks become `<br>` tags).  
+When enabled this will *tell* Anki that the text being edited is a plain text and should not be *escaped*. Otherwise, Anki converts the text to HTML (For instance, line breaks become `<br>` tags).  
 The default **shortcut** is *Ctrl+Shift+K* (may be changed in Configurations).  
 
 This won't convert the Markdown to HTML yet!
@@ -62,8 +62,6 @@ Then, during the review, the areas surrounded by `<amd>` will be converted and s
 
 #### In place
 
-> From version 2.x
-
 In the editor, use the context menu (right click) to invoke the processing immediately.  There are 2 options:
 
 * Convert to MD
@@ -85,8 +83,6 @@ The default **shorcut** to show the menu is *Ctrl+Shift+M*.
 In the editor, if the Markdown mode is *On*, when pasting some data, it will be set as plain text. This prevents Anki default behavior (which converts the data to HTML).
 
 ### Batch
-
-> From version 2.0
 
 It is possible to invoke the conversion for several notes at once.  
 This is useful in cases like: 
@@ -115,7 +111,7 @@ The following customization are available:
 * Disable Add-on Decoration
     * Won't add decoration like purple border, indication where the add-on is working
 
-> further old configuration was dropped
+> further old configurations were dropped
 
 > The shortcuts work only when the focus is into an input field
 
