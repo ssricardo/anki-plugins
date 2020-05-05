@@ -1,0 +1,14 @@
+ul.tk-container {
+    list-style-type: none;
+}
+
+.tk-container li {
+    display: inline-block;
+    background: aliceblue;
+    margin: 1px;
+    padding: 0 5px 0 5px;
+    border: 1px solid #CCC;
+    border-radius: 5px;
+    cursor: grab;
+    color: #333;
+}
