@@ -1,6 +1,6 @@
 # Notes
 
-**1.0** | xx/05/2020
+**1.0** | 09/05/2020
 
 * Initial release
   * Add word tokenizer and shuffler capabilities

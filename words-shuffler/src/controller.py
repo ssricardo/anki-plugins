@@ -115,9 +115,7 @@ class Controller:
         #     return buttons
 
         def addTkMarkup(arg):
-            print('addTkMarkup')
-            print(arg)
-            editor.web.eval("wrap('[[tk::', ']]');")
+            editor.web.eval("wrap('[[ws::', ']]');")
 
         editor._links['ws-surround'] = addTkMarkup
 
@@ -128,9 +126,7 @@ class Controller:
             toggleable=False, id='bt_add_tk')]
 
     def setupShortcuts(self, scuts:list, editor):
-        print('setupShortcuts')
         def addTkMarkup():
-            print('addTkMarkup st')
             editor.web.eval("wrap('[[ws::', ']]');")
 
         scuts.append(('Ctrl+Shift+w', addTkMarkup))
