@@ -1,0 +1,67 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>-->
+        <script src="../src/resources/dragula.min.js"></script>
+        <script src="../src/resources/atokenizer.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="../src/resources/dragula.min.css" />
+        <link rel="stylesheet" type="text/css" href="../src/resources/atokenizer.css" />
+
+        <style>
+            body {
+                background-color: #333;
+                color: #f5f5f5;
+            }
+        </style>
+
+    </head>
+
+    <body>
+        <h1>Test fields</h1>
+        <hr />
+
+        <div>
+            <button onclick="restoreOriginal()">Restore original</button>
+        </div>
+        
+        <div>
+            <label>Phrase 1: </label>
+            <input type="hidden" id="originalVal-f1" class="tkOriginalVal" value="This is a phrase \with . $]]chars" />
+            <ul id="tkContainer-f1" class="tk-container">
+                <li class="item tk-item">This</li>
+                <li class="item tk-item">is</li>
+                <li class="item tk-item">a</li>
+                <li class="item tk-item">&phrase/</li>
+                <li class="item tk-item">\with</li>
+                <li class="item tk-item">.</li>
+                <li class="item tk-item">$</li>
+                <li class="item tk-item">]]chars</li>
+            </ul>
+        </div>
+
+        <br />
+        <div>
+            <label>Phrase 2: </label>
+            <input type="hidden" id="originalVal-f2" class="tkOriginalVal" value="This is {{c1::clozeTest}} a bla with phrase" />
+            <ul id="tkContainer-f2" class="tk-container">
+                <li class="item tk-item">This</li>
+                <li class="item tk-item">is</li>
+                <li class="item tk-item">{{c1::clozeTest}}</li>
+                <li class="item tk-item">a</li>
+                <li class="item tk-item">
+                    <input type="text" name="example" />
+                </li>
+                <li class="item tk-item">with</li>
+                <li class="item tk-item">phrase/</li>
+
+
+            </ul>
+        </div>
+
+        <script type="text/javascript">
+            initDragula();
+        </script>
+        
+    </body>
+</html>
