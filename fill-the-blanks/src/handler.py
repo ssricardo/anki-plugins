@@ -124,7 +124,7 @@ class TypeClozeHander:
         for idx, (val, hint) in enumerate(entries):
             item = """<input type="hidden" id="ansval%d" value="%s" />""" % (idx, val.replace('"', '&quot;'))
             item = item + """<input type="text" id="typeans{0}" placeholder="{1}" 
-     onkeyup="checkFieldValue($('#ansval{0}').val(), $('#typeans{0}'));"
+     oninput="checkFieldValue($('#ansval{0}').val(), $('#typeans{0}'));"
      class="ftb" style="width: {2}em" />""".format(idx, hint, (max(len(val), len(hint)) * 0.62)) 
             res = res.replace('[...]', item, 1)
 
