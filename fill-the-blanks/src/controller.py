@@ -29,16 +29,16 @@ input.ftb {
     margin: 2px;
 }
 input.st-incomplete {
-    background-color: #FFFF77 !important;
-    color: #333 !important;
+    background-color: #FFFF77;
+    color: #333;
 }
 input.st-error {
-    background-color: #ff9999 !important;
-    color: #333 !important;
+    background-color: #ff9999;
+    color: #333;
 }
 input.st-ok {
-    background-color: #99ff99 !important;
-    color: #333 !important;
+    background-color: #99ff99;
+    color: #333;
 }
 
 </style>
