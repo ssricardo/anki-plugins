@@ -22,13 +22,14 @@ h5 {
     font-size: 18px;
 }
 
-blockquote {
+.amd blockquote {
     margin: 3px;
-    border-left: 1px solid red;
     padding-left: 5px;
+    border-left: 3px solid orange;
+    background-color: rgba(158, 157, 157, 0.3);
 }
 
-code {
+.amd code {
     font-family: Consolas, Monaco, Andale Mono, monospace;
     line-height: 1.2;
     font-size: 13px;
@@ -57,9 +58,31 @@ pre.amd {
     width: 98%;
 }
 
+.nightMode .amd textarea {
+    color: #FFF;
+}
+
 .amd_edit_notice {
     float: right;
     color: orange;
+}
+
+.amd table {
+    width: 100%;
+}
+
+.amd table th {
+    border-bottom: 1px dashed;
+    border-left: 1px solid;
+    border-right: 1px solid;
+}
+
+.amd table td {
+    border-right: 1px solid;
+}
+
+.amd table tr td:last-child {
+    border-right: none;
 }
 
 /* Preview */
@@ -67,9 +90,6 @@ pre.amd {
     border: 0;
     width: 100%;
     table-layout: fixed;
-}
-
-#preview {
 }
 
 #prev_toggler {
@@ -81,10 +101,14 @@ pre.amd {
     color: #FFF;
     vertical-align: middle;
     padding-top: 40px;
+    max-width: 80px;
 }
 
 #fd_w_prev {
     vertical-align: top;
+}
+
+#fd_w_prev td {
 }
 
 #col_field {
@@ -93,7 +117,12 @@ pre.amd {
 #preview {
     width: 40%;
     padding-left: 10px;
+    padding-top: 10px;
     overflow: auto;
+
+    resize: horizontal;
+    min-width: 80px;
+    max-width: 800px;
 }
 
 #prev_layout .field {

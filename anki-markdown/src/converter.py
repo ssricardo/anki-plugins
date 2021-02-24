@@ -6,13 +6,9 @@
 # @author ricardo saturnino
 # -------------------------------------------------------
 
-from .config import ConfigKey
-from .core import Feedback
-
 from markdown import markdown
-from . import html2text
 import re
-import os
+
 
 class Converter:
     """
@@ -21,24 +17,21 @@ class Converter:
 
     _attributeParts = '(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)?(?:\s+([\w-]+)\s*=\s*\"(\w+)\"\s*)'
     _amdArea = re.compile(r"<amd%s?>(?P<value>.*?)</amd>" % _attributeParts, flags=(re.MULTILINE | re.DOTALL))
-    _clozeRE = re.compile(r'<span class=cloze>((.)+)</span>')
+    _clozeRE = re.compile(r'(<span class=(?:\"|\')?cloze((?:\w|\s|-)*)(?:\"|\')?>(.*?)</span>)')
     _inputRE = re.compile(r'(&lt;input ((.)+?)&gt;)', flags=(re.MULTILINE | re.DOTALL))
-    _h2t = html2text.HTML2Text()
 
-    ANKI_CLOZE = "<span class=cloze>[...]</span>"
+    ANKI_CLOZE = "<span class=\"cloze ||...CLASSES..||\">[...]</span>"
     CLOZE_REPLACEMENT = '||...CLOZE...||'
     INPUT_REPLACEMENT = '||...INPUT...||'
 
-    def convertMarkdown(self, inpt:str): 
-        return markdown(inpt, extensions=[]) # Need better tests 'codehilite'
-
+    def convertMarkdown(self, inpt:str):
+        return markdown(inpt)
 
     def isAmdAreaPresent(self, input:str):
         match = self._amdArea.search(input)
         return match and len(match.groups()) >= 5
 
-
-    def convertAmdAreasToMD(self, inpt:str, cleanupHTML:bool = False, isTypeMode: bool = False):
+    def convertAmdAreasToMD(self, inpt: str, cleanupHTML:bool = False, isTypeMode: bool = False):
         """
             Finds areas delimited by <amd> tags. 
             Converts their contents to Markdown
@@ -50,69 +43,76 @@ class Converter:
 
         (start, stop) = match.span()
         content = match.group('value')
-        localOpts = {match.group(1): evalBool(match.group(2)), match.group(3): evalBool(match.group(4))}
 
-        content = self._preProcessContent(content, cleanupHTML, isTypeMode)
+        content = self._processQuotes(content)
+        content = self._processContent(content, cleanupHTML, isTypeMode)
         content = self._wrapStyle(content)
 
         return inpt[:start] + content + inpt[stop:]
 
-
     def _wrapStyle(self, input):
         return '<span class="amd">{}</span>'.format(input)
 
+    # TODO testar
+    def _processQuotes(self, content: str):
+        result = list()
+        for line in content.split('\n'):
+            resLine = line.replace('&gt; ', '> ', 1) if line.startswith('&gt; ') else line
+            result.append(resLine)
+        return '\n'.join(result)
 
-    def _preProcessContent(self, content: str, cleanupHTML: bool, isTypeMode: bool):
+    def _processContent(self, content: str, cleanupHTML: bool, isTypeMode: bool):
 
         # to keep cloze parts
         clozeMatch = self._clozeRE.search(content)
         clozeContents = list()
+        clozeClasses = list()
 
         while clozeMatch:
-            clozeContents.append(clozeMatch.group(1))
-            content = content.replace(clozeMatch.group(0), self.CLOZE_REPLACEMENT, 1)
+            clozeContents.append(clozeMatch.group(3))
+            clozeClasses.append(clozeMatch.group(2))
+            content = content.replace(clozeMatch.group(1), self.CLOZE_REPLACEMENT, 1)
             clozeMatch = self._clozeRE.search(content)
 
         if cleanupHTML:
             content = self.getTextFromHtml(content)
-                
+
         content = self._wrapContent(content)
         content = self.convertMarkdown(content)
         content = self._unwrapContent(content)
 
         if clozeContents:
-            for value in clozeContents:
-                content = content.replace(self.CLOZE_REPLACEMENT, 
-                    self.ANKI_CLOZE.replace('[...]', value), 1)
+            for pos, value in enumerate(clozeContents):
+                item = self.ANKI_CLOZE.replace('[...]', value)\
+                    .replace('||...CLASSES..||', clozeClasses[pos] if clozeClasses[pos] else '')
+                content = content.replace(self.CLOZE_REPLACEMENT, item, 1)
 
-        
         if isTypeMode:
-            inputMatch = self._inputRE.search(content)
-
-            while inputMatch:
-                iValue = inputMatch.group(2)
-                if not iValue.strip().endswith('/'):
-                    iValue = iValue + '/'
-                content = content.replace(inputMatch.group(0), "<input %s>" % iValue)
-                inputMatch = self._inputRE.search(content)
+            content = self._fix_escaped_inputs(content)
 
         return content
 
-    def _wrapContent(self, input):
-        content = input \
+    def _fix_escaped_inputs(self, content):
+        inputMatch = self._inputRE.search(content)
+        while inputMatch:
+            iValue = inputMatch.group(2)
+            if not iValue.strip().endswith('/'):
+                iValue = iValue + '/'
+            content = content.replace(inputMatch.group(1), "<input %s>" % iValue)
+            inputMatch = self._inputRE.search(content)
+        return content
+
+    def _wrapContent(self, value: str):
+        return value \
             .replace('&lt;', '|/MENOR/|').replace('&gt;', '|/MAIOR/|') \
             .replace('&amp;', '|/eCom/|')
 
-        return content
-
-
-    def _unwrapContent(self, value):
+    def _unwrapContent(self, value: str):
         return value \
                 .replace('|/MENOR/|', '&lt;').replace('|/MAIOR/|', '&gt;') \
                 .replace('|/eCom/|', '&amp;')
         matcher = self._reContent.search(value)
         if matcher:
-            # print(matcher.groups())
             content = matcher.group(1)
             content = content \
                 .replace('<', '&lt;').replace('>', '&gt;') \
@@ -121,28 +121,27 @@ class Converter:
             return re.sub(self._reContent, content, value)
         return value
 
-
     def getTextFromHtml(self, html):
         """
-            Extracts clear text from an HTML input
+            Extracts clear text from an HTML input.
+            > Must be overridden with html component.
         """
-        return self._h2t.handle(html)
+        return html
 
-
-    def stripAmdTagForField(self, input: str, fieldName: str, regexField = None):
+    def stripAmdTagForField(self, value: str, fieldName: str, regexField = None):
         _amdField = regexField if regexField else \
-            re.compile(r"<amd%s?>\s*(?P<value>\{\{((type:)?(cloze:)?){0,1}%s\}\})\s*</amd>" % (self._attributeParts, fieldName), flags=(re.MULTILINE | re.DOTALL))
+            re.compile(r"<amd%s?>\s*(?P<value>\{\{((type:)?(cloze:)?){0,1}%s\}\})\s*</amd>" %
+                       (self._attributeParts, fieldName), flags=(re.MULTILINE | re.DOTALL))
 
-        match = _amdField.search(input)
+        match = _amdField.search(value)
         if not match:
-            print('no match')
-            return input
+            return value
 
-        result = input[:match.start()] + \
-                match.group('value') + \
-                input[match.end():]
+        result = value[:match.start()] + \
+                 match.group('value') + \
+                 value[match.end():]
 
         return self.stripAmdTagForField(result, fieldName, _amdField)
 
 def evalBool(value):
-    return None if value == None else ('true' == value.lower())
+    return None if value is None else ('true' == value.lower())

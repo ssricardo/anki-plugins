@@ -16,15 +16,6 @@ class Label:
     BROWSER_ASSIGN_TO = '&Assign to field'
 
 
-class Style:
-    'Holds custom CSS styling'
-
-    MARKDOWN = """
-<style type="text/css">
-
-</style>
-"""
-
 # --------------------------- Util function ----------------------------
 
 class Feedback:

@@ -1,6 +1,13 @@
 # Notes
 
-**3.1** | 28/03/2020
+**3.2** | 23/02/2021
+
+* Add support for blockquote (starting line with `>`)
+* Make preview resizable
+* Make it compatible with upcoming changes on fill-the-blanks add-on
+* Fix bug to use its css styles on review
+
+**3.1** | 28/04/2020
 
 * Fix bug on editor
 * Add support for bold and italic shortcuts 
