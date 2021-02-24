@@ -11,11 +11,24 @@
             .st-incomplete {
                 background-color: yellow;
             }
-
             .st-ok {
                 background-color: aquamarine;
             }
         </style>
+
+        <script type="text/javascript">
+
+            // simulate old data from previous card
+            prepareTypedWords(3);
+            typedWords[0] = "bla";
+            typedWords[1] = "test";
+            typedWords[2] = "test";
+
+            console.log('Words: ' + typedWords);
+            cleanUpTypedWords();
+            console.log('Words after clearing: ' + typedWords.length);
+            prepareTypedWords(4);
+        </script>
     </head>
 
     <body>
@@ -24,24 +37,24 @@
         
         <div>
             <label>País: </label>
-            <input type="text" id="typeans1" onkeyup="checkFieldValue('brazil', $('#typeans1'))"
+            <input type="text" id="typeans0" onkeyup="checkFieldValue('brazil', 0)"
                 style="width: 120px;" /> (brazil)
         </div>
 
         <br />
         <div>
             <label>Land: </label>
-            <input type="text" id="typeans2" onkeyup="checkFieldValue('Germany', $('#typeans2'))"
+            <input type="text" id="typeans1" onkeyup="checkFieldValue('Germany', 1)"
                 style="width: 120px;" /> (Germany)
         </div>
         <div>
             <label>With accent: </label>
-            <input type="text" id="typeans3" onkeyup="checkFieldValue('argélia', $('#typeans3'))"
+            <input type="text" id="typeans2" onkeyup="checkFieldValue('argélia', 2)"
                 style="width: 120px;" /> (argélia)
         </div>
         <div>
             <label>Mit umlaute: </label>
-            <input type="text" id="typeans4" onkeyup="checkFieldValue('österreich', $('#typeans4'))"
+            <input type="text" id="typeans3" onkeyup="checkFieldValue('österreich', 3)"
                 style="width: 120px;" /> (österreich)
         </div>
 
@@ -49,6 +62,13 @@
             <button onclick="disableInstantFb()">Disable Instant Feedback</button>
             <button onclick="ignoreCaseOnFeedback()">Ignore case</button>
             <button onclick="ignoreAccentsOnFeedback()">Ignore accents</button>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <button onclick="$('#dvResponse').text(typedWords)">Show responses</button>
+        </div>
+
+        <div id="dvResponse" style="margin-top: 20px;">
         </div>
         
     </body>

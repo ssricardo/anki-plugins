@@ -41,6 +41,17 @@ input.st-ok {
     color: #333;
 }
 
+.cloze.st-error {
+    color: #ff9999;
+    text-decoration: line-through;
+}
+.cloze.st-expected {
+    color: #FFFF77;
+}
+.cloze.st-ok {
+    color: #99ff99;
+}
+
 </style>
 """
 
@@ -69,8 +80,7 @@ class Controller:
         if not reviewer:
             print('No reviewer')
             return
-        self.handler = TypeClozeHander()
-        self.handler.setupBindings(reviewer, addHook)
+        self.handler = TypeClozeHander(reviewer, addHook)
         reviewer._initWeb = self.wrapInitWeb(reviewer._initWeb)
 
     def wrapInitWeb(self, fn):

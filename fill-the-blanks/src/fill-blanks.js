@@ -1,12 +1,14 @@
 let ifEnabled = true;
 let shouldIgnoreCase = false;
 let shouldIgnoreAccents = false;
+var typedWords = [];
 
-function checkFieldValue(reference, field) {
+function checkFieldValue(reference, fieldIndex) {
     if (window.event.keyCode === 13) {
         pycmd("ans");
         return;
     }
+    let field = $('#typeans' + fieldIndex);
 
     if (! ifEnabled) {
         return;
@@ -47,6 +49,7 @@ function checkFieldValue(reference, field) {
         }
     }
     field.data('lastValue', current);
+    updateTypedValue(fieldIndex);
 }
 
 function cleanUpView(field) {
@@ -54,6 +57,24 @@ function cleanUpView(field) {
     field.removeClass('st-incomplete');
     field.removeClass('st-error');
 }
+
+// ------------- Verification ---------------
+function cleanUpTypedWords() {
+    typedWords = [];
+}
+
+function prepareTypedWords(numFields) {
+    for (let i = 0; i < numFields; i++) {
+        typedWords.push("");
+    }
+}
+
+function updateTypedValue(position) {
+    let content = $("#typeans" + position).val().trim();
+    typedWords[position] = content;
+}
+
+// --------------- Options ------------------
 
 function disableInstantFb() {
     ifEnabled = false;
@@ -66,6 +87,8 @@ function ignoreCaseOnFeedback() {
 function ignoreAccentsOnFeedback() {
     shouldIgnoreAccents = true;
 }
+
+// ------------------------------------
 
 function focusOnFirst() {
     setTimeout(() => {

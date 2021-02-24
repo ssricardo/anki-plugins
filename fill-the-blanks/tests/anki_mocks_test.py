@@ -39,6 +39,7 @@ import re
 
 class TestReviewer:
     card = TestCard()
+    mw = None
     state = "question"
 
     # Type in the answer
@@ -143,6 +144,9 @@ Please run Tools>Empty Cards""")
             txt = ", ".join(matches)
         return txt
 
+    def correct(self, given, cor, showBad=False):
+        return "Correct" if given == cor else "False"
+
 
 # See http://doc.qt.io/qt-5/qwebenginepage.html
 class TestWebView:
@@ -156,9 +160,17 @@ class TestWebView:
 class TMenu:
     pass
 
+class TCollection:
+    class TMedia:
+        def strip(self, val):
+            return val
+
+    media = TMedia()
+
 class AnkiMaster:
+    col = TCollection()
     reviewer = TestReviewer()
 
 
 mw = AnkiMaster()
-
+TestReviewer.mw = mw
