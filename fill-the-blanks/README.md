@@ -58,6 +58,11 @@ It's possible to enable/disable feedback, ignore case (upper/lower) and ignore a
 
 For details, refer to [Configuration](src/config.md)
 
+### Answer feedback
+
+> From 2.0
+
+Especially for those who disable _instant feedback_, on "Show answer" the add-on also provides a feedback per field.
 
 ## Bugs / Suggestions / more...
 
@@ -73,3 +78,9 @@ That and the source code are available on: [Github](https://github.com/ssricardo
 
 Add-on developed by *ssricardo*.  
 Check out more of my add-ons on [Github Anki Plugins](https://github.com/ssricardo/anki-plugins)
+
+### Buy me a coffee
+
+> If you feel like...
+
+https://www.buymeacoffee.com/ricardoss

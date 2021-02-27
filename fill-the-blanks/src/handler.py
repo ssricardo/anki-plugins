@@ -98,11 +98,10 @@ class TypeClozeHander:
         if not ref.typeCorrect:
             if ref.typeCorrect is None:
                 if clozeIdx:
-                    warn = tr(TR.STUDYING_PLEASE_RUN_TOOLSEMPTY_CARDS)
+                    warn = _("""Please run Tools>Empty Cards""")
                 else:
-                    print('Deu ruim')
-                    print(fld)
-                    warn = tr(TR.STUDYING_TYPE_ANSWER_UNKNOWN_FIELD, val=fld)
+                    warn = _("Type answer: unknown field %s. <br/>Maybe your Note template misses the correct prefix '%s'") \
+                           % (fld, 'type:cloze')
                 return re.sub(ref.typeAnsPat, warn, buf)
             else:
                 # empty field, remove type answer pattern
@@ -120,8 +119,6 @@ class TypeClozeHander:
             return result
 
     def _createFieldsContext(self, txt, idx) -> FieldsContext:
-        # print(idx)
-        # print(txt)
         reCloze = re.compile(r"\{\{c%s::(.+?)\}\}" % idx, re.DOTALL)
         matches = re.findall(reCloze, txt)
         if not matches:
@@ -180,7 +177,7 @@ class TypeClozeHander:
 
     def _handleLargeText(self, data: str) -> str:
         """ Handle weird issue #82 """
-        if len(data) <= 4096:
+        if len(data) <= 2048:
             return data
         return TypeClozeHander.RE_REMAINING_TEXT.sub(r'\1', data, re.DOTALL)    # apply it again
 

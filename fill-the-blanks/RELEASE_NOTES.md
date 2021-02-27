@@ -39,3 +39,8 @@
 
 * Issue #31 - Support hints as placeholder (collaboration from Lai Yu-Hsuan / raincole)
 * Issue #48 - Add configuration to ignore accents on Feedback 
+
+**2.0** | 27/02/2021
+
+* Include support to feedback on "Show answer"
+* Issue #82 - Problem with too many fields 
