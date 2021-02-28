@@ -147,6 +147,9 @@ Please run Tools>Empty Cards""")
     def correct(self, given, cor, showBad=False):
         return "Correct" if given == cor else "False"
 
+    def _getTypedAnswer(self):
+        self.getTypedAnswerCalled = True
+
 
 # See http://doc.qt.io/qt-5/qwebenginepage.html
 class TestWebView:

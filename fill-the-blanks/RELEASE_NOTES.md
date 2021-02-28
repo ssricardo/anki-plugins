@@ -44,3 +44,12 @@
 
 * Include support to feedback on "Show answer"
 * Issue #82 - Problem with too many fields 
+
+**2.1** | 27/02/2021
+
+* Fix: Type answer: unknown field Word
+
+**2.2** | 28/02/2021
+
+* Change default colors on Answer
+* Issue #84

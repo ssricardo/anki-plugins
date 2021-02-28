@@ -42,14 +42,14 @@ input.st-ok {
 }
 
 .cloze.st-error {
-    color: #ff9999;
+    color: #ff4949;
     text-decoration: line-through;
 }
 .cloze.st-expected {
-    color: #FFFF77;
+    color: orange;
 }
 .cloze.st-ok {
-    color: #99ff99;
+    color: #3bd03b;
 }
 
 </style>

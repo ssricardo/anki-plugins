@@ -18,7 +18,8 @@ except ImportError:
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
 original_typeAnsAnswerFilter = None
-
+original_typeAnsQuestionFilter = None
+original_getTypedAnswer = None
 
 class FieldState:
     value: str = None
@@ -53,13 +54,15 @@ class TypeClozeHander:
     RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*?)?\}\}")
 
     def __init__(self, reviewer, addHook) -> None:
-        global original_typeAnsAnswerFilter
+        global original_typeAnsAnswerFilter, original_typeAnsQuestionFilter, original_getTypedAnswer
 
         super().__init__()
         self.reviewer = reviewer
         self._mw = reviewer.mw
 
         original_typeAnsAnswerFilter = reviewer.typeAnsAnswerFilter
+        original_typeAnsQuestionFilter = reviewer.typeAnsQuestionFilter
+        original_getTypedAnswer = reviewer._getTypedAnswer
 
         reviewer.typeAnsQuestionFilter = self.typeAnsQuestionFilter
         reviewer.typeAnsAnswerFilter = self.typeAnsAnswerFilter
@@ -96,16 +99,7 @@ class TypeClozeHander:
                 break
 
         if not ref.typeCorrect:
-            if ref.typeCorrect is None:
-                if clozeIdx:
-                    warn = _("""Please run Tools>Empty Cards""")
-                else:
-                    warn = _("Type answer: unknown field %s. <br/>Maybe your Note template misses the correct prefix '%s'") \
-                           % (fld, 'type:cloze')
-                return re.sub(ref.typeAnsPat, warn, buf)
-            else:
-                # empty field, remove type answer pattern
-                return re.sub(ref.typeAnsPat, "", buf)
+            return original_typeAnsQuestionFilter(buf)
 
         if not clozeIdx:
             return re.sub(ref.typeAnsPat, TypeClozeHander.DEFAULT_ANKI_CLOZE % (ref.typeFont, ref.typeSize), buf)
@@ -244,7 +238,10 @@ class TypeClozeHander:
         return cor
 
     def _getTypedAnswer(self) -> None:
-        self.reviewer.web.evalWithCallback("typedWords ? typedWords : []", self._onFillBlankAnswer)
+        reviewer = self.reviewer
+        if reviewer.typeCorrect and isinstance(reviewer.typeCorrect, FieldsContext):
+            self.reviewer.web.evalWithCallback("typedWords ? typedWords : []", self._onFillBlankAnswer)
+        return original_getTypedAnswer()
 
     def _onFillBlankAnswer(self, val) -> None:
         reviewer = self.reviewer

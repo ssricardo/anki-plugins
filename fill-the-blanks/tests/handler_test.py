@@ -273,3 +273,5 @@ def test_issue_82():
 
     res = tested._createFieldsContext(txt, 1)
     assert ('c2::' not in res.text)
+
+# TODO create test for Anki simple type:Field (not cloze)
