@@ -53,3 +53,7 @@
 
 * Change default colors on Answer
 * Issue #84
+
+**2.2** | 06/03/2021
+
+* Make _feedback on Answer_ available, even when _instant feedback_ is disabled

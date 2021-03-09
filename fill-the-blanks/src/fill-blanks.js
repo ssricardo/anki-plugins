@@ -11,6 +11,7 @@ function checkFieldValue(reference, fieldIndex) {
     let field = $('#typeans' + fieldIndex);
 
     if (! ifEnabled) {
+        updateTypedValue(fieldIndex);
         return;
     }
 
