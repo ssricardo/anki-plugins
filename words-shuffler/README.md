@@ -27,6 +27,19 @@ Each word appears as a small block. Then, you can drag & drop each piece, fixing
 
 ![Word shuffler on Editor](doc/ws-addon-review.gif)
 
+#### With a click
+
+> From 1.1
+
+If you don't want to drag/drop, or to be quicker, you can just click the _next_ word. 
+The current position is market with a `>`. Of course, you can still drag/drop to change any position.
+
+#### Feedback
+
+> From 1.1
+
+On _Show Answer_, your order is shown as well (small text below original). 
+
 ### Markup 
 
 To add the add-on markup, you can either: 
@@ -37,7 +50,7 @@ To add the add-on markup, you can either:
 ### Restrictions
 
 * It runs under Anki's rules for cards. Therefore, a note of type _cloze deletion_ needs to have at least 1 cloze deletion field;
-* In this first version, the add-on supports only **plain text** to be processed.  
+* The add-on supports only **plain text** to be processed.  
 
 ## Installation / Configuration
 

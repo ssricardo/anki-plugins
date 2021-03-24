@@ -55,4 +55,11 @@ class ShufflerHandler:
             return inputTxt
         self._currentIndex = 0
 
-        return ShufflerHandler.RE_TOKENS_TEXT.sub(r'\1', inputTxt)
+        fieldsResult = re.sub(ShufflerHandler.RE_TOKENS_TEXT, lambda a: self._formatResponse(a.group(1)), inputTxt)
+        return fieldsResult
+
+    def _formatResponse(self, value: str) -> str:
+        return """
+            %s
+            <div class="tk-feedback"></div>
+        """ % value

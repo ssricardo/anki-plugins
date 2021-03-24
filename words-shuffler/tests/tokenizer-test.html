@@ -1,12 +1,18 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>-->
         <script src="../src/resources/dragula.min.js"></script>
         <script src="../src/resources/atokenizer.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
         <link rel="stylesheet" type="text/css" href="../src/resources/dragula.min.css" />
         <link rel="stylesheet" type="text/css" href="../src/resources/atokenizer.css" />
+
+        <script type="text/javascript">
+            function showResult() {
+                setFeedback(getResult());
+            }
+        </script>
 
         <style>
             body {
@@ -23,6 +29,7 @@
 
         <div>
             <button onclick="restoreOriginal()">Restore original</button>
+            <button onclick="showResult()">Print Result</button>
         </div>
         
         <div>
@@ -38,6 +45,7 @@
                 <li class="item tk-item">$</li>
                 <li class="item tk-item">]]chars</li>
             </ul>
+            <div class="tk-feedback"></div>
         </div>
 
         <br />
@@ -54,13 +62,12 @@
                 </li>
                 <li class="item tk-item">with</li>
                 <li class="item tk-item">phrase/</li>
-
-
             </ul>
+            <div class="tk-feedback"></div>
         </div>
 
         <script type="text/javascript">
-            initDragula();
+            initTokenizer();
         </script>
         
     </body>

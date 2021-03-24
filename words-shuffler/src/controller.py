@@ -78,6 +78,7 @@ class Controller:
 
         if phase == 'reviewQuestion':
             return self.handler.process(value)
+        self._extractResponses()
         return self.handler.extractCleanText(value)
 
     def wrapInitWeb(self, fn):
@@ -106,13 +107,17 @@ class Controller:
             setTimeout(function() {        
                 %s
             }, 150);
-        """ % 'initDragula();')
+        """ % 'initTokenizer();')
+
+    def _extractResponses(self):
+        self._mw.reviewer.web.evalWithCallback("getResult()", self._handleResponseCb)
+
+    def _handleResponseCb(self, val) -> None:
+        res = "setFeedback([%s])" % ", ".join(map(lambda v: '"%s"' % v, val))
+        self._mw.reviewer.web.eval(res)
 
     def setupEditorButtons(self, buttons, editor):
         """Add buttons to editor"""
-
-        # if not self._showButton:
-        #     return buttons
 
         def addTkMarkup(arg):
             editor.web.eval("wrap('[[ws::', ']]');")

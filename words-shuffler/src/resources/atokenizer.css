@@ -12,3 +12,15 @@ ul.tk-container {
     cursor: grab;
     color: #333;
 }
+
+.current-pos::before {
+    opacity: 0.5;
+    content: "> ";
+    color: blue;
+}
+
+.tk-feedback {
+    font-size: small;
+    opacity: 0.75;
+    color: orange;
+}

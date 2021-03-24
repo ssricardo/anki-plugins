@@ -157,6 +157,7 @@ class TMenu:
     pass
 
 class AnkiMaster:
+    col = {}
     reviewer = TestReviewer()
 
 
