@@ -9,6 +9,7 @@ import os
 import re
 from bs4 import BeautifulSoup
 import html
+from .config import ConfigService, ConfigKey
 
 try:
     from anki.utils import stripHTML
@@ -223,6 +224,8 @@ class TypeClozeHander:
 
     def format_field_result(self, given: str, expected: str):
         if given.strip() == expected.strip():
+            return "<span class='cloze st-ok'>%s</span>" % expected
+        if ConfigService.read(ConfigKey.IGNORE_CASE, bool) and given.strip().lower() == expected.strip().lower():
             return "<span class='cloze st-ok'>%s</span>" % expected
         return "<span class='cloze st-expected'>%s</span> <span class='cloze st-error'>(%s)</span>" % (expected, given)
 
