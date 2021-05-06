@@ -62,10 +62,10 @@ def _ankiConfigRead(key):
 def run():
     
     # tooltip('Loading fill-the-blanks Handler')
+    ConfigService._f = _ankiConfigRead
+
     instance = Controller(mw)
     instance.setupBindings(mw.reviewer, wrap)
-
-    ConfigService._f = _ankiConfigRead
 
 
 class Controller:
@@ -80,7 +80,7 @@ class Controller:
         if not reviewer:
             print('No reviewer')
             return
-        self.handler = TypeClozeHander(reviewer, addHook)
+        self.handler = TypeClozeHander(reviewer, addHook, ConfigService.read(ConfigKey.IGNORE_CASE, bool))
         reviewer._initWeb = self.wrapInitWeb(reviewer._initWeb)
 
     def wrapInitWeb(self, fn):

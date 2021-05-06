@@ -9,9 +9,6 @@
 # from .core import Feedback
 
 import os
-import json
-import re
-import shutil
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
 

@@ -54,6 +54,11 @@
 * Change default colors on Answer
 * Issue #84
 
-**2.2** | 06/03/2021
+**2.3** | 06/03/2021
 
 * Make _feedback on Answer_ available, even when _instant feedback_ is disabled
+
+**2.4** | 06/05/2021
+
+* Make _feedback on Answer_ consider configuration "ignore case" (thanks @matt2112)
+* Issue #92

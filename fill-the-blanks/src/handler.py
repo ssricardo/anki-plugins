@@ -9,7 +9,6 @@ import os
 import re
 from bs4 import BeautifulSoup
 import html
-from .config import ConfigService, ConfigKey
 
 try:
     from anki.utils import stripHTML
@@ -54,12 +53,13 @@ class TypeClozeHander:
 
     RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*?)?\}\}")
 
-    def __init__(self, reviewer, addHook) -> None:
+    def __init__(self, reviewer, addHook, _ignoreCase = False) -> None:
         global original_typeAnsAnswerFilter, original_typeAnsQuestionFilter, original_getTypedAnswer
 
         super().__init__()
         self.reviewer = reviewer
         self._mw = reviewer.mw
+        self.isIgnoreCase = _ignoreCase
 
         original_typeAnsAnswerFilter = reviewer.typeAnsAnswerFilter
         original_typeAnsQuestionFilter = reviewer.typeAnsQuestionFilter
@@ -225,7 +225,7 @@ class TypeClozeHander:
     def format_field_result(self, given: str, expected: str):
         if given.strip() == expected.strip():
             return "<span class='cloze st-ok'>%s</span>" % expected
-        if ConfigService.read(ConfigKey.IGNORE_CASE, bool) and given.strip().lower() == expected.strip().lower():
+        if self.isIgnoreCase and given.strip().lower() == expected.strip().lower():
             return "<span class='cloze st-ok'>%s</span>" % expected
         return "<span class='cloze st-expected'>%s</span> <span class='cloze st-error'>(%s)</span>" % (expected, given)
 

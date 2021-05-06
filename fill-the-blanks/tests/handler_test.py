@@ -13,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../src')
 # import config as cc
 
 from handler import TypeClozeHander, FieldsContext, FieldState
+from config import ConfigService
 from anki_mocks_test import TestReviewer
 
 def hookFakeFn(*args, **vargs):
@@ -123,6 +124,15 @@ def test_typeAnsAnswerFilter_Ok():
         </span>
     """)
 
+def test_field_result_uppercase_error():
+    result = tested.format_field_result('milano', 'Milano')
+    assert ('st-error' in result)
+
+def test_field_result_ignore_case():
+    testInstance = TypeClozeHander(reviewer, hookFakeFn, True)
+    result = testInstance.format_field_result('milano', 'Milano')
+    assert ('st-error' not in result)
+    assert ('st-ok' in result)
 
 # -------------------------------------------------- Reported issues ------------------------------------------------
 
