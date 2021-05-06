@@ -1,5 +1,9 @@
 # Notes
 
+**1.2** | 30/03/2021
+
+* Avoid error on Note Editor view
+
 **1.1** | 24/03/2021
 
 * Add feedback on _Show Answer_

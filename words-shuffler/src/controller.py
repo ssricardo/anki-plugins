@@ -76,9 +76,12 @@ class Controller:
             else:
                 return value
 
-        if phase == 'reviewQuestion':
-            return self.handler.process(value)
-        self._extractResponses()
+        if self._mw.state == "review":
+            if phase == 'reviewQuestion':
+                return self.handler.process(value)
+            else:
+                self._extractResponses()
+
         return self.handler.extractCleanText(value)
 
     def wrapInitWeb(self, fn):
@@ -113,7 +116,10 @@ class Controller:
         self._mw.reviewer.web.evalWithCallback("getResult()", self._handleResponseCb)
 
     def _handleResponseCb(self, val) -> None:
-        res = "setFeedback([%s])" % ", ".join(map(lambda v: '"%s"' % v, val))
+        res = """setTimeout(function() {        
+                setFeedback([%s])
+            }, 50);
+        """ % ", ".join(map(lambda v: '"%s"' % v, val))
         self._mw.reviewer.web.eval(res)
 
     def setupEditorButtons(self, buttons, editor):
