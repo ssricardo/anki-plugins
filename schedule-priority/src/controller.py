@@ -18,14 +18,35 @@ class Controller:
     def __init__(self, mw):
         self._ankiMw = mw
 
-    def setupHooks(self, schedulerRef, hooks):
-        schedulerRef.nextIvl = hooks.wrap(schedulerRef.nextIvl, Prioritizer.getNextInterval, 'around')
-        schedulerRef._updateRevIvl = hooks.wrap(schedulerRef._updateRevIvl, Prioritizer.priorityUpdateRevision, 'around')
+    def setupHooks(self, schedulerRef, reviewer, hooks):
+        reviewer._initWeb = self.wrapInitWeb(reviewer._initWeb)
         hooks.addHook('EditorWebView.contextMenuEvent', PriorityCardUiHandler.onEditorCtxMenu)
         hooks.addHook('AnkiWebView.contextMenuEvent', PriorityCardUiHandler.onReviewCtxMenu)
         hooks.addHook('Reviewer.contextMenuEvent', PriorityCardUiHandler.onReviewCtxMenu)
-        hooks.addHook('showAnswer', PriorityCardUiHandler.onShowAnswer)
 
+        hooks.addHook('showQuestion', PriorityCardUiHandler.onShowQA)
+        hooks.addHook('showAnswer', PriorityCardUiHandler.onShowQA)
+
+        schedulerRef._nextRevIvl = hooks.wrap(schedulerRef._nextRevIvl, Controller.handle, 'around')
+
+    def setupLegacyHoooks(self, scheduler, hooks):
+        scheduler.nextIvl = hooks.wrap(scheduler.nextIvl, Prioritizer.getNextInterval, 'around')
+        scheduler._updateRevIvl = hooks.wrap(scheduler._updateRevIvl, Prioritizer.priorityUpdateRevision, 'around')
+
+    def wrapInitWeb(self, fn):
+
+        def _initReviewerWeb(*args):
+            fn()
+            PriorityCardUiHandler.prepareWebview()
+
+        return _initReviewerWeb
+
+    @staticmethod
+    def handle(scheduleInstance, card, ease: int, fuzz: bool, **kargs) -> int:
+        f = kargs['_old']
+
+        res = f(scheduleInstance, card, ease, fuzz)
+        return Prioritizer.getPrioritizedTime(card, res)
 
     def loadConfiguration(self):
         Priority.load()
@@ -54,11 +75,8 @@ def setup():
 
     import anki
     from aqt import mw
-    from aqt.editor import Editor
-    from aqt.reviewer import Reviewer
-    from anki.sched import Scheduler
-    # from aqt.qt import QAction
-    from aqt.utils import showInfo, tooltip, showWarning
+    from anki.schedv2 import Scheduler
+    from aqt.utils import showInfo, tooltip
     
     global controller
     controller = Controller(mw)
@@ -70,7 +88,12 @@ def setup():
     Feedback.showInfo = tooltip
     Feedback.showError = showInfo
 
-    controller.setupHooks(Scheduler, anki.hooks)
+    controller.setupHooks(Scheduler, mw.reviewer, anki.hooks)
+    try:
+        from anki.sched import Scheduler as SchedLegacy
+        controller.setupLegacyHoooks(SchedLegacy, anki.hooks)
+    except:
+        pass
     controller.loadConfiguration()
 
 # singleton - holds instance
