@@ -110,6 +110,10 @@ class Controller:
             if ConfigService.read(ConfigKey.IGNORE_ACCENTS, bool):
                 self._mw.reviewer.web.eval('ignoreAccentsOnFeedback();')
 
+            if ConfigService.read(ConfigKey.ASIAN_CHARS, bool):
+                print('Enabling experimental Asian Chars mode')
+                self._mw.reviewer.web.eval('enableAsianChars();')
+
         return _initReviewerWeb
 
     

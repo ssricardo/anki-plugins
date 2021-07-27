@@ -18,6 +18,8 @@
 
         <script type="text/javascript">
 
+            // enableAsianChars();
+
             // simulate old data from previous card
             prepareTypedWords(3);
             typedWords[0] = "bla";
@@ -37,25 +39,43 @@
         
         <div>
             <label>País: </label>
-            <input type="text" id="typeans0" onkeyup="checkFieldValue('brazil', 0)"
-                style="width: 120px;" /> (brazil)
+            <input type="text" id="typeans0" style="width: 120px;" /> (brazil)
+            <script type="text/javascript">
+                setUpFillBlankListener('brazil', 0)
+            </script>
         </div>
 
         <br />
         <div>
             <label>Land: </label>
-            <input type="text" id="typeans1" onkeyup="checkFieldValue('Germany', 1)"
-                style="width: 120px;" /> (Germany)
+            <input type="text" id="typeans1" style="width: 120px;" /> (Germany)
+            <script type="text/javascript">
+                setUpFillBlankListener('Germany', 1)
+            </script>
         </div>
         <div>
             <label>With accent: </label>
-            <input type="text" id="typeans2" onkeyup="checkFieldValue('argélia', 2)"
-                style="width: 120px;" /> (argélia)
+            <input type="text" id="typeans2" style="width: 120px;" /> (argélia)
+            <script type="text/javascript">
+                setUpFillBlankListener('argélia', 2)
+            </script>
         </div>
         <div>
             <label>Mit umlaute: </label>
-            <input type="text" id="typeans3" onkeyup="checkFieldValue('österreich', 3)"
+            <input type="text" id="typeans3"
                 style="width: 120px;" /> (österreich)
+            <script type="text/javascript">
+                setUpFillBlankListener('österreich', 3)
+            </script>
+        </div>
+
+        <div>
+            <label>Japanese: </label>
+            <input type="text" id="typeans4"
+                style="width: 120px;" /> (あはあ)
+            <script type="text/javascript">
+                setUpFillBlankListener('あはあ', 4)
+            </script>
         </div>
 
         <div style="background-color: #F5F5F5; margin-top: 30px;">

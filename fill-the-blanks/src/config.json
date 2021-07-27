@@ -1,5 +1,6 @@
 {
     "feedback-enabled": true,
     "feedback-ignore-case": false,
-    "feedback-ignore-accents": false
+    "feedback-ignore-accents": false,
+    "experimental-asian-chars": false
 }
