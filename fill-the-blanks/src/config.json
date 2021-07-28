@@ -2,5 +2,6 @@
     "feedback-enabled": true,
     "feedback-ignore-case": false,
     "feedback-ignore-accents": false,
+    "input-len-times": 62,
     "experimental-asian-chars": false
 }

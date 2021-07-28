@@ -62,3 +62,9 @@
 
 * Make _feedback on Answer_ consider configuration "ignore case" (thanks @matt2112)
 * Issue #92
+
+**2.5** | 28/07/2021
+
+* Support asian languages (new trial - still experimental)
+* Support customizing the size of the input-field
+* Issues #59, #64, #93

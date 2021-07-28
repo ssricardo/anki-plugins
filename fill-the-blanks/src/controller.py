@@ -80,7 +80,8 @@ class Controller:
         if not reviewer:
             print('No reviewer')
             return
-        self.handler = TypeClozeHander(reviewer, addHook, ConfigService.read(ConfigKey.IGNORE_CASE, bool))
+        self.handler = TypeClozeHander(reviewer, addHook, ConfigService.read(ConfigKey.IGNORE_CASE, bool),
+                                       ConfigService.read(ConfigKey.LEN_MULTIPLIER, int))
         reviewer._initWeb = self.wrapInitWeb(reviewer._initWeb)
 
     def wrapInitWeb(self, fn):

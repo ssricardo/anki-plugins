@@ -53,13 +53,14 @@ class TypeClozeHander:
 
     RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*?)?\}\}")
 
-    def __init__(self, reviewer, addHook, _ignoreCase = False) -> None:
+    def __init__(self, reviewer, addHook, _ignoreCase = False, lengthMultiplier: int = 62) -> None:
         global original_typeAnsAnswerFilter, original_typeAnsQuestionFilter, original_getTypedAnswer
 
         super().__init__()
         self.reviewer = reviewer
         self._mw = reviewer.mw
         self.isIgnoreCase = _ignoreCase
+        self._lengthMultiplier = lengthMultiplier
 
         original_typeAnsAnswerFilter = reviewer.typeAnsAnswerFilter
         original_typeAnsQuestionFilter = reviewer.typeAnsQuestionFilter
@@ -158,7 +159,7 @@ class TypeClozeHander:
                 class="ftb" style="width: {2}em" />
                 <script type="text/javascript">
                     setUpFillBlankListener($('#ansval{0}').val(), {0})
-                </script>""".format(idx, hint, (max(len(val), len(hint)) * 0.62))
+                </script>""".format(idx, hint, self._getInputLength(hint, val))
             res = res.replace('[...]', item, 1)
 
         if not self._currentFirst:
@@ -171,6 +172,8 @@ class TypeClozeHander:
 
         return res
 
+    def _getInputLength(self, hint, val):
+        return (max(len(val), len(hint)) * (0.01 * self._lengthMultiplier))
 
     def _handleLargeText(self, data: str) -> str:
         """ Handle weird issue #82 """
