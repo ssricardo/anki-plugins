@@ -155,11 +155,10 @@ class TypeClozeHander:
         for idx, field in enumerate(fieldsCtx.entries):
             (val, hint) = field.value, field.hint
             item = """<input type="hidden" id="ansval%d" value="%s" />""" % (idx, val.replace('"', '&quot;'))
-            item = item + """<input type="text" id="typeans{0}" placeholder="{1}" 
-                class="ftb" style="width: {2}em" />
-                <script type="text/javascript">
-                    setUpFillBlankListener($('#ansval{0}').val(), {0})
-                </script>""".format(idx, hint, self._getInputLength(hint, val))
+            item = item + """<input type="text" id="typeans{0}" placeholder="{1}" class="ftb" style="width: {2}em" />
+<script type="text/javascript">
+    setUpFillBlankListener($('#ansval{0}').val(), {0})
+</script>""".format(idx, hint, self._getInputLength(hint, val))
             res = res.replace('[...]', item, 1)
 
         if not self._currentFirst:

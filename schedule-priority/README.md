@@ -93,6 +93,14 @@ That and the source code are available on: [Github](https://github.com/ssricardo
 
 ## Updates
 
+26/07/2021: **version 3.0**:
+
+* Added support for Anki Scheduler v.2
+
+**version 2.0**:
+
+* Stable version
+
 25/10/2018: **version 1.2**:
 
 * Added a message to answer cards, showing the current Priority (if it's not Normal)
