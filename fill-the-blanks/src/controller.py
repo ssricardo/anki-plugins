@@ -80,7 +80,8 @@ class Controller:
         if not reviewer:
             print('No reviewer')
             return
-        self.handler = TypeClozeHander(reviewer, addHook, ConfigService.read(ConfigKey.IGNORE_CASE, bool))
+        self.handler = TypeClozeHander(reviewer, addHook, ConfigService.read(ConfigKey.IGNORE_CASE, bool),
+                                       ConfigService.read(ConfigKey.LEN_MULTIPLIER, int))
         reviewer._initWeb = self.wrapInitWeb(reviewer._initWeb)
 
     def wrapInitWeb(self, fn):
@@ -109,6 +110,10 @@ class Controller:
 
             if ConfigService.read(ConfigKey.IGNORE_ACCENTS, bool):
                 self._mw.reviewer.web.eval('ignoreAccentsOnFeedback();')
+
+            if ConfigService.read(ConfigKey.ASIAN_CHARS, bool):
+                print('Enabling experimental Asian Chars mode')
+                self._mw.reviewer.web.eval('enableAsianChars();')
 
         return _initReviewerWeb
 

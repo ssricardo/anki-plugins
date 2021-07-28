@@ -18,16 +18,18 @@ currentLocation = os.path.dirname(os.path.realpath(__file__))
 class ConfigKey:
 
     FEEDBACK_ENABLED = 'feedback-enabled'
-
     IGNORE_CASE = 'feedback-ignore-case'
-
     IGNORE_ACCENTS = 'feedback-ignore-accents'
+    LEN_MULTIPLIER = 'input-len-times'
+    ASIAN_CHARS = 'experimental-asian-chars'
 
 # ------------------------------ Service class --------------------------
 DEFAULT_CONFIG = {
     ConfigKey.FEEDBACK_ENABLED: True,
     ConfigKey.IGNORE_CASE: False,
-    ConfigKey.IGNORE_ACCENTS: False
+    ConfigKey.IGNORE_ACCENTS: False,
+    ConfigKey.LEN_MULTIPLIER: 62,
+    ConfigKey.ASIAN_CHARS: False
 }
 
 class ConfigService:

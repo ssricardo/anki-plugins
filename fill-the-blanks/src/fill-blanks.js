@@ -1,6 +1,7 @@
 let ifEnabled = true;
 let shouldIgnoreCase = false;
 let shouldIgnoreAccents = false;
+let asianCharsEnabled = false;
 var typedWords = [];
 
 function checkFieldValue(reference, fieldIndex) {
@@ -89,6 +90,10 @@ function ignoreAccentsOnFeedback() {
     shouldIgnoreAccents = true;
 }
 
+function enableAsianChars() {
+    asianCharsEnabled = true;
+}
+
 // ------------------------------------
 
 function focusOnFirst() {
@@ -99,4 +104,19 @@ function focusOnFirst() {
             console.warn(error);
         }        
     }, 300);   
+}
+
+function setUpFillBlankListener(expected, typeAnsIndex) {
+    const eventType = (asianCharsEnabled) ? "input" : "keyup"
+    document.getElementById(`typeans${typeAnsIndex}`).addEventListener(eventType,
+      (evt) => checkFieldValue(expected, typeAnsIndex))
+
+    // add extra event for Enter key
+    if (eventType === "input") {
+        document.getElementById(`typeans${typeAnsIndex}`).addEventListener("keyup", (evt) => {
+            if (window.event.keyCode === 13) {
+                pycmd("ans");
+            }
+        })
+    }
 }
