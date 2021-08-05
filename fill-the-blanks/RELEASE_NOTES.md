@@ -68,3 +68,7 @@
 * Support asian languages (new trial - still experimental)
 * Support customizing the size of the input-field
 * Issues #59, #64, #93
+
+**2.6** | 05/08/2021
+
+* Fix formatting for multiple fields (thanks @matt2112)
