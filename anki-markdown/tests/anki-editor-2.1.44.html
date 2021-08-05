@@ -1,0 +1,89 @@
+<!--
+    Anki editor structure changed!
+    Add-on needs to be changed
+-->
+
+<!doctype html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="../src/a-md.js"></script>
+        <link rel="stylesheet" type="text/css" href="../src/a-md.css" />
+
+        <!--<style type="text/css">
+            body {
+                background-color: #333;
+                color: ghostwhite;
+            }
+        </style>-->
+
+    </head>
+
+    <body>
+        <h3>File used to test scripts</h3>
+        <div class="buttons" id="topbutsOuter">
+            <button onclick="handleNoteAsMD();">Handle as MD</button>
+            <button onclick="setPreviewUp();">Init Preview</button>
+        </div>
+        <div id="fields">
+            <h1>Test fields</h1>
+            <hr />
+
+            <div is="anki-editor-field" ord="0">
+                <div class="fname"><span class="fieldname">Front</span></div>
+                <div is="anki-editing-area" class="field" ord="0">
+                    <anki-editable id="typeans2" contenteditable>
+                        an/nehmen (er nimmt an, hat angenommen)
+                    </anki-editable>
+                </div>
+            </div>
+            <div is="anki-editor-field" ord="1">
+                <div class="fname"><span class="fieldname">Back</span></div>
+                <div is="anki-editing-area" class="field" ord="1">
+                    <anki-editable contenteditable>
+                        Back card
+                    </anki-editable>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            setInterval(() => {
+                console.log('Content: ' + $('#field').html());
+            }, 30000);
+
+            var currentField = null;
+
+            $('#typeans2').focus(function () {
+                currentField = $('#typeans2');
+            });
+
+            function auto_grow(element) {
+                element.style.height = "5px";
+                element.style.height = (element.scrollHeight)+"px";
+            }
+
+            document.getElementById('typeans2').addEventListener('input', function() {
+                console.log('The value is now ' + $('#typeans2').text());
+            });
+
+            function pycmd(input) {
+                console.log('pycmd: ' + input);
+            }
+
+            function currentFieldOrdinal() {
+                return currentField.id.substring(1);
+            }
+
+            function enableButtons() {
+                console.log('Enabled buttons fake');
+            }
+
+            function wrapInternal(f, b, pl) {
+                console.log('Original wrapINternal: ' + f + ' ' + b);
+            }
+        </script>
+
+    </body>
+    
+</html>

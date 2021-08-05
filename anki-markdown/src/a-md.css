@@ -125,6 +125,10 @@ pre.amd {
     max-width: 800px;
 }
 
+.original-field {
+    display: none;
+}
+
 #prev_layout .field {
     overflow: auto;
 }

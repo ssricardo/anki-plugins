@@ -5,8 +5,20 @@ function pasteAmdContent(inputValue) {
     if (! focused || focused == 'undefined') {
         return;
     }
-    let selection = window.getSelection()
+
+    let selection = undefined
+    try {
+        selection = window.getSelection()
+    } catch (e) {
+        console.warn(e)
+    }
+
     if (focused.is('input') || focused.is('textarea')) {
+        if (!selection) {
+            let ta = focused.get()[0]
+            selection = ta.value.substring(ta.selectionStart, ta.selectionEnd);
+        }
+
         let newVal = (selection && selection != '') ? focused.val().replace(selection, inputValue) : focused.val() + inputValue;
         focused.val(newVal);
     } else {
@@ -16,38 +28,61 @@ function pasteAmdContent(inputValue) {
 }
 
 function showMarkDownNotice() {
+    return; // FIXME: getting JS error
+
     let shownNotice = $('.amd_edit_notice').length;
-    if (! shownNotice) {
+    if (!shownNotice) {
         $('#fields').prepend(mdNotice);
     }    
 }
 
-function convertToTextArea(originalField) {
-    var attrs = { };
+function getFieldId(originalField, ankiOrd) {
+    let id = originalField.attr('id');
 
-    var name = originalField.attr('name');
-    var id = originalField.attr('id');
-    var text = originalField.text();
+    if (!id) {
+        id = `f_${ankiOrd}`
+    }
+    return id;
+}
 
-    $("<textarea />", attrs)
+function getFieldVal(originalField) {
+    let nativeField = originalField.get()[0]
+    let text = nativeField.fieldHTML
+    return {nativeField, text};
+}
+
+function convertToTextArea(originalField, parent) {
+    let attrs = { };
+
+    let name = originalField.attr('name');
+    let ankiOrd = originalField.attr('ord');
+
+    let id = getFieldId(originalField, ankiOrd);
+    let {nativeField, text} = getFieldVal(originalField);
+
+    let newTa = $("<textarea />", attrs)
         .attr('id', 'mirror--' + id)
         .attr('name', 'mirror--' + (name) ? name : id)
         .attr('data-origin', id)
+        .attr('ord', ankiOrd)
         .val(text)
-        .attr('class', 'field clearfix')
+        .attr('class', 'clearfix field')
         .on('input', function(evt) {
             if (evt.which === 27) {
                 currentField.blur();
                 return;
             }
-            originalField.text( $(this).val() );
-
+            nativeField.fieldHTML = ( $(this).val() );
             dispatchInput(originalField[0]);
         } )
         .focus(function() {
             currentField = originalField[0];
-            pycmd("focus:" + currentFieldOrdinal());
-            enableButtons();
+            pycmd("focus:" + ankiOrd);
+            // enableButtons();        // aparently removed on newer versions
+
+            $.each($("#topbutsright > button"), function() {
+                let field = $(this).removeAttr('disabled')
+            });
         })
         .blur(function() {
             var event = new Event('blur', {
@@ -56,10 +91,8 @@ function convertToTextArea(originalField) {
             });
 
             originalField[0].dispatchEvent(event);
-        })
-        .insertAfter('#' + id);
-
-    originalField.css('display', 'none');
+        });
+    parent.append(newTa)
 }
 
 function dispatchInput(originalField) {
@@ -73,50 +106,32 @@ function dispatchInput(originalField) {
 
 function handleNoteAsMD() {
     if (isAmdActive()) {
+        updateFieldsValues();
         return;
     }
-    $('.field').wrap('<span class=\"amd amd-active\"></span>');
+    $('.field').wrap('<span class="amd amd-active"></span>');
+    $('.field').wrap('<span class="original-field"></span>');
 
     $.each($(".field"), function() {
-        convertToTextArea($(this));
+        let field = $(this)
+        let amdRoot = field.parent().parent()
+        convertToTextArea(field, amdRoot);
+    });
+}
+
+function updateFieldsValues() {
+    $.each($(".field"), function () {
+        let field = $(this)
+        let ord = field.attr('ord');
+        let id = getFieldId(field, ord)
+        let {nativeField, text} = getFieldVal(field)
+        $(`#mirror--${id}`).val(text)
     });
 }
 
 function isAmdActive() {
     return ($('.amd-active').length);
 }
-
-$(function() {
-  if (wrapInternal) {
-    var originalWrapInternal = wrapInternal;
-    wrapInternal = function (front, back, plainText) {
-        if (! isAmdActive()) {
-            return originalWrapInternal(front, back, plainText);
-        }
-
-        if (! currentField) {
-            return;
-        }
-
-        let currentMirror = $('#mirror--' + currentField.id);
-        if (! currentMirror) {
-            console.warn('Anki Markdown seems not correctly sync. No mirror for : ' + currentField.id);
-            return originalWrapInternal(front, back, plainText);
-        }
-
-        let cFocus = currentMirror[0];
-
-        if (cFocus.selectionStart || cFocus.selectionStart == '0') {
-            let newTxt = front +
-                cFocus.value.substring(cFocus.selectionStart, cFocus.selectionEnd) + back;
-
-            document.execCommand('insertText', false, newTxt);
-        } else {
-            document.execCommand('insertText', false, front + back);
-        }
-    }
-  }
-});
 
 function removeMdDecoration() {
     $('.amd').
