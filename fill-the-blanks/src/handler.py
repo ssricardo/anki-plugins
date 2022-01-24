@@ -207,9 +207,9 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
         result = buf
         for index, field in enumerate(ctx.entries):
             cor = self.original_clear_correct_value(field.value)
-            given = ctx.answers[index] if ctx.answers and len(ctx.answers) == len(ctx.entries) else "None"
+            given = html.escape(ctx.answers[index]) if ctx.answers and len(ctx.answers) == len(ctx.entries) else "None"
             field_res = self.format_field_result(given, cor)
-            result = result.replace('<span class=cloze>%s</span>' % field.value, field_res, 1)
+            result = result.replace('<span class=cloze>%s</span>' % html.escape(field.value), field_res, 1)
 
         # from original
         def repl(match):
@@ -241,6 +241,7 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
         cor = html.unescape(cor)
         cor = cor.replace("\xa0", " ")
         cor = cor.strip()
+        cor = html.escape(cor)
         return cor
 
     def _getTypedAnswer(self) -> None:
