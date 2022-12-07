@@ -10,6 +10,8 @@ import re
 from bs4 import BeautifulSoup
 import html
 
+from anki.hooks import wrap
+from aqt.reviewer import Reviewer
 try:
     from anki.utils import stripHTML
     from aqt.utils import (tr, TR)
@@ -17,9 +19,6 @@ except ImportError:
     print('anki.utils not available. Probably running from test')
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
-original_typeAnsAnswerFilter = None
-original_typeAnsQuestionFilter = None
-original_getTypedAnswer = None
 
 class FieldState:
     value: str = None
@@ -54,7 +53,6 @@ class TypeClozeHander:
     RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*?)?\}\}")
 
     def __init__(self, reviewer, addHook, _ignoreCase = False, lengthMultiplier: int = 62) -> None:
-        global original_typeAnsAnswerFilter, original_typeAnsQuestionFilter, original_getTypedAnswer
 
         super().__init__()
         self.reviewer = reviewer
@@ -62,17 +60,14 @@ class TypeClozeHander:
         self.isIgnoreCase = _ignoreCase
         self._lengthMultiplier = lengthMultiplier
 
-        original_typeAnsAnswerFilter = reviewer.typeAnsAnswerFilter
-        original_typeAnsQuestionFilter = reviewer.typeAnsQuestionFilter
-        original_getTypedAnswer = reviewer._getTypedAnswer
+        Reviewer.typeAnsQuestionFilter = wrap(Reviewer.typeAnsQuestionFilter, lambda _,buf,_old: self.typeAnsQuestionFilter(buf, _old), "around")
+        Reviewer.typeAnsAnswerFilter = wrap(Reviewer.typeAnsAnswerFilter, lambda _,buf,_old: self.typeAnsAnswerFilter(buf, _old), "around")
+        Reviewer._getTypedAnswer = wrap(Reviewer._getTypedAnswer, lambda _,_old: self._getTypedAnswer(_old), "around")
 
-        reviewer.typeAnsQuestionFilter = self.typeAnsQuestionFilter
-        reviewer.typeAnsAnswerFilter = self.typeAnsAnswerFilter
-        reviewer._getTypedAnswer = self._getTypedAnswer
         addHook("showQuestion", self.on_show_question)
 
 
-    def typeAnsQuestionFilter(self, buf: str) -> str:
+    def typeAnsQuestionFilter(self, buf: str, _old) -> str:
         ref = self.reviewer
         ref.typeCorrect = None
         clozeIdx = None
@@ -88,8 +83,6 @@ class TypeClozeHander:
         if fld.startswith("cloze:"):
             clozeIdx = cCard.ord + 1
             fld = fld.split(":")[1]
-        else:
-            return original_typeAnsQuestionFilter(buf)
 
         for f in cCard.model()['flds']:
             if f['name'] == fld:
@@ -103,7 +96,7 @@ class TypeClozeHander:
                 break
 
         if not ref.typeCorrect:
-            return original_typeAnsQuestionFilter(buf)
+            return _old(ref, buf)
 
         if not clozeIdx:
             return re.sub(ref.typeAnsPat, TypeClozeHander.DEFAULT_ANKI_CLOZE % (ref.typeFont, ref.typeSize), buf)
@@ -194,11 +187,11 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
 
 # --------------------------------- Handle answer ----------------------------------------
 
-    def typeAnsAnswerFilter(self, buf):
+    def typeAnsAnswerFilter(self, buf, _old):
         ref = self.reviewer
 
         if not ref.typeCorrect or not isinstance(ref.typeCorrect, FieldsContext):
-            return original_typeAnsAnswerFilter(buf)
+            return _old(ref, buf)
 
         ctx: FieldsContext = ref.typeCorrect
 
@@ -246,11 +239,11 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
         cor = html.escape(cor)
         return cor
 
-    def _getTypedAnswer(self) -> None:
+    def _getTypedAnswer(self, _old) -> None:
         reviewer = self.reviewer
         if reviewer.typeCorrect and isinstance(reviewer.typeCorrect, FieldsContext):
             self.reviewer.web.evalWithCallback("typedWords ? typedWords : []", self._onFillBlankAnswer)
-        return original_getTypedAnswer()
+        return _old(reviewer)
 
     def _onFillBlankAnswer(self, val) -> None:
         reviewer = self.reviewer
