@@ -88,6 +88,8 @@ class TypeClozeHander:
         if fld.startswith("cloze:"):
             clozeIdx = cCard.ord + 1
             fld = fld.split(":")[1]
+        else:
+            return original_typeAnsQuestionFilter(buf)
 
         for f in cCard.model()['flds']:
             if f['name'] == fld:
