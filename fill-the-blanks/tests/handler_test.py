@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../src')
 
 # import config as cc
 
-from handler import TypeClozeHander, FieldsContext, FieldState
+from handler import TypeClozeHandler, FieldsContext, FieldState, AnkiInterface
 from config import ConfigService
 from anki_mocks_test import TestReviewer
 
@@ -20,11 +20,24 @@ def hookFakeFn(*args, **vargs):
     pass
 
 
-reviewer = TestReviewer()
-tested = TypeClozeHander(reviewer, hookFakeFn)
+def wrapFake(*args, **vargs):
+    print("Returning original. Each func should be replaced directly")
+    return args[0]
 
-def setUp():
-    print('----------------- {} -----------------')
+reviewer = TestReviewer()
+
+ankiInterfaceMock = AnkiInterface()
+ankiInterfaceMock.staticReviewer = TestReviewer
+ankiInterfaceMock.stripHTML = lambda v: v
+ankiInterfaceMock.wrap = wrapFake
+ankiInterfaceMock.addHook = hookFakeFn
+
+
+tested = TypeClozeHandler(reviewer, ankiInterfaceMock)
+
+reviewer.typeAnsQuestionFilter = lambda buf: tested.typeAnsQuestionFilter(buf, reviewer.typeAnsQuestionFilter)
+reviewer.typeAnsAnswerFilter = lambda buf: tested.typeAnsAnswerFilter(buf, reviewer.typeAnsAnswerFilter)
+reviewer._getTypedAnswer = lambda _old: tested._getTypedAnswer(reviewer.typeAnsQuestionFilter)
 
 
 def test_nocloze():
@@ -129,10 +142,23 @@ def test_field_result_uppercase_error():
     assert ('st-error' in result)
 
 def test_field_result_ignore_case():
-    testInstance = TypeClozeHander(reviewer, hookFakeFn, True)
+    testInstance = TypeClozeHandler(reviewer, ankiInterfaceMock, True)
     result = testInstance.format_field_result('milano', 'Milano')
     assert ('st-error' not in result)
     assert ('st-ok' in result)
+
+def test_html_space():
+    reviewer.card.note()['Text'] = 'Meu valor {{c1::ValueWith&nbsp;}} com tags {{c1::<span class="bla">Other<br/>val <span>}} '
+    res = reviewer.typeAnsQuestionFilter("""
+        <span class="content">
+        [[type:cloze:Text]]
+        </span>
+    """)
+
+    print(''.join(map(lambda v: "'%s'" % v.value, reviewer.typeCorrect.entries)))
+    # print(res)
+    # assert ('<input type="text"' in res)
+    # assert ('typeans0' in res)
 
 # -------------------------------------------------- Reported issues ------------------------------------------------
 
@@ -182,6 +208,29 @@ def test_issue_45():
     assert ('typeans0' in res)
     assert ('more content' in res)
     assert ('[sound:rec1579903-59_5.mp3]' not in res)
+
+
+# Issue 100
+def test_issue_100():
+    content = """
+    <b>{{c1::Lenguaje}}&nbsp;o&nbsp;{{c1::facultad verbal}}:&nbsp;</b><br><ul><li>{{c2::Sistema psicologico cognitivo universal}}
+     responsable de {{c2::la comunicacian}}.</li><li>Es {{c2::una facultad}} del {{c2::ser humano}}.</li>
+     <li>Es {{c2::biológicamente innato}}.</li><li>Es {{c2::universal}} y {{c2::limitante}}.</li></ul><div style="text-align: left;">
+    \(\downarrow\)&nbsp;</div><br><b>{{c1::Lengua}}:</b><br><ul style="">
+    <li style="">{{c3::Sistema de signos linguisticos}} que da forma particular {{c3::al lenguaje}} en {{c3::una comunidad nacional}} o {{c3::supranacional}}.</li>
+    <li style="">Es {{c3::abstracta}} y {{c3::evoluciona históricamente}}.</li></ul>\(\downarrow\)&nbsp;<br><br><b>{{c1::Idioma}}:&nbsp;</b><br>
+    <ul style=""><li style="">{{c4::Lengua natural}} caracterizada {{c4::politicamente}} ({{c4::extralingsticamente}}).&nbsp;</li>
+    <li style="">{{c4::Sistema linguístico}} definido en {{c4::términos extralingsticos}}.</li>
+    <li style="">Es {{c4::la lengua oficial}} de {{c4::una nacion}}.</li></ul>\(\downarrow\)&nbsp;<b><br><br>{{c1::Dialecto}}:</b><br>
+    <ul style=""><li style="">Variante {{c5::geografico-social}} de una {{c5::lengua}} dentro de {{c5::suírea dialectal}}.</li></ul>
+    \(\downarrow\)&nbsp;<b><br><br>{{c1::Habla}}:</b><br><ul style=""><li style="">{{c5::Uso}} del {{c5::sistema linguistico}}.</li>
+    """
+
+    res = tested._createFieldsContext(content, 1)
+
+    assert ('c1::' not in res.effectiveText)
+    assert ('c4::' not in res.effectiveText)
+    assert ('c5::' not in res.effectiveText)
 
 
 def test_issue_14():
@@ -282,6 +331,6 @@ def test_issue_82():
     """
 
     res = tested._createFieldsContext(txt, 1)
-    assert ('c2::' not in res.text)
+    assert ('c2::' not in res.effectiveText)
 
 # TODO create test for Anki simple type:Field (not cloze)

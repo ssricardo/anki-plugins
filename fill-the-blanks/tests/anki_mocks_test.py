@@ -17,10 +17,10 @@ class TestCard:
     _note = TestNote()
     ord = 0
 
-    def model(self): 
+    def note_type(self):
         return {
             'flds': [{
-                'name': 'other',
+                'id': 'other',
                 'name': 'Text',
                 'font': 'Arial',
                 'size': 10

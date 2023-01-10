@@ -8,11 +8,14 @@
 instance = None
 
 import os
-from .handler import TypeClozeHander
+from .handler import TypeClozeHandler, AnkiInterface
 from .config import ConfigService, ConfigKey 
 
 from aqt.utils import showInfo, tooltip, showWarning
+from aqt.reviewer import Reviewer
 from anki.hooks import wrap, addHook
+from aqt import gui_hooks
+from anki.utils import stripHTML
 from aqt import mw
 
 CWD = os.path.dirname(os.path.realpath(__file__))
@@ -65,24 +68,46 @@ def run():
     ConfigService._f = _ankiConfigRead
 
     instance = Controller(mw)
-    instance.setupBindings(mw.reviewer, wrap)
+    instance.setupBindings(mw.reviewer)
 
 
 class Controller:
 
     _mw = None
+    handler = None
     JS_LOCATION = CWD + '/fill-blanks.js'
+    warn_template_shown = False
 
     def __init__(self, ankiMw):
         self._mw = ankiMw
 
-    def setupBindings(self, reviewer, wrapFn):
+    def setupBindings(self, reviewer):
         if not reviewer:
-            print('No reviewer')
+            print('Unexpected state on Fill-blanks: No reviewer')
             return
-        self.handler = TypeClozeHander(reviewer, addHook, ConfigService.read(ConfigKey.IGNORE_CASE, bool),
-                                       ConfigService.read(ConfigKey.LEN_MULTIPLIER, int))
+
+        anki_interface = self.bind_anki_interface()
+
+        self.handler = TypeClozeHandler(reviewer, anki_interface, ConfigService.read(ConfigKey.IGNORE_CASE, bool),
+                                        ConfigService.read(ConfigKey.LEN_MULTIPLIER, int))
         reviewer._initWeb = self.wrapInitWeb(reviewer._initWeb)
+
+        gui_hooks.card_layout_will_show.append(Controller.warn_template_editor)
+
+    @staticmethod
+    def warn_template_editor(*args):
+        if not Controller.warn_template_shown:
+            tooltip("[Fill-in-the-blanks] Be aware: The add-on does not apply to the template editor. To check it, please go to Review mode", 8000)
+            Controller.warn_template_shown = True
+
+    @staticmethod
+    def bind_anki_interface():
+        anki_interface = AnkiInterface()
+        anki_interface.staticReviewer = Reviewer
+        anki_interface.addHook = addHook
+        anki_interface.wrap = wrap
+        anki_interface.stripHTML = stripHTML
+        return anki_interface
 
     def wrapInitWeb(self, fn):
 
@@ -91,7 +116,7 @@ class Controller:
 
             addStylesJs = """
                 var prStyle = `{}`;
-
+    
                 $(prStyle).appendTo('body');
                 """.format(CSS_STYLE)
 

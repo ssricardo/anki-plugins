@@ -2,7 +2,7 @@
 # Module for fill-the-blanks addon
 # -------------------------------------------------------------
 
-__version__ = "2.6"
+__version__ = "2.7"
 
 try:
     from .controller import run

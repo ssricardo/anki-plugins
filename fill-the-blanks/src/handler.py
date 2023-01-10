@@ -10,15 +10,41 @@ import re
 from bs4 import BeautifulSoup
 import html
 
-from anki.hooks import wrap
-from aqt.reviewer import Reviewer
-try:
-    from anki.utils import stripHTML
-    from aqt.utils import (tr, TR)
-except ImportError:
-    print('anki.utils not available. Probably running from test')
+
+class AnkiInterface:
+    """
+        Decouples internal components from Anki, making it easier for unit testing
+    """
+
+    staticReviewer = None
+
+    @staticmethod
+    def stripHTML(*value):
+        raise NotImplementedError("Must be replaced")
+
+    @staticmethod
+    def tr(*value):
+        raise NotImplementedError("Must be replaced")
+
+    @staticmethod
+    def TR(*value):
+        raise NotImplementedError("Must be replaced")
+
+    @staticmethod
+    def wrap(*args):
+        raise NotImplementedError("Must be replaced")
+
+    @staticmethod
+    def addHook(*args):
+        raise NotImplementedError("Must be replaced")
+
+    @staticmethod
+    def stripHTML(*args):
+        raise NotImplementedError("Must be replaced")
+
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
+
 
 class FieldState:
     value: str = None
@@ -35,13 +61,14 @@ class FieldsContext:
 
     def __init__(self, _text: str, _values: list) -> None:
         super().__init__()
-        self.text = _text
+        self.effectiveText = _text
         self.entries = _values
 
 
-class TypeClozeHander:
+class TypeClozeHandler:
     _currentFirst = None
     reviewer = None
+    _stripHTML = None
 
     DEFAULT_ANKI_CLOZE = """
     <center>
@@ -50,22 +77,27 @@ class TypeClozeHander:
     </center>
     """
 
-    RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*?)?\}\}")
+    RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*?)?\}\}", flags=re.DOTALL)
 
-    def __init__(self, reviewer, addHook, _ignoreCase = False, lengthMultiplier: int = 62) -> None:
+    def __init__(self, reviewer, anki: AnkiInterface, _ignoreCase=False, lengthMultiplier: int = 62) -> None:
 
         super().__init__()
         self.reviewer = reviewer
+
         self._mw = reviewer.mw
         self.isIgnoreCase = _ignoreCase
         self._lengthMultiplier = lengthMultiplier
 
-        Reviewer.typeAnsQuestionFilter = wrap(Reviewer.typeAnsQuestionFilter, lambda _,buf,_old: self.typeAnsQuestionFilter(buf, _old), "around")
-        Reviewer.typeAnsAnswerFilter = wrap(Reviewer.typeAnsAnswerFilter, lambda _,buf,_old: self.typeAnsAnswerFilter(buf, _old), "around")
-        Reviewer._getTypedAnswer = wrap(Reviewer._getTypedAnswer, lambda _,_old: self._getTypedAnswer(_old), "around")
+        TypeClozeHandler._stripHTML = anki.stripHTML
+        reviewer_class = anki.staticReviewer
+        reviewer_class.typeAnsQuestionFilter = anki.wrap(reviewer_class.typeAnsQuestionFilter,
+                                                         lambda _, buf, _old: self.typeAnsQuestionFilter(buf, _old), "around")
+        reviewer_class.typeAnsAnswerFilter = anki.wrap(reviewer_class.typeAnsAnswerFilter,
+                                                       lambda _, buf, _old: self.typeAnsAnswerFilter(buf, _old), "around")
+        reviewer_class._getTypedAnswer = anki.wrap(reviewer_class._getTypedAnswer,
+                                                   lambda _, _old: self._getTypedAnswer(_old), "around")
 
-        addHook("showQuestion", self.on_show_question)
-
+        anki.addHook("showQuestion", self.on_show_question)
 
     def typeAnsQuestionFilter(self, buf: str, _old) -> str:
         ref = self.reviewer
@@ -73,7 +105,7 @@ class TypeClozeHander:
         clozeIdx = None
         self._currentFirst = None
 
-        cCard = self.reviewer.card
+        rev_card = self.reviewer.card
 
         m = re.search(ref.typeAnsPat, buf)
         if not m:
@@ -81,12 +113,12 @@ class TypeClozeHander:
 
         fld = m.group(1)
         if fld.startswith("cloze:"):
-            clozeIdx = cCard.ord + 1
+            clozeIdx = rev_card.ord + 1
             fld = fld.split(":")[1]
 
-        for f in cCard.model()['flds']:
+        for f in rev_card.note_type()['flds']:
             if f['name'] == fld:
-                _fieldContent = cCard.note()[f['name']]
+                _fieldContent = rev_card.note()[f['name']]
                 if clozeIdx:
                     ref.typeCorrect = self._createFieldsContext(
                         _fieldContent, clozeIdx)
@@ -99,53 +131,56 @@ class TypeClozeHander:
             return _old(ref, buf)
 
         if not clozeIdx:
-            return re.sub(ref.typeAnsPat, TypeClozeHander.DEFAULT_ANKI_CLOZE % (ref.typeFont, ref.typeSize), buf)
+            return re.sub(ref.typeAnsPat, TypeClozeHandler.DEFAULT_ANKI_CLOZE % (ref.typeFont, ref.typeSize), buf)
 
-        else:
-            result = buf[:m.start()] + \
-                self._formatTypeCloze(ref.typeCorrect) + \
-                buf[m.end():]
-            # ref.typeCorrect = None      # FIXME
+        return buf[:m.start()] + \
+                 self._formatHtmlContent(ref.typeCorrect) + \
+                 buf[m.end():]
 
-            return result
+    CURRENT_CARD_FIELD_PLACEHOLDER = "[...]"
 
     def _createFieldsContext(self, txt, idx) -> FieldsContext:
-        reCloze = re.compile(r"\{\{c%s::(.+?)\}\}" % idx, re.DOTALL)
+        reCloze = re.compile(r"\{\{c%s::(.+?)\}\}" % idx, flags=re.DOTALL)
         matches = re.findall(reCloze, txt)
         if not matches:
             return FieldsContext(txt, [])
 
         matches = [self._splitHint(txt) for txt in matches]
         _fieldStates = map(self._extractFieldState, matches)
-        txt = re.sub(reCloze, "[...]", txt)
+        txt = re.sub(reCloze, self.CURRENT_CARD_FIELD_PLACEHOLDER, txt)
 
         # Replace other cloze (not current id)
-        txt = TypeClozeHander.RE_REMAINING_TEXT.sub(r'\1', txt, re.DOTALL)
+        txt = TypeClozeHandler.RE_REMAINING_TEXT.sub(r'\1', txt)
         txt = self._handleLargeText(txt)
+
         if '[sound:' in txt:
-            txt = re.sub(r'\[sound:(\w|\d|\.|\-|_)+?\]', '', txt, re.DOTALL)
+            txt = re.sub(r'\[sound:(\w|\d|\.|\-|_)+?\]', '', txt, flags=re.DOTALL)
 
         return FieldsContext(txt, list(_fieldStates))
-
 
     def _extractFieldState(self, inputWithHint) -> FieldState:
         try:
             (_input, hint) = inputWithHint
             content = BeautifulSoup('<span/>' + _input, 'html.parser')
             text = ''.join(content.findAll(text=True))
+            text = self.clear_correct_value_as_reviewer(text)
             return FieldState(text, hint)
         except UserWarning:
             return FieldState(*inputWithHint)
-
 
     def _splitHint(self, txt):
         if "::" in txt:
             return tuple(txt.split("::", 1))
         return (txt, "")
 
+    def _handleLargeText(self, data: str) -> str:
+        """ Handle weird issue #82 """
+        if len(data) <= 2048:
+            return data
+        return TypeClozeHandler.RE_REMAINING_TEXT.sub(r'\1', data)  # apply it again
 
-    def _formatTypeCloze(self, fieldsCtx: FieldsContext):
-        res = fieldsCtx.text
+    def _formatHtmlContent(self, fieldsCtx: FieldsContext):
+        res = fieldsCtx.effectiveText
 
         for idx, field in enumerate(fieldsCtx.entries):
             (val, hint) = field.value, field.hint
@@ -153,7 +188,7 @@ class TypeClozeHander:
             item = item + """<input type="text" id="typeans{0}" placeholder="{1}"
 class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlankListener($('#ansval{0}').val(), {0})
 </script>""".format(idx, hint, self._getInputLength(hint, val))
-            res = res.replace('[...]', item, 1)
+            res = res.replace(self.CURRENT_CARD_FIELD_PLACEHOLDER, item, 1)
 
         if not self._currentFirst:
             self._currentFirst = 'typeans0'
@@ -168,13 +203,6 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
     def _getInputLength(self, hint, val):
         return (max(len(val), len(hint)) * (0.01 * self._lengthMultiplier))
 
-    def _handleLargeText(self, data: str) -> str:
-        """ Handle weird issue #82 """
-        if len(data) <= 2048:
-            return data
-        return TypeClozeHander.RE_REMAINING_TEXT.sub(r'\1', data, re.DOTALL)    # apply it again
-
-
     def on_show_question(self):
         web = self.reviewer.mw.web
         if self._currentFirst:
@@ -185,40 +213,41 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
             ctx: FieldsContext = self.reviewer.typeCorrect
             web.eval("prepareTypedWords(%d);" % len(ctx.entries))
 
-# --------------------------------- Handle answer ----------------------------------------
+    # --------------------------------- Handle answer ----------------------------------------
 
-    def typeAnsAnswerFilter(self, buf, _old):
-        ref = self.reviewer
+    def typeAnsAnswerFilter(self, currentText, _originalFn):
+        reviewer = self.reviewer
 
-        if not ref.typeCorrect or not isinstance(ref.typeCorrect, FieldsContext):
-            return _old(ref, buf)
+        if not reviewer.typeCorrect or not isinstance(reviewer.typeCorrect, FieldsContext):
+            return _originalFn(reviewer, currentText)
 
-        ctx: FieldsContext = ref.typeCorrect
+        ctx: FieldsContext = reviewer.typeCorrect
 
-        origSize = len(buf)
-        buf = buf.replace("<hr id=answer>", "")
-        hadHR = len(buf) != origSize
+        origSize = len(currentText)
+        currentText = currentText.replace("<hr id=answer>", "")
+        hadHR = len(currentText) != origSize
 
-        result = buf
+        result = currentText
         for index, field in enumerate(ctx.entries):
-            cor = self.original_clear_correct_value(field.value)
+            cor = field.value
             given = html.escape(ctx.answers[index]) if ctx.answers and len(ctx.answers) == len(ctx.entries) else "None"
             field_res = self.format_field_result(given, cor)
-            result = result.replace('<span class=cloze>%s</span>' % html.escape(field.value), field_res, 1)
+            result = re.sub(r'<span class="?cloze\s*"?(\s*data-ordinal="\d\d?")?>%s</span>' % html.escape(field.value),
+                            field_res, result, 1)
 
-        # from original
+        # copy from reviewer original
         def repl(match):
             s = """
         <span style="font-family: '%s'; font-size: %spx">%s</span>""" % (
-                ref.typeFont,
-                ref.typeSize,
+                reviewer.typeFont,
+                reviewer.typeSize,
                 match,
             )
             if hadHR:
                 s = "<hr id=answer>" + s
             return s
 
-        return re.sub(ref.typeAnsPat, repl, result)
+        return re.sub(reviewer.typeAnsPat, repl, result)
 
     def format_field_result(self, given: str, expected: str):
         if given.strip() == expected.strip():
@@ -227,10 +256,12 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
             return "<span class='cloze st-ok'>%s</span>" % expected
         return "<span class='cloze st-expected'>%s</span> <span class='cloze st-error'>(%s)</span>" % (expected, given)
 
-    def original_clear_correct_value(self, value: str):
+    def clear_correct_value_as_reviewer(self, value: str):
+        """Mostly copy from original reviewer code"""
+
         cor = self._mw.col.media.strip(value)
         cor = re.sub("(\n|<br ?/?>|</?div>)+", " ", cor)
-        cor = stripHTML(cor)
+        cor = TypeClozeHandler._stripHTML(cor)
         # ensure we don't chomp multiple whitespace
         cor = cor.replace(" ", "&nbsp;")
         cor = html.unescape(cor)
