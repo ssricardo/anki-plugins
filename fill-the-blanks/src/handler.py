@@ -234,7 +234,7 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
             given = ctx.answers[index] if ctx.answers and len(ctx.answers) == len(ctx.entries) else "None"
             field_res = self.format_field_result(given, cor)
             result = re.sub(r'<span class="?cloze\s*"?(\s*data-ordinal="\d\d?")?>%s</span>' % re.escape(field.value),
-                            field_res, result, 1)
+                            field_res.replace('\\', r'\\'), result, 1)
 
         # copy from reviewer original
         def repl(match):
