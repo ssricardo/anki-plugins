@@ -266,6 +266,7 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
         cor = re.sub("(\n|<br ?/?>|</?div>)+", " ", cor)
         cor = cor.replace("&nbsp;", " ")
         cor = cor.replace("\xa0", " ")
+        cor = cor.strip()
         return cor
 
     def _getTypedAnswer(self, _old) -> None:
