@@ -49,12 +49,13 @@ currentLocation = os.path.dirname(os.path.realpath(__file__))
 class FieldState:
     value: str = None
     hint: str = None
+    valueAsPlainText = None
 
-    def __init__(self, _value: str, _hint: str = None) -> None:
+    def __init__(self, _value: str, _hint: str = None, _valueAsPlainText: str = None) -> None:
         super().__init__()
         self.value = _value
         self.hint = _hint
-
+        self.valueAsPlainText = _valueAsPlainText
 
 class FieldsContext:
     answers: list = list()
@@ -164,7 +165,7 @@ class TypeClozeHandler:
             content = BeautifulSoup('<span/>' + _input, 'html.parser')
             text = ''.join(content.findAll(text=True))
             text = self.clear_correct_value_as_reviewer(text)
-            return FieldState(text, hint)
+            return FieldState(_input, hint, text)
         except UserWarning:
             return FieldState(*inputWithHint)
 
@@ -183,7 +184,7 @@ class TypeClozeHandler:
         res = fieldsCtx.effectiveText
 
         for idx, field in enumerate(fieldsCtx.entries):
-            (val, hint) = field.value, field.hint
+            (val, hint) = field.valueAsPlainText, field.hint
             item = """<input type="hidden" id="ansval%d" value="%s" />""" % (idx, val.replace('"', '&quot;'))
             item = item + """<input type="text" id="typeans{0}" placeholder="{1}"
 class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlankListener($('#ansval{0}').val(), {0})
@@ -229,10 +230,10 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
 
         result = currentText
         for index, field in enumerate(ctx.entries):
-            cor = field.value
-            given = html.escape(ctx.answers[index]) if ctx.answers and len(ctx.answers) == len(ctx.entries) else "None"
+            cor = field.valueAsPlainText
+            given = ctx.answers[index] if ctx.answers and len(ctx.answers) == len(ctx.entries) else "None"
             field_res = self.format_field_result(given, cor)
-            result = re.sub(r'<span class="?cloze\s*"?(\s*data-ordinal="\d\d?")?>%s</span>' % html.escape(field.value),
+            result = re.sub(r'<span class="?cloze\s*"?(\s*data-ordinal="\d\d?")?>%s</span>' % re.escape(field.value),
                             field_res, result, 1)
 
         # copy from reviewer original
@@ -250,24 +251,21 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
         return re.sub(reviewer.typeAnsPat, repl, result)
 
     def format_field_result(self, given: str, expected: str):
-        if given.strip() == expected.strip():
-            return "<span class='cloze st-ok'>%s</span>" % expected
-        if self.isIgnoreCase and given.strip().lower() == expected.strip().lower():
-            return "<span class='cloze st-ok'>%s</span>" % expected
-        return "<span class='cloze st-expected'>%s</span> <span class='cloze st-error'>(%s)</span>" % (expected, given)
+        given = given.strip()
+        expected = expected.strip()
+        if given == expected:
+            return "<span class='cloze st-ok'>%s</span>" % html.escape(expected)
+        if self.isIgnoreCase and given.lower() == expected.lower():
+            return "<span class='cloze st-ok'>%s</span>" % html.escape(expected)
+        return "<span class='cloze st-expected'>%s</span> <span class='cloze st-error'>(%s)</span>" % (html.escape(expected), html.escape(given))
 
-    def clear_correct_value_as_reviewer(self, value: str):
-        """Mostly copy from original reviewer code"""
+    def clear_correct_value_as_reviewer(self, valueAsBeautifulSoupText: str):
+        """Mostly copy from original reviewer code *as plain text*"""
 
-        cor = self._mw.col.media.strip(value)
+        cor = self._mw.col.media.strip(valueAsBeautifulSoupText)
         cor = re.sub("(\n|<br ?/?>|</?div>)+", " ", cor)
-        cor = TypeClozeHandler._stripHTML(cor)
-        # ensure we don't chomp multiple whitespace
-        cor = cor.replace(" ", "&nbsp;")
-        cor = html.unescape(cor)
+        cor = cor.replace("&nbsp;", " ")
         cor = cor.replace("\xa0", " ")
-        cor = cor.strip()
-        cor = html.escape(cor)
         return cor
 
     def _getTypedAnswer(self, _old) -> None:
