@@ -57,6 +57,7 @@ class FieldState:
         self.hint = _hint
         self.valueAsPlainText = _valueAsPlainText
 
+
 class FieldsContext:
     answers: list = list()
 
@@ -266,6 +267,11 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
         cor = re.sub("(\n|<br ?/?>|</?div>)+", " ", cor)
         cor = cor.replace("&nbsp;", " ")
         cor = cor.replace("\xa0", " ")
+        # Remove zero-width space that might be used between double-colons as a
+        # hack to support double-colon content within cloze deletion (prevent
+        # hint split); users might add `&ZeroWidthSpace;` in HTML, which
+        # BeautifulSoup interprets as unicode `\u200b`:
+        cor = cor.replace("\u200b", "")
         cor = cor.strip()
         return cor
 
