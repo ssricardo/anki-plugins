@@ -189,7 +189,7 @@ class TypeClozeHandler:
             item = """<input type="hidden" id="ansval%d" value="%s" />""" % (idx, val.replace('"', '&quot;'))
             item = item + """<input type="text" id="typeans{0}" placeholder="{1}"
 class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlankListener($('#ansval{0}').val(), {0})
-</script>""".format(idx, hint, self._getInputLength(hint, val))
+</script>""".format(idx, hint.replace('"', '&quot;'), self._getInputLength(hint, val))
             res = res.replace(self.CURRENT_CARD_FIELD_PLACEHOLDER, item, 1)
 
         if not self._currentFirst:
