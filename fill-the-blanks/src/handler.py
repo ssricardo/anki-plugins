@@ -139,7 +139,7 @@ class TypeClozeHandler:
                  self._formatHtmlContent(ref.typeCorrect) + \
                  buf[m.end():]
 
-    CURRENT_CARD_FIELD_PLACEHOLDER = "[...]"
+    CURRENT_CARD_FIELD_PLACEHOLDER = "[-multi-type-cloze-placeholder-]"
 
     def _createFieldsContext(self, txt, idx) -> FieldsContext:
         reCloze = re.compile(r"\{\{c%s::(.+?)\}\}" % idx, flags=re.DOTALL)
