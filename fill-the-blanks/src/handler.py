@@ -57,6 +57,7 @@ class FieldState:
         self.hint = _hint
         self.valueAsPlainText = _valueAsPlainText
 
+
 class FieldsContext:
     answers: list = list()
 
@@ -138,7 +139,7 @@ class TypeClozeHandler:
                  self._formatHtmlContent(ref.typeCorrect) + \
                  buf[m.end():]
 
-    CURRENT_CARD_FIELD_PLACEHOLDER = "[...]"
+    CURRENT_CARD_FIELD_PLACEHOLDER = "[-multi-type-cloze-placeholder-]"
 
     def _createFieldsContext(self, txt, idx) -> FieldsContext:
         reCloze = re.compile(r"\{\{c%s::(.+?)\}\}" % idx, flags=re.DOTALL)
@@ -188,7 +189,7 @@ class TypeClozeHandler:
             item = """<input type="hidden" id="ansval%d" value="%s" />""" % (idx, val.replace('"', '&quot;'))
             item = item + """<input type="text" id="typeans{0}" placeholder="{1}"
 class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlankListener($('#ansval{0}').val(), {0})
-</script>""".format(idx, hint, self._getInputLength(hint, val))
+</script>""".format(idx, hint.replace('"', '&quot;'), self._getInputLength(hint, val))
             res = res.replace(self.CURRENT_CARD_FIELD_PLACEHOLDER, item, 1)
 
         if not self._currentFirst:
@@ -266,6 +267,11 @@ class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlank
         cor = re.sub("(\n|<br ?/?>|</?div>)+", " ", cor)
         cor = cor.replace("&nbsp;", " ")
         cor = cor.replace("\xa0", " ")
+        # Remove zero-width space that might be used between double-colons as a
+        # hack to support double-colon content within cloze deletion (prevent
+        # hint split); users might add `&ZeroWidthSpace;` in HTML, which
+        # BeautifulSoup interprets as unicode `\u200b`:
+        cor = cor.replace("\u200b", "")
         cor = cor.strip()
         return cor
 
