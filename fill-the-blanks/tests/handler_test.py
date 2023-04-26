@@ -6,6 +6,7 @@
 # @author ricardo saturnino
 # ------------------------------------------------
 
+import pytest
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../src')
@@ -129,7 +130,7 @@ def test_typeAnsAnswerFilter_Ok():
         <span class="content">
         [...]
         </span>
-    """, [FieldState("Text")])
+    """, [FieldState("Text", None, "Text")])
     reviewer.typeCorrect.answers = list("whatever")
     reviewer.typeAnsAnswerFilter("""
         <span class="content">
@@ -216,14 +217,14 @@ def test_issue_100():
     <b>{{c1::Lenguaje}}&nbsp;o&nbsp;{{c1::facultad verbal}}:&nbsp;</b><br><ul><li>{{c2::Sistema psicologico cognitivo universal}}
      responsable de {{c2::la comunicacian}}.</li><li>Es {{c2::una facultad}} del {{c2::ser humano}}.</li>
      <li>Es {{c2::biológicamente innato}}.</li><li>Es {{c2::universal}} y {{c2::limitante}}.</li></ul><div style="text-align: left;">
-    \(\downarrow\)&nbsp;</div><br><b>{{c1::Lengua}}:</b><br><ul style="">
+    (\downarrow\)&nbsp;</div><br><b>{{c1::Lengua}}:</b><br><ul style="">
     <li style="">{{c3::Sistema de signos linguisticos}} que da forma particular {{c3::al lenguaje}} en {{c3::una comunidad nacional}} o {{c3::supranacional}}.</li>
     <li style="">Es {{c3::abstracta}} y {{c3::evoluciona históricamente}}.</li></ul>\(\downarrow\)&nbsp;<br><br><b>{{c1::Idioma}}:&nbsp;</b><br>
     <ul style=""><li style="">{{c4::Lengua natural}} caracterizada {{c4::politicamente}} ({{c4::extralingsticamente}}).&nbsp;</li>
     <li style="">{{c4::Sistema linguístico}} definido en {{c4::términos extralingsticos}}.</li>
     <li style="">Es {{c4::la lengua oficial}} de {{c4::una nacion}}.</li></ul>\(\downarrow\)&nbsp;<b><br><br>{{c1::Dialecto}}:</b><br>
     <ul style=""><li style="">Variante {{c5::geografico-social}} de una {{c5::lengua}} dentro de {{c5::suírea dialectal}}.</li></ul>
-    \(\downarrow\)&nbsp;<b><br><br>{{c1::Habla}}:</b><br><ul style=""><li style="">{{c5::Uso}} del {{c5::sistema linguistico}}.</li>
+    (\downarrow\)&nbsp;<b><br><br>{{c1::Habla}}:</b><br><ul style=""><li style="">{{c5::Uso}} del {{c5::sistema linguistico}}.</li>
     """
 
     res = tested._createFieldsContext(content, 1)
@@ -332,5 +333,3 @@ def test_issue_82():
 
     res = tested._createFieldsContext(txt, 1)
     assert ('c2::' not in res.effectiveText)
-
-# TODO create test for Anki simple type:Field (not cloze)
