@@ -20,3 +20,8 @@
 * experimental-asian-chars:
     * In test, for enabling feedback for Japanese, Chinese, Korean
     * Acceptable values: true | false
+
+* enable-new-filter (true | false)
+  * See https://github.com/ssricardo/anki-plugins/wiki/Fill-the-blanks-New-Integration
+
+* override-type-cloze (true | false)

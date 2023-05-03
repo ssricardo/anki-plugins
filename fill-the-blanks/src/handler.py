@@ -38,10 +38,6 @@ class AnkiInterface:
     def addHook(*args):
         raise NotImplementedError("Must be replaced")
 
-    @staticmethod
-    def stripHTML(*args):
-        raise NotImplementedError("Must be replaced")
-
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
 
@@ -103,10 +99,10 @@ class TypeClozeHandler:
 
     def typeAnsQuestionFilter(self, buf: str, _old) -> str:
         ref = self.reviewer
+
         ref.typeCorrect = None
         clozeIdx = None
         self._currentFirst = None
-
         rev_card = self.reviewer.card
 
         m = re.search(ref.typeAnsPat, buf)

@@ -73,7 +73,7 @@
 
 * Fix formatting for multiple fields (thanks @matt2112)
 
-**2.7** | 10/09/2023 
+**2.7** | 10/01/2023 
 
 * Replace integration with Anki for compatibility with other add-ons (thanks @Abdo)
 * Possibly already make integration with other add-ons work (issues #109, #96, #115)
@@ -82,3 +82,15 @@
 * Add warning in Template editor (issue #120)
 * Fix issue when there are many cloze or text is very long (issues #100, #116)
 * Change a bit input clean up to avoid user error (issue #111)
+
+*2.8* | 14/01/2023
+
+* Re-work input cleaning up (thanks Andre/@lightmotive)
+  * Issue #126
+* Also possibly for issues #125 and #129
+
+*3.0* | 03/05/2023
+
+* Add new integration (still experimental)
+* Merge support for zero-width space (thanks Andre/@lightmotive)
+* issue #39
