@@ -88,3 +88,9 @@
 * Re-work input cleaning up (thanks Andre/@lightmotive)
   * Issue #126
 * Also possibly for issues #125 and #129
+
+*3.0* | 03/05/2023
+
+* Add new integration (still experimental)
+* Merge support for zero-width space (thanks Andre/@lightmotive)
+* issue #39

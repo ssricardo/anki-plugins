@@ -3,5 +3,7 @@
     "feedback-ignore-case": false,
     "feedback-ignore-accents": false,
     "input-len-times": 62,
+    "enable-new-filter": false,
+    "override-type-cloze": true,
     "experimental-asian-chars": false
 }

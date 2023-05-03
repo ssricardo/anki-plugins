@@ -36,11 +36,11 @@ class FieldsContext:
 
 
 def addon_field_filter(field_text: str, field_name: str, filter_name: str, ctx) -> str:
-    if filter_name != "fill-blanks":
-        return field_text
-
     # print("**** Field filter: %s on field %s" % (filter_name, field_name))
     # print(field_text)
+
+    if filter_name != "fill-blanks":
+        return field_text
 
     FieldsContext.entry_number = 0
     FieldsContext.answers.clear()
@@ -63,7 +63,6 @@ def addon_field_filter(field_text: str, field_name: str, filter_name: str, ctx) 
 def _traverse_entries(body, rev_card) -> int:
     typein_fields = 0
     for idx, span in enumerate(body.find_all('span', 'cloze')):
-        classes = span['class'] if span.has_attr('class') else []   # TODO remove
         tag_ordinal = span['data-ordinal'] if span.has_attr('data-ordinal') else "-1"
         if tag_ordinal != str(rev_card.ord + 1):
             continue
@@ -112,15 +111,12 @@ def _create_fill_elements(idx: int, text: str, hint: str = "") -> BeautifulSoup:
         """<script type="text/javascript">setUpFillBlankListener($('#ansval%d').val(), %d)</script>""" % (idx, idx),
         'html.parser')
 
-    # placeholder_for_callback_result = BeautifulSoup("""<input type="hidden" id="ansval" value="" />""", "html.parser")
-
     container_soup = BeautifulSoup("""<span class="ftb-container"></span>""", "html.parser")
     container = container_soup.span
 
     container.append(hidden)
     container.append(typein)
     container.append(script)
-    # container.append(placeholder_for_callback_result)
 
     return container
 
@@ -148,9 +144,6 @@ def on_show_question():
 def handle_answer(answer: str, card, phase: str) -> str:
     if phase != "reviewAnswer":
         return answer
-
-    # print("=== %s %s" % ("Anwser", '=' * 50))
-    # print(answer)
 
     soup = BeautifulSoup(answer, 'html.parser')
     field_ctx = None if FieldsContext.entry_number == 0 else FieldsContext

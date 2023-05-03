@@ -42,7 +42,6 @@ def test_filter():
     assert 'typeans0' in res
 
 
-
 def test_filter2():
     data = """
 This is a <span class="cloze-inactive" data-ordinal="1">test</span>&nbsp;<br>With some toher <span class="cloze" data-ordinal="2">fields</span>.<br>And two fields on the <span class="cloze-inactive" data-ordinal="1">same</span><br><
