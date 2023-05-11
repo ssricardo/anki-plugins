@@ -7,9 +7,8 @@
 
 from . import core
 from .core import Priority
-from .core import Feedback
 from .core import AppHolder
-from .prioritizer import Prioritizer
+from .prioritizer import get_priority_tag_command, set_priority_tag
 
 from PyQt5.QtWidgets import QMenu, QAction
 
@@ -35,6 +34,7 @@ function setPriority(value) {
 }
 """
 
+
 # Responsible for schedule-priority integration with Anki UI
 class PriorityCardUiHandler:
 
@@ -57,51 +57,80 @@ class PriorityCardUiHandler:
             }, 100);
         """ % value)
 
-    def setNewPriority(self, value):
-        Prioritizer.setPriority(self._note, value)
-        AppHolder.app.reset()
 
     @staticmethod
     def onEditorCtxMenu(webView, menu):
-        'Handles context menu event on Editor'
+        """Handles context menu event on Editor"""
 
-        _note = webView.editor.note
-        _instance = PriorityCardUiHandler(_note)    # hold the card ref
-        _instance.showCustomMenu(menu)
+        if not webView or not webView.editor:
+            return
+
+        PriorityCardUiHandler.show_menu_for_editor(menu, webView.editor)
 
     @staticmethod
     def onReviewCtxMenu(webView, menu):
-        'Handles context menu event on Reviewer'
+        """Handles context menu event on Reviewer"""
 
         _card = AppHolder.app.reviewer.card
 
         if not _card:
             return
 
-        _instance = PriorityCardUiHandler(_card._note)
-        _instance.showCustomMenu(menu)
+        PriorityCardUiHandler.show_menu_reviewer(menu, AppHolder.app.reviewer)
 
-    def _makeMenuAction(self, value):
+    def _makeMenuAction(self, value, anki_editor):
         """
             Creates correct action for the context menu selection.
             Otherwise, it would repeat only the last element
         """
 
-        return lambda: self.setNewPriority(value)
+        def set_new_priority():
+            tag_command = get_priority_tag_command(anki_editor.note, value)
+            anki_editor.onBridgeCmd(tag_command)
 
-    def showCustomMenu(self, menu):
+        return set_new_priority
+
+    @staticmethod
+    def show_menu_reviewer(menu, reviewer):
         submenu = QMenu(core.Label.CARD_MENU, menu)
+
+        def make_menu_action(value: int):
+            def set_new_priority():
+                set_priority_tag(reviewer.card.note(), value)
+                AppHolder.app.reset()
+
+            return set_new_priority
 
         for index, item in enumerate(Priority.priorityList):
             act = QAction('(&' + str(index + 1) + ') ' + item.description, submenu,
-                triggered=self._makeMenuAction(index))
+                triggered=make_menu_action(index))
 
             submenu.addAction(act)
 
         menu.addMenu(submenu)
 
     @staticmethod
-    def onShowQA(**args):
+    def show_menu_for_editor(menu, editor):
+        submenu = QMenu(core.Label.CARD_MENU, menu)
+
+        def make_menu_action(value: int):
+            def set_new_priority():
+                tag_command = get_priority_tag_command(editor.note, value)
+                editor.onBridgeCmd(tag_command)
+                AppHolder.app.reset()
+
+            return set_new_priority
+
+        for index, item in enumerate(Priority.priorityList):
+            act = QAction('(&' + str(index + 1) + ') ' + item.description, submenu,
+                          triggered=make_menu_action(index))
+
+            submenu.addAction(act)
+
+        menu.addMenu(submenu)
+
+    @staticmethod
+    def onShowQA():
         reviewer = AppHolder.app.reviewer
         if not reviewer.card:
             return
@@ -112,7 +141,7 @@ class PriorityCardUiHandler:
             if not p.tagName:
                 continue
 
-            if note.hasTag(p.tagName):
+            if note.has_tag(p.tagName):
                 customPriority = p.description
 
         if customPriority:

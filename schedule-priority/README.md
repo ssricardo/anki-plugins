@@ -82,6 +82,10 @@ Conversely, Low priority should not be repeat as much as other (meaning longer i
 The values for priorities should grow in sequence. And the higher the priority, the lower the value.
 
 
+## Integration with Scheduler V3
+
+Check out: https://github.com/ssricardo/anki-plugins/wiki/Card-Priority---Scheduler-V3
+
 
 > After you change the settings, you must restart to take effect
 
@@ -93,15 +97,4 @@ That and the source code are available on: [Github](https://github.com/ssricardo
 
 ## Updates
 
-26/07/2021: **version 3.0**:
-
-* Added support for Anki Scheduler v.2
-
-**version 2.0**:
-
-* Stable version
-
-25/10/2018: **version 1.2**:
-
-* Added a message to answer cards, showing the current Priority (if it's not Normal)
-* Issue: https://github.com/ssricardo/anki-plugins/issues/3
+View [RELEASE_NOTES.](./RELEASE_NOTES.md)

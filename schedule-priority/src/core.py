@@ -4,12 +4,10 @@
 # @author ricardo saturnino
 
 import math
-from .exception import InvalidConfiguration
-
 # Constants for schedule-priority
 
-'Application reference. Must be bind on startup'
 class AppHolder:
+    """Application reference. Must be bound on startup"""
 
     app = None
 
@@ -26,7 +24,6 @@ class Priority:
         self.configName = configName
         self.value = float(default)
 
-
     @classmethod
     def load(clz):
         p = []
@@ -36,7 +33,6 @@ class Priority:
         p.append(Priority('High', 'priority:high', 'High', 75))
         p.append(Priority('Highest', 'priority:highest', 'Highest', 50))
         clz.priorityList = (p)  # no adding or removing
-
 
     @classmethod
     def setValue(clz, key, val):
@@ -52,7 +48,6 @@ class Priority:
                 item.setValue = float(val)
                 break
             lastValue = item.value
-
 
 
 class Label:
@@ -79,3 +74,11 @@ class Feedback:
     @staticmethod
     def showError(*args):
         pass    # will be bind to Anki in the controller
+
+# -----------------------------------------------------------------------------
+
+
+class InvalidConfiguration(Exception):
+
+    def __init__(self, message):
+        super().__init__(message)

@@ -4,37 +4,37 @@
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../src')
 
 import unittest
-from anki import *
+from anki_test import *
 
-from schedule_priority.prioritizer import Prioritizer
-import schedule_priority.core
-from schedule_priority.core import Priority
+from prioritizer import get_prioritized_time, get_priority_tag_command, set_priority_tag, PrioInterface
+from core import Priority
 
-class PrioritizerTest(unittest.TestCase):
+PrioInterface.priority_list = lambda: Priority.priorityList
+PrioInterface.showInfo = lambda msg: print(msg)
+PrioInterface.showError = lambda msg: print(msg)
 
-    @classmethod
-    def setUpClass(clz):
-        Priority.load()
+Priority.load()
 
-    def test_prioritizedTime(self):
-        pass
 
-    def test_highTime(self):
-        c = TestCard()
-        c._note._tag = Priority.priorityList[3].tagName # High
+def test_prioritizedTime():
+    pass
 
-        time = Prioritizer.getPrioritizedTime(c, 1000)
-        self.assertEqual(750, time)
+def test_highTime():
+    c = TestCard()
+    c._note._tag = Priority.priorityList[3].tagName # High
 
-    def test_lowTime(self):
-        c = TestCard()
-        c._note._tag = Priority.priorityList[1].tagName # Low
-        
-        time = Prioritizer.getPrioritizedTime(c, 1000)
-        self.assertEqual(1500, time)
+    time = get_prioritized_time(c, 1000)
+    assert 750 == time
+
+def test_lowTime():
+    c = TestCard()
+    c._note._tag = Priority.priorityList[1].tagName # Low
+
+    time = get_prioritized_time(c, 1000)
+    assert 1500 == time
 
 
 if __name__ == '__main__':

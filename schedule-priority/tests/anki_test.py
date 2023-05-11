@@ -13,11 +13,15 @@ class TestNote:
         'form': {}
     }]
 
-    def hasTag(self, str):
+    def has_tag(self, str):
         return str == self._tag
 
 class TestCard:
     _note = TestNote()
+
+    def note(self):
+        return self._note
+
 
 class TestReviewer:
     card = TestCard()

@@ -3,85 +3,109 @@
 # This files is part of schedule-priority addon
 # @author ricardo saturnino
 
-import math
-
-from .exception import InvalidConfiguration
-from . import core
-
-from .core import Feedback
-from .core import Priority
+import json
 
 
-# Responsible for the main logic for this addon
-# Integrates with anki Scheduler
-class Prioritizer:
+class PrioInterface:
+    """ Detach module for unit test (avoid error with relative import) """
 
     @classmethod
-    def setPriority(clz, note, level):
-        """
-            Sets the level based on controlling note's tags
-        """
-
-        if not note:
-            Feedback.showError('Could not get the instance of note. Cancelling process...')
-            return
-
-        # clear previous tags
-        for pr in Priority.priorityList:
-            if not pr.tagName:
-                continue
-
-            if note.hasTag(pr.tagName):
-                note.delTag(pr.tagName)
-
-        newPriority = Priority.priorityList[level]
-
-        # Not normal
-        if newPriority.tagName:
-            note.addTag(newPriority.tagName)
-
-        note.flush()
-        priorityStr = newPriority.description
-        Feedback.showInfo('Priority set as {}'.format(priorityStr))
+    def priority_list(cls):
+        raise NotImplementedError()
 
     @classmethod
-    def getPrioritizedTime(clz, card, resTime):
-        """
-            Get the estimated time to be shown on top of buttons
-        """
+    def showInfo(cls, *args):
+        raise NotImplementedError()
 
-        note = card._note
+    @classmethod
+    def showError(cls, *args):
+        raise NotImplementedError()
 
-        for item in Priority.priorityList:
-            if not item.tagName:
-                continue
 
-            if note.hasTag(item.tagName):
-                resTime = int(resTime * (item.value / 100))
+def set_priority_tag(note, level):
+    """
+        Sets the level based on controlling note's tags
+    """
 
-        return resTime
+    if not note:
+        PrioInterface.showError('Could not get the instance of note. Cancelling process...')
+        return
 
-    # Deprecation: To be removed when support for scheduler v1 is dropped
-    @staticmethod
-    def getNextInterval(scheduleInstance, *args, **kargs):
-        """ Decorator for estimate next schedule time for a given option. 
-            This time is shown above the card while studying
-        """
+    # clear previous tags
+    for pr in PrioInterface.priority_list():
+        if not pr.tagName:
+            continue
 
-        f = kargs['_old']
-        res = f(scheduleInstance, args[0], args[1])
-        card = args[0]  # card
+        if note.has_tag(pr.tagName):
+            note.remove_tag(pr.tagName)
 
-        return Prioritizer.getPrioritizedTime(card, res)
+    newPriority = PrioInterface.priority_list()[level]
 
-    # Deprecation: To be removed when support for scheduler v1 is dropped
-    @staticmethod
-    def priorityUpdateRevision(scheduleInst, *args, **kargs):
-        """ Decorator for get next revision date, based on priority. 
-            Used to schedule the next date.
-        """
+    # Not normal
+    if newPriority.tagName:
+        note.add_tag(newPriority.tagName)
 
-        f = kargs['_old']
-        card = args[0]
-        f(scheduleInst, card, args[1])  # _updateRevIvl(self, card, ease)
-        card.ivl = Prioritizer.getPrioritizedTime(card, card.ivl)
+    note.flush()
+    priorityStr = newPriority.description
+    PrioInterface.showInfo('Priority set as {}'.format(priorityStr))
+
+
+def get_priority_tag_command(note, level) -> str:
+    """
+        Sets the level based on controlling note's tags
+    """
+
+    if not note:
+        PrioInterface.showError('Could not get the instance of note. Cancelling process...')
+        return ""
+
+    cur_tags = note.tags
+
+    # clear previous tags
+    for pr in PrioInterface.priority_list():
+        if not pr.tagName:
+            continue
+
+        if pr.tagName in cur_tags:
+            cur_tags.remove(pr.tagName)
+
+    new_priority = PrioInterface.priority_list()[level]
+
+    # Not normal
+    if new_priority.tagName:
+        cur_tags.append(new_priority.tagName)
+
+    json_tags = json.dumps(cur_tags)
+
+    PrioInterface.showInfo('Priority tags list {}'.format(json_tags))
+    return "saveTags:%s" % json_tags
+
+
+def get_prioritized_time(card, resTime):
+    """
+        Get the estimated time to be shown on top of buttons
+    """
+
+    note = card.note()
+
+    for item in PrioInterface.priority_list():
+        if not item.tagName:
+            continue
+
+        if note.has_tag(item.tagName):
+            resTime = round(resTime * (item.value / 100))
+
+    return resTime
+
+
+def get_card_multiplier(card) -> float:
+    note = card.note()
+
+    for item in PrioInterface.priority_list():
+        if not item.tagName:
+            continue
+
+        if note.has_tag(item.tagName):
+            return float(item.value / 100)
+
+    return 1.0
