@@ -35,24 +35,33 @@ class FieldsContext:
     answers: list = list()
 
 
+current_card_id = None  # Global variable to track the current card being processed
+last_card_id = None  # Global variable to track the previously processed card
+
 def addon_field_filter(field_text: str, field_name: str, filter_name: str, ctx) -> str:
     # print("**** Field filter: %s on field %s" % (filter_name, field_name))
     # print(field_text)
+    global current_card_id, last_card_id
 
     if filter_name != "fill-blanks":
         return field_text
 
-    FieldsContext.entry_number = 0
-    FieldsContext.answers.clear()
-
     rev_card = ctx.card()
+
+    # Reset FieldsContext.entry_number if a new card is shown or re-shown
+    if current_card_id != rev_card.id or last_card_id != rev_card.id:
+        current_card_id = rev_card.id
+        FieldsContext.entry_number = 0  # Reset for the new or re-shown card
+
+    # Update the last_card_id for subsequent checks
+    last_card_id = rev_card.id
 
     # print("card ord: %d" % rev_card.ord)
 
     body = BeautifulSoup(field_text, 'html.parser')
 
     typein_fields = _traverse_entries(body, rev_card)
-    FieldsContext.entry_number = typein_fields
+    FieldsContext.entry_number += typein_fields
 
     if typein_fields > 0:
         FieldsContext.currentFirst = "typeans0"
@@ -67,9 +76,10 @@ def _traverse_entries(body, rev_card) -> int:
         if tag_ordinal != str(rev_card.ord + 1):
             continue
 
+        global_index = FieldsContext.entry_number + typein_fields  # Unique across fields
         cloze_value = span['data-cloze'] if span.has_attr('data-cloze') else span.text
         remaining_text = span.text
-        span.replace_with(_apply_typein_value(cloze_value, remaining_text, idx))
+        span.replace_with(_apply_typein_value(cloze_value, remaining_text, global_index))
         typein_fields += 1
     return typein_fields
 
