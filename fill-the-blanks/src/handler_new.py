@@ -122,9 +122,14 @@ def _create_fill_elements(idx: int, text: str, hint: str = "") -> BeautifulSoup:
 
 
 def _get_length_class(text: str, hint: str):
-    # TODO
     hint_present = hint if hint else ""
     size = max(len(text), len(hint_present))
+    if size <= 5:
+        return "ftb-xs"
+    elif size <= 10:
+        return "ftb-sm"
+    elif size > 20:
+        return "ftb-lg"
     return "ftb-md"
 
 

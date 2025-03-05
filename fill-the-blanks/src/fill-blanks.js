@@ -20,6 +20,14 @@ function checkFieldValue(reference, fieldIndex) {
     // console.log('Cur: ' + current + '; starts? ' + reference.startsWith(current));
     let previous = field.data('lastValue');
 
+    if (window.event.key === "?" && window.event.ctrlKey && !field.hasClass('st-ok') && !field.hasClass('st-error')) {
+        if (current.length < reference.length) {
+            let nextChar = reference.charAt(current.length);
+            field.val(current + nextChar);
+        }
+        return;
+    }
+
     if (current == previous) {
         return;
     }
