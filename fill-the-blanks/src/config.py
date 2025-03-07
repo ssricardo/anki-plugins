@@ -20,10 +20,7 @@ class ConfigKey:
     FEEDBACK_ENABLED = 'feedback-enabled'
     IGNORE_CASE = 'feedback-ignore-case'
     IGNORE_ACCENTS = 'feedback-ignore-accents'
-    LEN_MULTIPLIER = 'input-len-times'
     ASIAN_CHARS = 'experimental-asian-chars'
-    ENABLE_NEW_FILTER = 'enable-new-filter'
-    OVERRIDE_TYPE_CLOZE = 'override-type-cloze'
 
 # ------------------------------ Service class --------------------------
 
@@ -32,10 +29,7 @@ DEFAULT_CONFIG = {
     ConfigKey.FEEDBACK_ENABLED: True,
     ConfigKey.IGNORE_CASE: False,
     ConfigKey.IGNORE_ACCENTS: False,
-    ConfigKey.LEN_MULTIPLIER: 62,
     ConfigKey.ASIAN_CHARS: False,
-    ConfigKey.ENABLE_NEW_FILTER: False,
-    ConfigKey.OVERRIDE_TYPE_CLOZE: True
 }
 
 class ConfigService:

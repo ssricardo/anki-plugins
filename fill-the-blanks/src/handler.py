@@ -7,6 +7,8 @@
 
 import os
 import re
+from typing import Optional
+
 from bs4 import BeautifulSoup
 import html
 
@@ -19,266 +21,171 @@ class AnkiInterface:
     staticReviewer = None
 
     @staticmethod
-    def strip_HTML(*value):
-        raise NotImplementedError("Must be replaced")
-
-    @staticmethod
-    def tr(*value):
-        raise NotImplementedError("Must be replaced")
-
-    @staticmethod
-    def TR(*value):
-        raise NotImplementedError("Must be replaced")
-
-    @staticmethod
-    def wrap(*args):
-        raise NotImplementedError("Must be replaced")
-
-    @staticmethod
-    def addHook(*args):
+    def strip_HTML(*args):
         raise NotImplementedError("Must be replaced")
 
 
 currentLocation = os.path.dirname(os.path.realpath(__file__))
 
 
-class FieldState:
-    value: str = None
-    hint: str = None
-    valueAsPlainText = None
-
-    def __init__(self, _value: str, _hint: str = None, _valueAsPlainText: str = None) -> None:
-        super().__init__()
-        self.value = _value
-        self.hint = _hint
-        self.valueAsPlainText = _valueAsPlainText
-
-
 class FieldsContext:
+    ignore_case = False
+    currentFirst = None
+    entry_number = 0
     answers: list = list()
 
-    def __init__(self, _text: str, _values: list) -> None:
-        super().__init__()
-        self.effectiveText = _text
-        self.entries = _values
+
+def addon_field_filter(field_text: str, field_name: str, filter_name: str, ctx) -> str:
+    # print("**** Field filter: %s on field %s" % (filter_name, field_name))
+    # print(field_text)
+
+    if filter_name != "fill-blanks":
+        return field_text
+
+    FieldsContext.entry_number = 0
+    FieldsContext.answers.clear()
+
+    rev_card = ctx.card()
+
+    # print("card ord: %d" % rev_card.ord)
+
+    body = BeautifulSoup(field_text, 'html.parser')
+
+    typein_fields = _traverse_entries(body, rev_card)
+    FieldsContext.entry_number = typein_fields
+
+    if typein_fields > 0:
+        FieldsContext.currentFirst = "typeans0"
+
+    return str(body)
 
 
-class TypeClozeHandler:
-    _currentFirst = None
-    reviewer = None
-    _stripHTML = None
+def _traverse_entries(body, rev_card) -> int:
+    typein_fields = 0
+    for idx, span in enumerate(body.find_all('span', 'cloze')):
+        tag_ordinal = span['data-ordinal'] if span.has_attr('data-ordinal') else "-1"
+        if tag_ordinal != str(rev_card.ord + 1):
+            continue
 
-    DEFAULT_ANKI_CLOZE = """
-    <center>
-    <input type=text id=typeans onkeypress="_typeAnsPress();"
-    style="font-family: '%s'; font-size: %spx;">
-    </center>
-    """
+        cloze_value = span['data-cloze'] if span.has_attr('data-cloze') else span.text
+        remaining_text = span.text
+        span.replace_with(_apply_typein_value(cloze_value, remaining_text, idx))
+        typein_fields += 1
+    return typein_fields
 
-    RE_REMAINING_TEXT = re.compile(r"\{\{c\d\d?::(.+?)(::.*?)?\}\}", flags=re.DOTALL)
 
-    def __init__(self, reviewer, anki: AnkiInterface, _ignoreCase=False, lengthMultiplier: int = 62) -> None:
+def _apply_typein_value(cloze_value: str, extra_text: Optional[str], field_idx: int) -> BeautifulSoup:
+    clean_value = _clear_correct_value_as_reviewer(cloze_value)
+    has_hint = extra_text and extra_text != cloze_value and extra_text != "[...]"
+    hint = extra_text.removeprefix("[").removesuffix("]") if has_hint else ""
 
-        super().__init__()
-        self.reviewer = reviewer
+    elements = _create_fill_elements(field_idx, clean_value, hint)
 
-        self._mw = reviewer.mw
-        self.isIgnoreCase = _ignoreCase
-        self._lengthMultiplier = lengthMultiplier
+    return elements
 
-        TypeClozeHandler._stripHTML = anki.strip_HTML
-        reviewer_class = anki.staticReviewer
-        reviewer_class.typeAnsQuestionFilter = anki.wrap(reviewer_class.typeAnsQuestionFilter,
-                                                         lambda _, buf, _old: self.typeAnsQuestionFilter(buf, _old), "around")
-        reviewer_class.typeAnsAnswerFilter = anki.wrap(reviewer_class.typeAnsAnswerFilter,
-                                                       lambda _, buf, _old: self.typeAnsAnswerFilter(buf, _old), "around")
-        reviewer_class._getTypedAnswer = anki.wrap(reviewer_class._getTypedAnswer,
-                                                   lambda _, _old: self._getTypedAnswer(_old), "around")
 
-        anki.addHook("showQuestion", self.on_show_question)
+def _clear_correct_value_as_reviewer(text_beautiful_soup: str):
+    """Mostly copy from original reviewer code *as plain text*"""
 
-    def typeAnsQuestionFilter(self, buf: str, _old) -> str:
-        ref = self.reviewer
+    # cor = self._mw.col.media.strip(valueAsBeautifulSoupText)      TODO
+    cor: str = AnkiInterface.strip_HTML(text_beautiful_soup)
+    cor = re.sub("(\n|<br ?/?>|</?div>)+", " ", cor)
+    cor = cor.replace("&nbsp;", " ")
+    cor = cor.replace("\xa0", " ")
+    cor = cor.replace('"', '&quot;')
 
-        ref.typeCorrect = None
-        clozeIdx = None
-        self._currentFirst = None
-        rev_card = self.reviewer.card
+    # Remove zero-width space that might be used between double-colons as a
+    # hack to support double-colon content within cloze deletion (prevent
+    # hint split); users might add `&ZeroWidthSpace;` in HTML, which
+    # BeautifulSoup interprets as unicode `\u200b`:
+    cor = cor.replace("\u200b", "")
+    cor = cor.strip()
+    return cor
 
-        m = re.search(ref.typeAnsPat, buf)
-        if not m:
-            return buf
 
-        fld = m.group(1)
-        if fld.startswith("cloze:"):
-            clozeIdx = rev_card.ord + 1
-            fld = fld.split(":")[1]
+def _create_fill_elements(idx: int, text: str, hint: str = "") -> BeautifulSoup:
+    hidden = BeautifulSoup("""<input type="hidden" id="ansval%d" value="%s" />""" % (idx, text), "html.parser")
+    typein = BeautifulSoup("""<input type="text" id="typeans%d" placeholder="%s" class="ftb %s" />""" %
+                           (idx, hint, _get_length_class(text, hint)), "html.parser")
+    script = BeautifulSoup(
+        """<script type="text/javascript">setUpFillBlankListener($('#ansval%d').val(), %d)</script>""" % (idx, idx),
+        'html.parser')
 
-        for f in rev_card.note_type()['flds']:
-            if f['name'] == fld:
-                _fieldContent = rev_card.note()[f['name']]
-                if clozeIdx:
-                    ref.typeCorrect = self._createFieldsContext(
-                        _fieldContent, clozeIdx)
+    container_soup = BeautifulSoup("""<span class="ftb-container"></span>""", "html.parser")
+    container = container_soup.span
 
-                ref.typeFont = f['font']
-                ref.typeSize = f['size']
-                break
+    container.append(hidden)
+    container.append(typein)
+    container.append(script)
 
-        if not ref.typeCorrect:
-            return _old(ref, buf)
+    return container
 
-        if not clozeIdx:
-            return re.sub(ref.typeAnsPat, TypeClozeHandler.DEFAULT_ANKI_CLOZE % (ref.typeFont, ref.typeSize), buf)
 
-        return buf[:m.start()] + \
-                 self._formatHtmlContent(ref.typeCorrect) + \
-                 buf[m.end():]
+def _get_length_class(text: str, hint: str):
+    hint_present = hint if hint else ""
+    size = max(len(text), len(hint_present))
+    if size <= 5:
+        return "ftb-xs"
+    elif size <= 10:
+        return "ftb-sm"
+    elif size > 20:
+        return "ftb-lg"
+    return "ftb-md"
 
-    CURRENT_CARD_FIELD_PLACEHOLDER = "[-multi-type-cloze-placeholder-]"
 
-    def _createFieldsContext(self, txt, idx) -> FieldsContext:
-        reCloze = re.compile(r"\{\{c%s::(.+?)\}\}" % idx, flags=re.DOTALL)
-        matches = re.findall(reCloze, txt)
-        if not matches:
-            return FieldsContext(txt, [])
+def on_show_question():
+    reviewer = AnkiInterface.staticReviewer
+    web = reviewer.mw.web
+    if FieldsContext.currentFirst:
+        web.setFocus()
+        web.eval("focusOnFirst();")
+    if FieldsContext.entry_number > 0:
+        web.eval("cleanUpTypedWords();")
+        web.eval("prepareTypedWords(%d);" % FieldsContext.entry_number)
 
-        matches = [self._splitHint(txt) for txt in matches]
-        _fieldStates = map(self._extractFieldState, matches)
-        txt = re.sub(reCloze, self.CURRENT_CARD_FIELD_PLACEHOLDER, txt)
 
-        # Replace other cloze (not current id)
-        txt = TypeClozeHandler.RE_REMAINING_TEXT.sub(r'\1', txt)
-        txt = self._handleLargeText(txt)
+# --------------------------------- Handle answer ----------------------------------------
 
-        if '[sound:' in txt:
-            txt = re.sub(r'\[sound:(\w|\d|\.|\-|_)+?\]', '', txt, flags=re.DOTALL)
+def handle_answer(answer: str, card, phase: str) -> str:
+    if phase != "reviewAnswer":
+        return answer
 
-        return FieldsContext(txt, list(_fieldStates))
+    soup = BeautifulSoup(answer, 'html.parser')
+    field_ctx = None if FieldsContext.entry_number == 0 else FieldsContext
+    span_list = soup.find_all('span', 'cloze')
 
-    def _extractFieldState(self, inputWithHint) -> FieldState:
-        try:
-            (_input, hint) = inputWithHint
-            content = BeautifulSoup('<span/>' + _input, 'html.parser')
-            text = ''.join(content.findAll(text=True))
-            text = self.clear_correct_value_as_reviewer(text)
-            return FieldState(_input, hint, text)
-        except UserWarning:
-            return FieldState(*inputWithHint)
+    if not field_ctx or (len(span_list) != len(field_ctx.answers)):
+        return answer
 
-    def _splitHint(self, txt):
-        if "::" in txt:
-            return tuple(txt.split("::", 1))
-        return (txt, "")
+    for idx, span in enumerate(span_list):
+        cur_text = span.get_text()
+        given = field_ctx.answers[idx]
+        span.replace_with(_format_field_result(given, cur_text))
 
-    def _handleLargeText(self, data: str) -> str:
-        """ Handle weird issue #82 """
-        if len(data) <= 2048:
-            return data
-        return TypeClozeHandler.RE_REMAINING_TEXT.sub(r'\1', data)  # apply it again
+    return str(soup)
 
-    def _formatHtmlContent(self, fieldsCtx: FieldsContext):
-        res = fieldsCtx.effectiveText
 
-        for idx, field in enumerate(fieldsCtx.entries):
-            (val, hint) = field.valueAsPlainText, field.hint
-            item = """<input type="hidden" id="ansval%d" value="%s" />""" % (idx, val.replace('"', '&quot;'))
-            item = item + """<input type="text" id="typeans{0}" placeholder="{1}"
-class="ftb" style="width: {2}em" /><script type="text/javascript">setUpFillBlankListener($('#ansval{0}').val(), {0})
-</script>""".format(idx, hint.replace('"', '&quot;'), self._getInputLength(hint, val))
-            res = res.replace(self.CURRENT_CARD_FIELD_PLACEHOLDER, item, 1)
+def _format_field_result(given: str, expected: str) -> BeautifulSoup:
+    given = given.strip()
+    expected = expected.strip()
+    match_ignore_case = FieldsContext.ignore_case and given.lower() == expected.lower()
+    if given == expected or match_ignore_case:
+        return BeautifulSoup("<span class='cloze st-ok'>%s</span>" % html.escape(expected), "html.parser")
+    return BeautifulSoup("<del class='cloze st-error'>%s</del><ins class='cloze st-expected'>%s</ins>" %
+                         (html.escape(given), html.escape(expected)),
+                         "html.parser")
 
-        if not self._currentFirst:
-            self._currentFirst = 'typeans0'
 
-        # placeholder for callback result
-        res = res + """
-            <input type="hidden" id="ansval" value="" />
-        """
+def getTypedAnswer(_old):
+    reviewer = AnkiInterface.staticReviewer
+    if FieldsContext.entry_number > 0:
+        reviewer.web.evalWithCallback("typedWords ? typedWords : []", _onFillBlankAnswer)
+    return _old(reviewer)
 
-        return res
 
-    def _getInputLength(self, hint, val):
-        return (max(len(val), len(hint)) * (0.01 * self._lengthMultiplier))
+def _onFillBlankAnswer(val) -> None:
+    reviewer = AnkiInterface.staticReviewer
+    if FieldsContext.entry_number > 0:
+        FieldsContext.answers = val
+    reviewer._showAnswer()
 
-    def on_show_question(self):
-        web = self.reviewer.mw.web
-        if self._currentFirst:
-            web.setFocus()
-            web.eval("focusOnFirst();")
-        if self.reviewer.typeCorrect and isinstance(self.reviewer.typeCorrect, FieldsContext):
-            web.eval("cleanUpTypedWords();")
-            ctx: FieldsContext = self.reviewer.typeCorrect
-            web.eval("prepareTypedWords(%d);" % len(ctx.entries))
-
-    # --------------------------------- Handle answer ----------------------------------------
-
-    def typeAnsAnswerFilter(self, currentText, _originalFn):
-        reviewer = self.reviewer
-
-        if not reviewer.typeCorrect or not isinstance(reviewer.typeCorrect, FieldsContext):
-            return _originalFn(reviewer, currentText)
-
-        ctx: FieldsContext = reviewer.typeCorrect
-
-        origSize = len(currentText)
-        currentText = currentText.replace("<hr id=answer>", "")
-        hadHR = len(currentText) != origSize
-
-        result = currentText
-        for index, field in enumerate(ctx.entries):
-            cor = field.valueAsPlainText
-            given = ctx.answers[index] if ctx.answers and len(ctx.answers) == len(ctx.entries) else "None"
-            field_res = self.format_field_result(given, cor)
-            result = re.sub(r'<span class="?cloze\s*"?(\s*data-ordinal="\d\d?")?>%s</span>' % re.escape(field.value),
-                            field_res.replace('\\', r'\\'), result, 1)
-
-        # copy from reviewer original
-        def repl(match):
-            s = """
-        <span style="font-family: '%s'; font-size: %spx">%s</span>""" % (
-                reviewer.typeFont,
-                reviewer.typeSize,
-                match,
-            )
-            if hadHR:
-                s = "<hr id=answer>" + s
-            return s
-
-        return re.sub(reviewer.typeAnsPat, repl, result)
-
-    def format_field_result(self, given: str, expected: str):
-        given = given.strip()
-        expected = expected.strip()
-        if given == expected:
-            return "<span class='cloze st-ok'>%s</span>" % html.escape(expected)
-        if self.isIgnoreCase and given.lower() == expected.lower():
-            return "<span class='cloze st-ok'>%s</span>" % html.escape(expected)
-        return "<span class='cloze st-expected'>%s</span> <span class='cloze st-error'>(%s)</span>" % (html.escape(expected), html.escape(given))
-
-    def clear_correct_value_as_reviewer(self, valueAsBeautifulSoupText: str):
-        """Mostly copy from original reviewer code *as plain text*"""
-
-        cor = self._mw.col.media.strip(valueAsBeautifulSoupText)
-        cor = re.sub("(\n|<br ?/?>|</?div>)+", " ", cor)
-        cor = cor.replace("&nbsp;", " ")
-        cor = cor.replace("\xa0", " ")
-        # Remove zero-width space that might be used between double-colons as a
-        # hack to support double-colon content within cloze deletion (prevent
-        # hint split); users might add `&ZeroWidthSpace;` in HTML, which
-        # BeautifulSoup interprets as unicode `\u200b`:
-        cor = cor.replace("\u200b", "")
-        cor = cor.strip()
-        return cor
-
-    def _getTypedAnswer(self, _old) -> None:
-        reviewer = self.reviewer
-        if reviewer.typeCorrect and isinstance(reviewer.typeCorrect, FieldsContext):
-            self.reviewer.web.evalWithCallback("typedWords ? typedWords : []", self._onFillBlankAnswer)
-        return _old(reviewer)
-
-    def _onFillBlankAnswer(self, val) -> None:
-        reviewer = self.reviewer
-        if reviewer.typeCorrect and isinstance(reviewer.typeCorrect, FieldsContext):
-            reviewer.typeCorrect.answers = val
-        reviewer._showAnswer()

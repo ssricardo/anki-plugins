@@ -18,7 +18,7 @@ from aqt.reviewer import Reviewer
 from aqt.utils import tooltip
 
 from .config import ConfigService, ConfigKey
-from .handler import TypeClozeHandler, AnkiInterface
+from .handler import addon_field_filter, on_show_question, handle_answer, AnkiInterface, getTypedAnswer
 
 CWD = os.path.dirname(os.path.realpath(__file__))
 
@@ -70,19 +70,10 @@ def _ankiConfigRead(key):
     return mw.addonManager.getConfig(__name__)[key]
 
 
-def _bind_anki_interface():
-    anki_interface = AnkiInterface()
-    anki_interface.staticReviewer = Reviewer
-    anki_interface.addHook = addHook
-    anki_interface.wrap = wrap
-    anki_interface.strip_HTML = strip_html
-    return anki_interface
-
-
 def warn_template_editor(*args):
     global _warn_template_shown
     if not _warn_template_shown:
-        tooltip("[Fill-in-the-blanks] Be aware: The add-on does not apply to the template editor. To check it, please go to Review mode", 8000)
+        tooltip("[Fill-in-the-blanks] Be aware: The add-on does not apply to the template editor. To check it, please go to Review mode", 9000)
         _warn_template_shown = True
 
 
@@ -119,30 +110,9 @@ def wrapInitWeb(anki_mw, fn):
     return _initReviewerWeb
 
 
-def _setup_bindings():
-    global _handler
-
-    if not ConfigService.read(ConfigKey.OVERRIDE_TYPE_CLOZE, bool):
-        return
-
-    reviewer = mw.reviewer
-    if not reviewer:
-        print('Unexpected state on Fill-blanks: No reviewer')
-        return
-
-    anki_interface = _bind_anki_interface()
-
-    _handler = TypeClozeHandler(reviewer, anki_interface, ConfigService.read(ConfigKey.IGNORE_CASE, bool),
-                                ConfigService.read(ConfigKey.LEN_MULTIPLIER, int))
-
-
-def _setup_new_integration():
-    if not ConfigService.read(ConfigKey.ENABLE_NEW_FILTER, bool):
-        return
-
-    from .handler_new import addon_field_filter, on_show_question, handle_answer, AnkiInterfaceNew, getTypedAnswer
-    AnkiInterfaceNew.staticReviewer = mw.reviewer
-    AnkiInterfaceNew.strip_HTML = strip_html
+def _setup_anki_integration():
+    AnkiInterface.staticReviewer = mw.reviewer
+    AnkiInterface.strip_HTML = strip_html
 
     hooks.field_filter.append(addon_field_filter)
     addHook("showQuestion", on_show_question)
@@ -161,5 +131,4 @@ def run():
     reviewer = mw.reviewer
     reviewer._initWeb = wrapInitWeb(mw, reviewer._initWeb)
 
-    _setup_bindings()
-    _setup_new_integration()
+    _setup_anki_integration()
