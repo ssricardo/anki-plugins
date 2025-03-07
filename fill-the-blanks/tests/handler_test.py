@@ -29,7 +29,7 @@ reviewer = TestReviewer()
 
 ankiInterfaceMock = AnkiInterface()
 ankiInterfaceMock.staticReviewer = TestReviewer
-ankiInterfaceMock.stripHTML = lambda v: v
+ankiInterfaceMock.strip_HTML = lambda v: v
 ankiInterfaceMock.wrap = wrapFake
 ankiInterfaceMock.addHook = hookFakeFn
 

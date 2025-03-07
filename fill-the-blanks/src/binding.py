@@ -11,7 +11,7 @@ import os
 
 from anki import hooks
 from anki.hooks import wrap, addHook
-from anki.utils import stripHTML
+from anki.utils import strip_html
 from aqt import gui_hooks
 from aqt import mw
 from aqt.reviewer import Reviewer
@@ -75,7 +75,7 @@ def _bind_anki_interface():
     anki_interface.staticReviewer = Reviewer
     anki_interface.addHook = addHook
     anki_interface.wrap = wrap
-    anki_interface.stripHTML = stripHTML
+    anki_interface.strip_HTML = strip_html
     return anki_interface
 
 
@@ -142,6 +142,7 @@ def _setup_new_integration():
 
     from .handler_new import addon_field_filter, on_show_question, handle_answer, AnkiInterfaceNew, getTypedAnswer
     AnkiInterfaceNew.staticReviewer = mw.reviewer
+    AnkiInterfaceNew.strip_HTML = strip_html
 
     hooks.field_filter.append(addon_field_filter)
     addHook("showQuestion", on_show_question)

@@ -94,3 +94,12 @@
 * Add new integration (still experimental)
 * Merge support for zero-width space (thanks Andre/@lightmotive)
 * issue #39
+
+*25.3-1* | 07/03/2025
+
+* Make new integration be the default and disable old one by default
+* Add feature: Suggest next character (issue #70)
+* Support CSS styles for distinct field size (related to issue #151)
+
+* ~Merge support for cloze across multiple fields~ (issue #156)
+  * Cancelled/Reverted

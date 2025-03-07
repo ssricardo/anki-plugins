@@ -21,7 +21,7 @@ class AnkiInterfaceNew:
     staticReviewer = None
 
     @staticmethod
-    def stripHTML(*args):
+    def strip_HTML(*args):
         raise NotImplementedError("Must be replaced")
 
 
@@ -88,7 +88,7 @@ def _clear_correct_value_as_reviewer(text_beautiful_soup: str):
     """Mostly copy from original reviewer code *as plain text*"""
 
     # cor = self._mw.col.media.strip(valueAsBeautifulSoupText)      TODO
-    cor: str = text_beautiful_soup
+    cor: str = AnkiInterfaceNew.strip_HTML(text_beautiful_soup)
     cor = re.sub("(\n|<br ?/?>|</?div>)+", " ", cor)
     cor = cor.replace("&nbsp;", " ")
     cor = cor.replace("\xa0", " ")
@@ -189,11 +189,3 @@ def _onFillBlankAnswer(val) -> None:
         FieldsContext.answers = val
     reviewer._showAnswer()
 
-
-def _createFieldsContext(self, txt, idx) -> FieldsContext:
-    # matches = [self._splitHint(txt) for txt in matches]
-    # _fieldStates = map(self._extractFieldState, matches)
-    # txt = re.sub(reCloze, self.CURRENT_CARD_FIELD_PLACEHOLDER, txt)
-
-    if '[sound:' in txt:
-        txt = re.sub(r'\[sound:(\w|\d|\.|\-|_)+?\]', '', txt, flags=re.DOTALL)

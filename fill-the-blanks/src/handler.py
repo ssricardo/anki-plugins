@@ -19,7 +19,7 @@ class AnkiInterface:
     staticReviewer = None
 
     @staticmethod
-    def stripHTML(*value):
+    def strip_HTML(*value):
         raise NotImplementedError("Must be replaced")
 
     @staticmethod
@@ -86,7 +86,7 @@ class TypeClozeHandler:
         self.isIgnoreCase = _ignoreCase
         self._lengthMultiplier = lengthMultiplier
 
-        TypeClozeHandler._stripHTML = anki.stripHTML
+        TypeClozeHandler._stripHTML = anki.strip_HTML
         reviewer_class = anki.staticReviewer
         reviewer_class.typeAnsQuestionFilter = anki.wrap(reviewer_class.typeAnsQuestionFilter,
                                                          lambda _, buf, _old: self.typeAnsQuestionFilter(buf, _old), "around")

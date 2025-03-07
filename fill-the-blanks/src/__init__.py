@@ -2,7 +2,7 @@
 # Module for fill-the-blanks addon
 # -------------------------------------------------------------
 
-__version__ = "3.0"
+__version__ = "25.3-1"
 
 try:
     from .binding import run
