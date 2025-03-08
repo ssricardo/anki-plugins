@@ -16,4 +16,5 @@
     * In test, for enabling feedback for Japanese, Chinese, Korean
     * Acceptable values: true | false
 
-New integration is the default now: https://github.com/ssricardo/anki-plugins/wiki/Fill-the-blanks-New-Integration
+New integration is the default now:  
+https://github.com/ssricardo/anki-plugins/wiki/Fill-the-blanks-Default-Integration

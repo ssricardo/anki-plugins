@@ -4,7 +4,7 @@ let shouldIgnoreAccents = false;
 let asianCharsEnabled = false;
 var typedWords = [];
 
-function checkFieldValue(reference, fieldIndex) {
+function checkFieldValue(reference, fieldIndex, event) {
     if (window.event.keyCode === 13) {
         pycmd("ans");
         return;
@@ -16,18 +16,15 @@ function checkFieldValue(reference, fieldIndex) {
         return;
     }
 
-    let current = field.val().trim();
+    let current = field.val();
     // console.log('Cur: ' + current + '; starts? ' + reference.startsWith(current));
     let previous = field.data('lastValue');
 
-    if (window.event.key === "?" && window.event.ctrlKey && !field.hasClass('st-ok') && !field.hasClass('st-error')) {
-        if (current.length < reference.length) {
-            let nextChar = reference.charAt(current.length);
-            field.val(current + nextChar);
-        }
+    if (suggestNextCharacter(field, current, reference, event)) {
         return;
     }
 
+    current = current.trim();
     if (current == previous) {
         return;
     }
@@ -66,6 +63,24 @@ function cleanUpView(field) {
     field.removeClass('st-ok');
     field.removeClass('st-incomplete');
     field.removeClass('st-error');
+}
+
+function suggestNextCharacter(field, current, reference, event) {
+    if (field.hasClass('st-ok') || field.hasClass('st-error') || current.length >= reference.length) {
+        return false;
+    }
+
+    if ((event.key === "?" && event.ctrlKey) || (isMacOS() && event.metaKey && event.shiftKey && event.key === '/')) {
+        let nextChar = reference.charAt(current.length);
+        field.val(current + nextChar);
+        return true;
+    }
+
+    return false;
+}
+
+function isMacOS() {
+  return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 }
 
 // ------------- Verification ---------------
@@ -117,7 +132,7 @@ function focusOnFirst() {
 function setUpFillBlankListener(expected, typeAnsIndex) {
     const eventType = (asianCharsEnabled) ? "input" : "keyup"
     document.getElementById(`typeans${typeAnsIndex}`).addEventListener(eventType,
-      (evt) => checkFieldValue(expected, typeAnsIndex))
+      (evt) => checkFieldValue(expected, typeAnsIndex, evt))
 
     // add extra event for Enter key
     if (eventType === "input") {

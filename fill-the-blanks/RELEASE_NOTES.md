@@ -97,9 +97,14 @@
 
 *25.3-1* | 07/03/2025
 
-* Make new integration be the default and disable old one by default
+* Remove the old integration in favor or the new (now default)
 * Add feature: Suggest next character (issue #70)
 * Support CSS styles for distinct field size (related to issue #151)
+* Strip HTML in the value in the input field (issue #157)
 
 * ~Merge support for cloze across multiple fields~ (issue #156)
   * Cancelled/Reverted
+
+*25.3-2* | 08/03/2025
+
+* Fix shortcut for "show next character" on MacOS
