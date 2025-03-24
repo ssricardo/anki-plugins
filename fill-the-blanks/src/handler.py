@@ -12,6 +12,7 @@ from typing import Optional
 from bs4 import BeautifulSoup
 import html
 
+from .config import ConfigService, ConfigKey
 
 class AnkiInterface:
     """
@@ -29,7 +30,6 @@ currentLocation = os.path.dirname(os.path.realpath(__file__))
 
 
 class FieldsContext:
-    ignore_case = False
     currentFirst = None
     entry_number = 0
     answers: list = list()
@@ -168,8 +168,11 @@ def handle_answer(answer: str, card, phase: str) -> str:
 def _format_field_result(given: str, expected: str) -> BeautifulSoup:
     given = given.strip()
     expected = expected.strip()
-    match_ignore_case = FieldsContext.ignore_case and given.lower() == expected.lower()
-    if given == expected or match_ignore_case:
+    ignore_case = ConfigService.read(ConfigKey.IGNORE_CASE, bool)
+    if ignore_case:
+        given = given.lower()
+        expected = expected.lower()
+    if given == expected:
         return BeautifulSoup("<span class='cloze st-ok'>%s</span>" % html.escape(expected), "html.parser")
     return BeautifulSoup("<del class='cloze st-error'>%s</del><ins class='cloze st-expected'>%s</ins>" %
                          (html.escape(given), html.escape(expected)),
