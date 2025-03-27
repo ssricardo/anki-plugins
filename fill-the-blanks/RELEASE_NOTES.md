@@ -108,3 +108,10 @@
 *25.3-2* | 08/03/2025
 
 * Fix shortcut for "show next character" on MacOS
+
+*25.3-3* | 27/03/2025
+
+* Fix ignore-case feedback (issue #164 - thanks @ryndovaira)
+* Fix cleaning context up
+  * To Avoid running the addon in cards that it's not used (related to issue #163)
+* Add a margin between a wrong answer and the expected one (besides adding the typed value as a on-mouse-over hint)

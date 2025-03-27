@@ -12,8 +12,6 @@ from typing import Optional
 from bs4 import BeautifulSoup
 import html
 
-from .config import ConfigService, ConfigKey
-
 class AnkiInterface:
     """
         Decouples internal components from Anki, making it easier for unit testing
@@ -30,15 +28,13 @@ currentLocation = os.path.dirname(os.path.realpath(__file__))
 
 
 class FieldsContext:
+    ignore_case = False
     currentFirst = None
     entry_number = 0
     answers: list = list()
 
 
 def addon_field_filter(field_text: str, field_name: str, filter_name: str, ctx) -> str:
-    # print("**** Field filter: %s on field %s" % (filter_name, field_name))
-    # print(field_text)
-
     if filter_name != "fill-blanks":
         return field_text
 
@@ -46,11 +42,7 @@ def addon_field_filter(field_text: str, field_name: str, filter_name: str, ctx) 
     FieldsContext.answers.clear()
 
     rev_card = ctx.card()
-
-    # print("card ord: %d" % rev_card.ord)
-
     body = BeautifulSoup(field_text, 'html.parser')
-
     typein_fields = _traverse_entries(body, rev_card)
     FieldsContext.entry_number = typein_fields
 
@@ -168,14 +160,13 @@ def handle_answer(answer: str, card, phase: str) -> str:
 def _format_field_result(given: str, expected: str) -> BeautifulSoup:
     given = given.strip()
     expected = expected.strip()
-    ignore_case = ConfigService.read(ConfigKey.IGNORE_CASE, bool)
-    if ignore_case:
-        given = given.lower()
-        expected = expected.lower()
-    if given == expected:
+    match_ignore_case = FieldsContext.ignore_case and given.lower() == expected.lower()
+
+    if given == expected or match_ignore_case:
         return BeautifulSoup("<span class='cloze st-ok'>%s</span>" % html.escape(expected), "html.parser")
-    return BeautifulSoup("<del class='cloze st-error'>%s</del><ins class='cloze st-expected'>%s</ins>" %
-                         (html.escape(given), html.escape(expected)),
+
+    return BeautifulSoup("<del class='cloze st-error' title='Typed: %s'>%s</del><ins class='cloze st-expected'>%s</ins>" %
+                         (html.escape(given), html.escape(given), html.escape(expected)),
                          "html.parser")
 
 
@@ -191,4 +182,9 @@ def _onFillBlankAnswer(val) -> None:
     if FieldsContext.entry_number > 0:
         FieldsContext.answers = val
     reviewer._showAnswer()
+
+
+def cleanup_context(reviewer, card, ease):
+    FieldsContext.entry_number = 0
+    FieldsContext.answers.clear()
 

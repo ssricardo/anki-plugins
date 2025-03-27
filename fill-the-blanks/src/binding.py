@@ -18,7 +18,7 @@ from aqt.reviewer import Reviewer
 from aqt.utils import tooltip
 
 from .config import ConfigService, ConfigKey
-from .handler import addon_field_filter, on_show_question, handle_answer, AnkiInterface, getTypedAnswer
+from .handler import addon_field_filter, on_show_question, handle_answer, cleanup_context, AnkiInterface, getTypedAnswer, FieldsContext
 
 CWD = os.path.dirname(os.path.realpath(__file__))
 
@@ -51,6 +51,7 @@ input.st-ok {
 .cloze.st-error {
     color: #ff4949;
     text-decoration: line-through;
+    margin-right: 3px;
 }
 .cloze.st-expected {
     color: orange;
@@ -113,12 +114,14 @@ def wrapInitWeb(anki_mw, fn):
 def _setup_anki_integration():
     AnkiInterface.staticReviewer = mw.reviewer
     AnkiInterface.strip_HTML = strip_html
+    FieldsContext.ignore_case = ConfigService.read(ConfigKey.IGNORE_CASE, bool)
 
     hooks.field_filter.append(addon_field_filter)
     addHook("showQuestion", on_show_question)
 
     gui_hooks.card_layout_will_show.append(warn_template_editor)
     gui_hooks.card_will_show.append(handle_answer)
+    gui_hooks.reviewer_did_answer_card.append(cleanup_context)
 
     Reviewer._getTypedAnswer = wrap(Reviewer._getTypedAnswer,
                                     lambda _, _old: getTypedAnswer(_old), "around")
